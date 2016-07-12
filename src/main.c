@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2016/07/11 18:11:03 by alelievr          #+#    #+#             */
-/*   Updated: 2016/07/12 03:02:22 by alelievr         ###   ########.fr       */
+/*   Updated: 2016/07/12 14:55:29 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@
 #include <sys/stat.h>
 #include <sys/mman.h>
 #include <unistd.h>
+#include <stdbool.h>
 
 float points[] = {
    	-1.0f,  -1.0f,
@@ -34,7 +35,7 @@ float points[] = {
 	WIN_W, WIN_H,
 };
 
-float			mouseX = 0, mouseY = 0, buttonClick = 0;
+float			mouseX = 0, mouseY = 0, buttonClick = 0, scrollX = 0, scrollY = 0;
 long			lastModifiedFile = 0;
 
 static void		usage(const char *n) __attribute__((noreturn));
@@ -46,7 +47,7 @@ static void		usage(const char *n)
 
 static void error_callback(int error, const char* description)
 {
-	    fprintf(stderr, "Error: %s\n", description);
+	fprintf(stderr, "Error: %s\n", description);
 }
 
 static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
@@ -73,6 +74,12 @@ static void mouse_click_callback(GLFWwindow *win, int button, int action, int mo
 		buttonClick = 0;
 }
 
+static void mouse_scroll_callback(GLFWwindow *win, double xOffset, double yOffset)
+{
+	scrollX = xOffset;
+	scrollY = yOffset;
+}
+
 GLFWwindow	*init(char *name)
 {
 	GLFWwindow *win;
@@ -91,13 +98,14 @@ GLFWwindow	*init(char *name)
 	glfwSetKeyCallback(win, key_callback);
 	glfwSetCursorPosCallback(win, mouse_callback);
 	glfwSetMouseButtonCallback(win, mouse_click_callback);
+	glfwSetScrollCallback(win, mouse_scroll_callback);
 	glfwMakeContextCurrent (win);
 	glfwSwapInterval(1);
 
 	return (win);
 }
 
-void		checkCompilation(GLuint shader)
+void		checkCompilation(GLuint shader, bool fatal)
 {
 	GLint isCompiled = 0;
 	glGetShaderiv(shader, GL_COMPILE_STATUS, &isCompiled);
@@ -111,12 +119,12 @@ void		checkCompilation(GLuint shader)
 		printf("%s\n", buff);
 
 		glDeleteShader(shader);
-		printf("shader compilation error, exiting\n");
-		exit(-1);
+		if (fatal)
+			printf("shader compilation error, exiting\n"), exit(-1);
 	}
 }
 
-void		checkLink(GLuint program)
+void		checkLink(GLuint program, bool fatal)
 {
 	GLint isLinked = 0;
 	glGetProgramiv(program, GL_LINK_STATUS, (int *)&isLinked);
@@ -130,8 +138,8 @@ void		checkLink(GLuint program)
 		printf("%s\n", buff);
 
 		glDeleteProgram(program);
-		printf("link error, exiting\n");
-		exit(-1);
+		if (fatal)
+			printf("link error, exiting\n"), exit(-1);
 	}
 }
 
@@ -142,7 +150,7 @@ char		*getFileSource(int fd)
 	return mmap(NULL, st.st_size, PROT_READ | PROT_WRITE, MAP_PRIVATE, fd, 0);
 }
 
-GLuint		CompileShaderFragment(int fd)
+GLuint		CompileShaderFragment(int fd, bool fatal)
 {
 	GLuint		ret;
 	const char	*srcs[] = {fragment_shader_text, getFileSource(fd)};
@@ -150,33 +158,33 @@ GLuint		CompileShaderFragment(int fd)
 	ret = glCreateShader(GL_FRAGMENT_SHADER);
 	glShaderSource(ret, 2, srcs, NULL);
 	glCompileShader(ret);
-	checkCompilation(ret);
+	checkCompilation(ret, fatal);
 	return (ret);
 }
 
-GLuint		CompileShaderVertex(void)
+GLuint		CompileShaderVertex(bool fatal)
 {
 	GLuint		ret;
 
 	ret = glCreateShader(GL_VERTEX_SHADER);
 	glShaderSource(ret, 1, &vertex_shader_text, NULL);
 	glCompileShader(ret);
-	checkCompilation(ret);
+	checkCompilation(ret, fatal);
 	return (ret);
 }
 
-GLuint		createProgram(int fd)
+GLuint		createProgram(int fd, bool fatal)
 {
 	GLuint		program;
 
-	GLuint		shaderVertex = CompileShaderVertex();
-	GLuint		shaderFragment = CompileShaderFragment(fd);
+	GLuint		shaderVertex = CompileShaderVertex(fatal);
+	GLuint		shaderFragment = CompileShaderFragment(fd, fatal);
 
 	program = glCreateProgram();
 	glAttachShader(program, shaderVertex);
 	glAttachShader(program, shaderFragment);
 	glLinkProgram(program);
-	checkLink(program);
+	checkLink(program, fatal);
 
 	return program;
 }
@@ -223,7 +231,8 @@ void		updateUniforms(GLint *unis)
 
 	glUniform1f(unis[0], (float)(time(NULL) - lTime) + (float)t.tv_usec / 1000000.0);
 	glUniform1i(unis[1], frames++);
-	glUniform4f(unis[2], mouseX, mouseY, buttonClick, buttonClick);
+	glUniform4f(unis[2], mouseX, WIN_H - mouseY, buttonClick, buttonClick);
+	glUniform2f(unis[3], scrollX, scrollY);
 }
 
 void		loop(GLFWwindow *win, GLuint program, GLuint vao, GLint *unis)
@@ -252,6 +261,7 @@ GLint		*getUniformLocation(GLuint program)
 	unis[0] = glGetUniformLocation(program, "iGlobalTime");
 	unis[1] = glGetUniformLocation(program, "iFrame");
 	unis[2] = glGetUniformLocation(program, "iMouse");
+	unis[3] = glGetUniformLocation(program, "iScroll");
 	return unis;
 }
 
@@ -276,7 +286,7 @@ void		checkFileChanged(GLuint *program, char *file, int *fd)
 		lastModifiedFile = st.st_mtime;
 		close(*fd);
 		*fd = open(file, O_RDONLY);
-		*program = createProgram(*fd);
+		*program = createProgram(*fd, false);
 		printf("recompiling shader !\n");
 	}
 }
@@ -290,7 +300,7 @@ int			main(int ac, char **av)
 
 	GLFWwindow *win = init(av[1]);
 
-	GLuint		program = createProgram(fd);
+	GLuint		program = createProgram(fd, true);
 	GLuint		vbo = createVBO();
 	GLuint		vao = createVAO(vbo, program);
 	GLint		*unis = getUniformLocation(program);

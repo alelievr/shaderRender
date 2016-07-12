@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2016/07/11 18:11:58 by alelievr          #+#    #+#             */
-/*   Updated: 2016/07/12 03:00:59 by alelievr         ###   ########.fr       */
+/*   Updated: 2016/07/12 14:52:23 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,6 +47,7 @@ static const char* fragment_shader_text =
 "uniform float		iGlobalTime;\n"
 "uniform int		iFrame;\n"
 "uniform vec4		iMouse;\n"
+"uniform vec2		iScroll;\n"
 "\n"
 "void mainImage(vec2 f);\n"
 "\n"
