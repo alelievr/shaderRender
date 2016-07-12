@@ -6,7 +6,7 @@
 #    By: alelievr <marvin@42.fr>                    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2014/07/15 15:13:38 by alelievr          #+#    #+#              #
-#    Updated: 2016/03/31 22:21:17 by alelievr         ###   ########.fr        #
+#    Updated: 2016/07/12 19:02:02 by alelievr         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -39,7 +39,7 @@ LIBDIRS		=	glfw-3.2/src/
 LDLIBS		=	-lglfw3
 
 #	Output
-NAME		=	a.out
+NAME		=	shaderizer
 
 #	Compiler
 WERROR		=	-Werror
