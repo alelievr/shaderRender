@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2016/07/11 18:11:03 by alelievr          #+#    #+#             */
-/*   Updated: 2016/07/12 14:55:29 by alelievr         ###   ########.fr       */
+/*   Updated: 2016/07/14 17:05:20 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,10 @@
 #include <sys/mman.h>
 #include <unistd.h>
 #include <stdbool.h>
+
+#define BIT_SET(i, pos, v) (v) ? (i |= 1 << pos) : (i &= ~(1 << pos))
+#define BIT_GET(i, pos) (i >> pos) & 1
+#define MOVE_AMOUNT 0.01f;
 
 float points[] = {
    	-1.0f,  -1.0f,
@@ -35,7 +39,22 @@ float points[] = {
 	WIN_W, WIN_H,
 };
 
-float			mouseX = 0, mouseY = 0, buttonClick = 0, scrollX = 0, scrollY = 0;
+enum			KEY_BITS
+{
+	RIGHT,
+	LEFT,
+	UP,
+	DOWN,
+	FORWARD,
+	BACK,
+	PLUS,
+	MOIN,
+};
+
+vec4			mouse = {0, 0, 0, 0};
+vec2			scroll = {0, 0};
+vec4			move = {0, 0, 0, 0};
+int				keys = 0;
 long			lastModifiedFile = 0;
 
 static void		usage(const char *n) __attribute__((noreturn));
@@ -54,13 +73,29 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
 {
 	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, GLFW_TRUE);
+	if (key == GLFW_KEY_RIGHT || key == GLFW_KEY_D)
+		BIT_SET(keys, RIGHT, action == GLFW_PRESS || action == GLFW_REPEAT);
+	if (key == GLFW_KEY_LEFT || key == GLFW_KEY_A)
+		BIT_SET(keys, LEFT, action == GLFW_PRESS || action == GLFW_REPEAT);
+	if (key == GLFW_KEY_UP || key == GLFW_KEY_W)
+		BIT_SET(keys, UP, action == GLFW_PRESS || action == GLFW_REPEAT);
+	if (key == GLFW_KEY_DOWN || key == GLFW_KEY_S)
+		BIT_SET(keys, DOWN, action == GLFW_PRESS || action == GLFW_REPEAT);
+	if (key == GLFW_KEY_Q)
+		BIT_SET(keys, FORWARD, action == GLFW_PRESS || action == GLFW_REPEAT);
+	if (key == GLFW_KEY_E)
+		BIT_SET(keys, BACK, action == GLFW_PRESS || action == GLFW_REPEAT);
+	if (key == GLFW_KEY_KP_ADD)
+		BIT_SET(keys, PLUS, action == GLFW_PRESS || action == GLFW_REPEAT);
+	if (key == GLFW_KEY_KP_SUBTRACT)
+		BIT_SET(keys, MOIN, action == GLFW_PRESS || action == GLFW_REPEAT);
 }
 
 static void mouse_callback(GLFWwindow *win, double x, double y)
 {
 	(void)win;
-	mouseX = x;
-	mouseY = y;
+	mouse.x = x;
+	mouse.y = y;
 }
 
 static void mouse_click_callback(GLFWwindow *win, int button, int action, int mods)
@@ -69,15 +104,15 @@ static void mouse_click_callback(GLFWwindow *win, int button, int action, int mo
 	(void)action;
 	(void)mods;
 	if (action == 1)
-		buttonClick = 1;
+		mouse.y = 1;
 	else
-		buttonClick = 0;
+		mouse.y = 0;
 }
 
 static void mouse_scroll_callback(GLFWwindow *win, double xOffset, double yOffset)
 {
-	scrollX = xOffset;
-	scrollY = yOffset;
+	scroll.x += xOffset;
+	scroll.y += yOffset;
 }
 
 GLFWwindow	*init(char *name)
@@ -231,8 +266,29 @@ void		updateUniforms(GLint *unis)
 
 	glUniform1f(unis[0], (float)(time(NULL) - lTime) + (float)t.tv_usec / 1000000.0);
 	glUniform1i(unis[1], frames++);
-	glUniform4f(unis[2], mouseX, WIN_H - mouseY, buttonClick, buttonClick);
-	glUniform2f(unis[3], scrollX, scrollY);
+	glUniform4f(unis[2], mouse.x, WIN_H - mouse.y, mouse.y, mouse.y);
+	glUniform2f(unis[3], scroll.x, scroll.y);
+	glUniform4f(unis[4], move.x, move.y, move.z, move.w);
+}
+
+void		update_keys(void)
+{
+	if (BIT_GET(keys, RIGHT))
+		move.x += MOVE_AMOUNT;
+	if (BIT_GET(keys, LEFT))
+		move.x -= MOVE_AMOUNT;
+	if (BIT_GET(keys, UP))
+		move.y += MOVE_AMOUNT;
+	if (BIT_GET(keys, DOWN))
+		move.y -= MOVE_AMOUNT;
+	if (BIT_GET(keys, FORWARD))
+		move.z += MOVE_AMOUNT;
+	if (BIT_GET(keys, BACK))
+		move.z -= MOVE_AMOUNT;
+	if (BIT_GET(keys, PLUS))
+		move.w += MOVE_AMOUNT;
+	if (BIT_GET(keys, MOIN))
+		move.w -= MOVE_AMOUNT;
 }
 
 void		loop(GLFWwindow *win, GLuint program, GLuint vao, GLint *unis)
@@ -243,6 +299,8 @@ void		loop(GLFWwindow *win, GLuint program, GLuint vao, GLint *unis)
 	ratio = width / (float) height;
 	glViewport(0, 0, width, height);
 	glClear(GL_COLOR_BUFFER_BIT);
+
+	update_keys();
 
 	updateUniforms(unis);
 
@@ -261,7 +319,8 @@ GLint		*getUniformLocation(GLuint program)
 	unis[0] = glGetUniformLocation(program, "iGlobalTime");
 	unis[1] = glGetUniformLocation(program, "iFrame");
 	unis[2] = glGetUniformLocation(program, "iMouse");
-	unis[3] = glGetUniformLocation(program, "iScroll");
+	unis[3] = glGetUniformLocation(program, "iScrollAmount");
+	unis[4] = glGetUniformLocation(program, "iMoveAmount");
 	return unis;
 }
 
@@ -288,6 +347,7 @@ void		checkFileChanged(GLuint *program, char *file, int *fd)
 		*fd = open(file, O_RDONLY);
 		*program = createProgram(*fd, false);
 		printf("recompiling shader !\n");
+		getUniformLocation(*program);
 	}
 }
 

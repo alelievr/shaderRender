@@ -6,10 +6,9 @@ void mainImage( in vec2 fragCoord )
 	p *= 2.;
     p -= 1.;	
     p.x *= iResolution.x/iResolution.y;
-	p *= (exp((iMouse.x - iResolution.x) / 100));
-	
-	//p -= vec2(0.5236, -0.6897);
+	p *= exp(-iMoveAmount.w * 4) / 100;
 	p += vec2(0.274,0.482);
+	p += iMoveAmount.xy / 100;
 	
 	vec2 zc = vec2(0, 0);
 	vec2 zp = zc;
@@ -24,7 +23,7 @@ void mainImage( in vec2 fragCoord )
 		zp = zc;
 		zc = p + vec2(zc.x * zc.x - zc.y * zc.y, 2. * zc.x * zc.y);
 		
-		vec2 z = zp + (zc - zp) * sin((iGlobalTime - 30.) * 0.05) * 5.;
+		vec2 z = zp + (zc - zp) * sin((iGlobalTime - 30.) * 0.1) * 5.;
 		
 		float dist1 = abs(z.x * z.x * z.x - z.y * z.y);
 		float dist2 = abs(z.x * z.x * z.x - z.y * z.y * z.x);

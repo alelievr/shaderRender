@@ -26,7 +26,7 @@ void mainImage( in vec2 fragCoord )
     p.x *= iResolution.x/iResolution.y;
 
     // animation	
-	float tz = 0.5 - 0.5*cos(0.225*iGlobalTime);
+	float tz = 0.5 - 0.5*(-0.225*iGlobalTime);
     float zo = pow( 0.5, 13.0*tz );
 	
     vec4 c = vec4( vec2(-0.05,.6805) + p*zo, 1.0, 0.0 );

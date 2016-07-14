@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2016/07/11 18:11:58 by alelievr          #+#    #+#             */
-/*   Updated: 2016/07/12 14:52:23 by alelievr         ###   ########.fr       */
+/*   Updated: 2016/07/14 17:04:18 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,27 @@
 
 # define WIN_W 1080
 # define WIN_H 720
+
+typedef struct s_vec2
+{
+	float x;
+	float y;
+}				vec2;
+
+typedef struct s_vec3
+{
+	float x;
+	float y;
+	float z;
+}				vec3;
+
+typedef struct s_vec4
+{
+	float x;
+	float y;
+	float z;
+	float w;
+}				vec4;
 
 static const char* vertex_shader_text =
 "#version 330\n"
@@ -47,7 +68,8 @@ static const char* fragment_shader_text =
 "uniform float		iGlobalTime;\n"
 "uniform int		iFrame;\n"
 "uniform vec4		iMouse;\n"
-"uniform vec2		iScroll;\n"
+"uniform vec2		iScrollAmount;\n"
+"uniform vec4		iMoveAmount;\n"
 "\n"
 "void mainImage(vec2 f);\n"
 "\n"

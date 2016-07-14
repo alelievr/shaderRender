@@ -6,7 +6,7 @@
 #    By: alelievr <marvin@42.fr>                    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2014/07/15 15:13:38 by alelievr          #+#    #+#              #
-#    Updated: 2016/07/12 19:02:02 by alelievr         ###   ########.fr        #
+#    Updated: 2016/07/14 16:28:56 by alelievr         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -32,14 +32,14 @@ CPPVERSION	=	c++11
 #Example $> make DEBUG=2 will set debuglevel to 2
 
 #	Includes
-INCDIRS		=	. glfw-3.2/include
+INCDIRS		=	. glfw-3.2/include inc
 
 #	Libraries
 LIBDIRS		=	glfw-3.2/src/
 LDLIBS		=	-lglfw3
 
 #	Output
-NAME		=	shaderizer
+NAME		=	visualishader
 
 #	Compiler
 WERROR		=	-Werror
