@@ -89,7 +89,7 @@ vec3 render( in vec3 ro, in vec3 rd, in float anim )
 
 void mainImage(in vec2 fragCoord )
 {
-    float time = iGlobalTime*0.25 + 0.01*iMouse.x;
+    float time = iGlobalTime*0.55 + 0.01*iMouse.x;
     float anim = 1.1 + 0.5*smoothstep( -0.3, 0.3, cos(0.1*iGlobalTime) );
     
     vec3 tot = vec3(0.0);
@@ -104,9 +104,9 @@ void mainImage(in vec2 fragCoord )
         vec2 p = (2.0*q-iResolution.xy)/iResolution.y;
 
         // camera
-        vec3 ro = vec3( 2.8*cos(0.1+.33*time), 0.4 + 0.30*cos(0.37*time), 2.8*cos(0.5+0.35*time) );
-        vec3 ta = vec3( 1.9*cos(1.2+.41*time), 0.4 + 0.10*cos(0.27*time), 1.9*cos(2.0+0.38*time) );
-        float roll = 0.2*cos(0.1*time);
+        vec3 ro = vec3( 2.8*sin(0.1+.33*time), 0.4 + 0.30*sin(0.37*time), 2.8*sin(0.5+0.35*time) );
+        vec3 ta = vec3(1.9*sin(1.2+.41*time), 0.4 + 0.10*sin(0.27*time), 1.9*sin(2.0+0.38*time) );
+        float roll = -0.2*cos(0.1*time);
         vec3 cw = normalize(ta-ro);
         vec3 cp = vec3(sin(roll), cos(roll),0.0);
         vec3 cu = normalize(cross(cw,cp));

@@ -10,12 +10,11 @@ vec3 get_cell_point(ivec3 cell) {
 	float noise_x = rand(cell.xyz);
     float noise_y = rand(cell.yxz);
     float noise_z = rand(cell.xzy);
-    return cell_base + (0.5 + 1.5 * vec3(noise_x, noise_y, noise_z)) / NUM_CELLS;
+    return cell_base + (0.5 + 3.5 * vec3(noise_x, noise_y, noise_z)) / NUM_CELLS;
 }
 
 float worley(vec3 coord) {
     ivec3 cell = ivec3(coord * NUM_CELLS);
-    float dist = 1.0;
 
 	vec3 c = get_cell_point(cell);
 	if (length(coord.xy - c.xy) <= 0.001)

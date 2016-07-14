@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2016/07/11 18:11:03 by alelievr          #+#    #+#             */
-/*   Updated: 2016/07/14 17:05:20 by alelievr         ###   ########.fr       */
+/*   Updated: 2016/07/14 19:16:39 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,6 +55,7 @@ vec4			mouse = {0, 0, 0, 0};
 vec2			scroll = {0, 0};
 vec4			move = {0, 0, 0, 0};
 int				keys = 0;
+int				input_pause = 0;
 long			lastModifiedFile = 0;
 
 static void		usage(const char *n) __attribute__((noreturn));
@@ -89,6 +90,8 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
 		BIT_SET(keys, PLUS, action == GLFW_PRESS || action == GLFW_REPEAT);
 	if (key == GLFW_KEY_KP_SUBTRACT)
 		BIT_SET(keys, MOIN, action == GLFW_PRESS || action == GLFW_REPEAT);
+	if (key == GLFW_KEY_SPACE)
+		input_pause ^= action == GLFW_PRESS;
 }
 
 static void mouse_callback(GLFWwindow *win, double x, double y)
@@ -302,7 +305,11 @@ void		loop(GLFWwindow *win, GLuint program, GLuint vao, GLint *unis)
 
 	update_keys();
 
-	updateUniforms(unis);
+	if (!input_pause)
+		updateUniforms(unis);
+
+	//glEnable(GL_ARB_multisample);
+	glEnable(GL_MULTISAMPLE);
 
 	glUseProgram(program);
 	glBindVertexArray(vao);
