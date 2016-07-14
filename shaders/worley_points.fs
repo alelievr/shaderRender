@@ -1,32 +1,47 @@
 
 #define NUM_CELLS 100.0
 
-float rand(vec3 co){
-    return fract(sin(dot(co ,vec3(12.9898,78.233,34.925))) * 43758.5453);
+
+float r(float n)
+{
+	return fract(cos(n*89.42)*343.42);
 }
 
-vec3 get_cell_point(ivec3 cell) {
-	vec3 cell_base = vec3(cell) / NUM_CELLS;
-	float noise_x = rand(cell.xyz);
-    float noise_y = rand(cell.yxz);
-    float noise_z = rand(cell.xzy);
-    return cell_base + (0.5 + 3.5 * vec3(noise_x, noise_y, noise_z)) / NUM_CELLS;
+vec2 r(vec2 n)
+{
+	return vec2(r(n.x*23.62-300.0+n.y*34.35),r(n.x*45.13+256.0+n.y*38.89)); 
 }
 
-float worley(vec3 coord) {
-    ivec3 cell = ivec3(coord * NUM_CELLS);
-
-	vec3 c = get_cell_point(cell);
-	if (length(coord.xy - c.xy) <= 0.001)
-		return 1;
-	return 0;
+vec3 r(vec3 n)
+{
+	return vec3(r(n.x*23.62-300.0+n.y*34.35),r(n.x*45.13+256.0+n.y*38.89),r(n.x*78.0+213.98+n.y*42.51)); 
 }
 
+float worley(vec3 n,float s)
+{
+	float dis = 2.0;
+	for(int x = -1; x <= 1; x++)
+	{
+		for(int y = -1; y <= 1; y++)
+		{
+			for(int z = -1; z <= 1; z++)
+			{
+				vec3 p = floor(n / s)+vec3(x, y, z);
+				vec3 center = r(p) + vec3(x, y, z) - fract(n / s);
+				float d = length(center) * 3;
+				if (d < dis)
+					dis = d;
+			}
+		}
+	}
+	return dis;
+}
 
 void mainImage( in vec2 fragCoord )
 {
 	vec2 uv = fragCoord.xy / iResolution.xy;
     uv.y *= iResolution.y / iResolution.x;
-	fragColor = vec4(worley(vec3(uv.x, uv.y, 2) +
-				vec3(iGlobalTime / 20, iGlobalTime / 20, 0)));
+	uv *= 10;
+	fragColor = vec4(worley(vec3(uv.x, uv.y, 0) +
+				vec3(iGlobalTime / 2, iGlobalTime / 2, 0), 1));
 }

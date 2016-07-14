@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2016/07/11 18:11:03 by alelievr          #+#    #+#             */
-/*   Updated: 2016/07/14 19:16:39 by alelievr         ###   ########.fr       */
+/*   Updated: 2016/07/15 01:16:18 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -185,7 +185,14 @@ char		*getFileSource(int fd)
 {
 	struct stat	st;
 	fstat(fd, &st);
-	return mmap(NULL, st.st_size, PROT_READ | PROT_WRITE, MAP_PRIVATE, fd, 0);
+	char	*ret = mmap(NULL, st.st_size + 1, PROT_READ | PROT_WRITE, MAP_PRIVATE, fd, 0);
+	if (ret == MAP_FAILED)
+	{
+		perror("mmap");
+		return (NULL);
+	}
+	ret[st.st_size] = 0;
+	return ret;
 }
 
 GLuint		CompileShaderFragment(int fd, bool fatal)
@@ -193,6 +200,8 @@ GLuint		CompileShaderFragment(int fd, bool fatal)
 	GLuint		ret;
 	const char	*srcs[] = {fragment_shader_text, getFileSource(fd)};
 
+	if (srcs[1] == NULL)
+		return (0);
 	ret = glCreateShader(GL_FRAGMENT_SHADER);
 	glShaderSource(ret, 2, srcs, NULL);
 	glCompileShader(ret);
@@ -218,6 +227,8 @@ GLuint		createProgram(int fd, bool fatal)
 	GLuint		shaderVertex = CompileShaderVertex(fatal);
 	GLuint		shaderFragment = CompileShaderFragment(fd, fatal);
 
+	if (shaderVertex == 0 || shaderFragment == 0)
+		return (0);
 	program = glCreateProgram();
 	glAttachShader(program, shaderVertex);
 	glAttachShader(program, shaderFragment);
@@ -352,9 +363,14 @@ void		checkFileChanged(GLuint *program, char *file, int *fd)
 		lastModifiedFile = st.st_mtime;
 		close(*fd);
 		*fd = open(file, O_RDONLY);
-		*program = createProgram(*fd, false);
-		printf("recompiling shader !\n");
-		getUniformLocation(*program);
+		GLint new_program = createProgram(*fd, false);
+		if (new_program != 0)
+		{
+			glDeleteProgram(*program);
+			*program = new_program;
+			printf("shader reloaded !\n");
+			getUniformLocation(*program);
+		}
 	}
 }
 

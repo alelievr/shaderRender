@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2016/07/11 18:11:58 by alelievr          #+#    #+#             */
-/*   Updated: 2016/07/14 17:04:18 by alelievr         ###   ########.fr       */
+/*   Updated: 2016/07/14 23:01:51 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,7 +41,7 @@ typedef struct s_vec4
 }				vec4;
 
 static const char* vertex_shader_text =
-"#version 330\n"
+"#version 410\n"
 "in vec2		iResolutionIn;\n"
 "out vec2		iResolution;\n"
 "in vec2		fragPosition;\n"
@@ -60,7 +60,7 @@ static const char* fragment_shader_image_text =
 "}\n";
 
 static const char* fragment_shader_text =
-"#version 330\n"
+"#version 410\n"
 "in vec4 outColor;\n"
 "out vec4 fragColor;\n"
 "\n"
