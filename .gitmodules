@@ -1,6 +1,6 @@
 [submodule "glfw"]
 	path = glfw
 	url = https://github.com/glfw/glfw
-[submodule "Simple-OpenGL-Image-Library"]
-	path = Simple-OpenGL-Image-Library
-	url = https://github.com/kbranigan/Simple-OpenGL-Image-Library
+[submodule "SOIL2-clone"]
+	path = SOIL2-clone
+	url = https://github.com/alelievr/SOIL2-clone.git

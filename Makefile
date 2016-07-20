@@ -6,7 +6,7 @@
 #    By: alelievr <marvin@42.fr>                    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2014/07/15 15:13:38 by alelievr          #+#    #+#              #
-#    Updated: 2016/07/21 00:15:30 by alelievr         ###   ########.fr        #
+#    Updated: 2016/07/21 01:00:25 by alelievr         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -34,13 +34,13 @@ CPPVERSION	=	c++11
 #Example $> make DEBUG=2 will set debuglevel to 2
 
 #	Includes
-INCDIRS		=	. glfw/include inc Simple-OpenGL-Image-Library/src/
+INCDIRS		=	. glfw/include inc SOIL2-clone/SOIL2
 
 #	Libraries
-LIBDIRS		=	glfw/src/ Simple-OpenGL-Image-Library/lib/
-LDLIBS		=	-lglfw3 -lSOIL
+LIBDIRS		=	glfw/src/ SOIL2-clone
+LDLIBS		=	-lglfw3 -lSOIL2
 GLFWLIB		=	glfw/src/libglfw3.a
-SOILLIB		=	Simple-OpenGL-Image-Library/lib/libSOIL.a
+SOILLIB		=	SOIL2-clone/libSOIL2.a
 
 #	Output
 NAME		=	visualishader
@@ -172,7 +172,7 @@ endif
 all: $(GLFWLIB) $(SOILLIB) $(NAME)
 
 $(SOILLIB):
-	cd Simple-OpenGL-Image-Library && make
+	cd SOIL2-clone && make
 
 $(GLFWLIB):
 	git submodule init
