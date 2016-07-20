@@ -90,7 +90,7 @@ float softshadow( in vec3 ro, in vec3 rd, float mint, float k, in vec4 c )
 {
     float res = 1.0;
     float t = mint;
-    for( int i=0; i<64; i++ )
+    for( int i=0; i<1028; i++ )
     {
         vec4 kk;
         float h = map(ro + rd*t, kk, c);

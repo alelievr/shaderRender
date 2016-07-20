@@ -47,7 +47,7 @@ void mainImage( in vec2 fragCoord )
 		d3 = min(d3, dist9);		
 	}
 	
-	d = pow(abs(1. - sqrt(abs(d))), 2.);
+	d = pow(abs(1. - sqrt(abs(d))), 310.);
 	d2 = pow(abs(1. - sqrt(abs(d2))), 10.);
 	d3 = pow(abs(1. - sqrt(abs(d3))), 10.);
 	

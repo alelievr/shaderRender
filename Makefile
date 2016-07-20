@@ -6,7 +6,7 @@
 #    By: alelievr <marvin@42.fr>                    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2014/07/15 15:13:38 by alelievr          #+#    #+#              #
-#    Updated: 2016/07/14 16:28:56 by alelievr         ###   ########.fr        #
+#    Updated: 2016/07/20 23:30:56 by alelievr         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -35,8 +35,9 @@ CPPVERSION	=	c++11
 INCDIRS		=	. glfw-3.2/include inc
 
 #	Libraries
-LIBDIRS		=	glfw-3.2/src/
+LIBDIRS		=	glfw/src/
 LDLIBS		=	-lglfw3
+GLFWLIB		=	glfw/src/libglfw3.a
 
 #	Output
 NAME		=	visualishader
@@ -165,7 +166,12 @@ endif
 #################
 
 #	First target
-all: $(NAME)
+all: $(GLFWLIB) $(NAME)
+
+$(GLFWLIB):
+	git submodule init
+	git submodule update
+	cd glfw && cmake . && make
 
 #	Linking
 $(NAME): $(OBJ)
