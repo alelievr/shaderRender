@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2016/07/11 18:11:03 by alelievr          #+#    #+#             */
-/*   Updated: 2016/07/15 01:16:18 by alelievr         ###   ########.fr       */
+/*   Updated: 2016/07/21 00:31:58 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,14 +15,16 @@
 #include <stdlib.h>
 #include <sys/time.h>
 #include <fcntl.h>
-#include <sys/stat.h>
-#include <sys/mman.h>
 #include <unistd.h>
 #include <stdbool.h>
+#include <sys/stat.h>
 
-#define BIT_SET(i, pos, v) (v) ? (i |= 1 << pos) : (i &= ~(1 << pos))
-#define BIT_GET(i, pos) (i >> pos) & 1
-#define MOVE_AMOUNT 0.01f;
+vec4         mouse = {0, 0, 0, 0};
+vec2         scroll = {0, 0};
+vec4         move = {0, 0, 0, 0};
+int        	 keys = 0;
+int          input_pause = 0;
+long         lastModifiedFile = 0;
 
 float points[] = {
    	-1.0f,  -1.0f,
@@ -39,25 +41,6 @@ float points[] = {
 	WIN_W, WIN_H,
 };
 
-enum			KEY_BITS
-{
-	RIGHT,
-	LEFT,
-	UP,
-	DOWN,
-	FORWARD,
-	BACK,
-	PLUS,
-	MOIN,
-};
-
-vec4			mouse = {0, 0, 0, 0};
-vec2			scroll = {0, 0};
-vec4			move = {0, 0, 0, 0};
-int				keys = 0;
-int				input_pause = 0;
-long			lastModifiedFile = 0;
-
 static void		usage(const char *n) __attribute__((noreturn));
 static void		usage(const char *n)
 {
@@ -65,178 +48,6 @@ static void		usage(const char *n)
 	exit(0);
 }
 
-static void error_callback(int error, const char* description)
-{
-	fprintf(stderr, "Error: %s\n", description);
-}
-
-static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
-{
-	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-		glfwSetWindowShouldClose(window, GLFW_TRUE);
-	if (key == GLFW_KEY_RIGHT || key == GLFW_KEY_D)
-		BIT_SET(keys, RIGHT, action == GLFW_PRESS || action == GLFW_REPEAT);
-	if (key == GLFW_KEY_LEFT || key == GLFW_KEY_A)
-		BIT_SET(keys, LEFT, action == GLFW_PRESS || action == GLFW_REPEAT);
-	if (key == GLFW_KEY_UP || key == GLFW_KEY_W)
-		BIT_SET(keys, UP, action == GLFW_PRESS || action == GLFW_REPEAT);
-	if (key == GLFW_KEY_DOWN || key == GLFW_KEY_S)
-		BIT_SET(keys, DOWN, action == GLFW_PRESS || action == GLFW_REPEAT);
-	if (key == GLFW_KEY_Q)
-		BIT_SET(keys, FORWARD, action == GLFW_PRESS || action == GLFW_REPEAT);
-	if (key == GLFW_KEY_E)
-		BIT_SET(keys, BACK, action == GLFW_PRESS || action == GLFW_REPEAT);
-	if (key == GLFW_KEY_KP_ADD)
-		BIT_SET(keys, PLUS, action == GLFW_PRESS || action == GLFW_REPEAT);
-	if (key == GLFW_KEY_KP_SUBTRACT)
-		BIT_SET(keys, MOIN, action == GLFW_PRESS || action == GLFW_REPEAT);
-	if (key == GLFW_KEY_SPACE)
-		input_pause ^= action == GLFW_PRESS;
-}
-
-static void mouse_callback(GLFWwindow *win, double x, double y)
-{
-	(void)win;
-	mouse.x = x;
-	mouse.y = y;
-}
-
-static void mouse_click_callback(GLFWwindow *win, int button, int action, int mods)
-{
-	(void)win;
-	(void)action;
-	(void)mods;
-	if (action == 1)
-		mouse.y = 1;
-	else
-		mouse.y = 0;
-}
-
-static void mouse_scroll_callback(GLFWwindow *win, double xOffset, double yOffset)
-{
-	scroll.x += xOffset;
-	scroll.y += yOffset;
-}
-
-GLFWwindow	*init(char *name)
-{
-	GLFWwindow *win;
-	GLuint		vertex_buffer;
-
-	//GLFW
-	glfwSetErrorCallback(error_callback);
-	if (!glfwInit())
-		printf("glfwInit error !\n"), exit(-1);
-	glfwWindowHint (GLFW_CONTEXT_VERSION_MAJOR, 3);
- 	glfwWindowHint (GLFW_CONTEXT_VERSION_MINOR, 2);
- 	glfwWindowHint (GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
- 	glfwWindowHint (GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	if (!(win = glfwCreateWindow(WIN_W, WIN_H, name, NULL, NULL)))
-		printf("failed to create window !\n"), exit(-1);
-	glfwSetKeyCallback(win, key_callback);
-	glfwSetCursorPosCallback(win, mouse_callback);
-	glfwSetMouseButtonCallback(win, mouse_click_callback);
-	glfwSetScrollCallback(win, mouse_scroll_callback);
-	glfwMakeContextCurrent (win);
-	glfwSwapInterval(1);
-
-	return (win);
-}
-
-void		checkCompilation(GLuint shader, bool fatal)
-{
-	GLint isCompiled = 0;
-	glGetShaderiv(shader, GL_COMPILE_STATUS, &isCompiled);
-	if(isCompiled == GL_FALSE)
-	{
-		GLint maxLength = 0;
-		glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &maxLength);
-
-		char		buff[maxLength];
-		glGetShaderInfoLog(shader, maxLength, &maxLength, buff);
-		printf("%s\n", buff);
-
-		glDeleteShader(shader);
-		if (fatal)
-			printf("shader compilation error, exiting\n"), exit(-1);
-	}
-}
-
-void		checkLink(GLuint program, bool fatal)
-{
-	GLint isLinked = 0;
-	glGetProgramiv(program, GL_LINK_STATUS, (int *)&isLinked);
-	if(isLinked == GL_FALSE)
-	{
-		GLint maxLength = 0;
-		glGetProgramiv(program, GL_INFO_LOG_LENGTH, &maxLength);
-
-		char		buff[maxLength];
-		glGetProgramInfoLog(program, maxLength, &maxLength, buff);
-		printf("%s\n", buff);
-
-		glDeleteProgram(program);
-		if (fatal)
-			printf("link error, exiting\n"), exit(-1);
-	}
-}
-
-char		*getFileSource(int fd)
-{
-	struct stat	st;
-	fstat(fd, &st);
-	char	*ret = mmap(NULL, st.st_size + 1, PROT_READ | PROT_WRITE, MAP_PRIVATE, fd, 0);
-	if (ret == MAP_FAILED)
-	{
-		perror("mmap");
-		return (NULL);
-	}
-	ret[st.st_size] = 0;
-	return ret;
-}
-
-GLuint		CompileShaderFragment(int fd, bool fatal)
-{
-	GLuint		ret;
-	const char	*srcs[] = {fragment_shader_text, getFileSource(fd)};
-
-	if (srcs[1] == NULL)
-		return (0);
-	ret = glCreateShader(GL_FRAGMENT_SHADER);
-	glShaderSource(ret, 2, srcs, NULL);
-	glCompileShader(ret);
-	checkCompilation(ret, fatal);
-	return (ret);
-}
-
-GLuint		CompileShaderVertex(bool fatal)
-{
-	GLuint		ret;
-
-	ret = glCreateShader(GL_VERTEX_SHADER);
-	glShaderSource(ret, 1, &vertex_shader_text, NULL);
-	glCompileShader(ret);
-	checkCompilation(ret, fatal);
-	return (ret);
-}
-
-GLuint		createProgram(int fd, bool fatal)
-{
-	GLuint		program;
-
-	GLuint		shaderVertex = CompileShaderVertex(fatal);
-	GLuint		shaderFragment = CompileShaderFragment(fd, fatal);
-
-	if (shaderVertex == 0 || shaderFragment == 0)
-		return (0);
-	program = glCreateProgram();
-	glAttachShader(program, shaderVertex);
-	glAttachShader(program, shaderFragment);
-	glLinkProgram(program);
-	checkLink(program, fatal);
-
-	return program;
-}
 
 GLuint		createVBO(void)
 {
@@ -268,7 +79,7 @@ GLuint		createVAO(GLuint vbo, int program)
 	return vao;
 }
 
-void		updateUniforms(GLint *unis)
+void		updateUniforms(GLint *unis, GLint *images)
 {
 	struct timeval	t;
 	static int		frames = 0;
@@ -283,6 +94,10 @@ void		updateUniforms(GLint *unis)
 	glUniform4f(unis[2], mouse.x, WIN_H - mouse.y, mouse.y, mouse.y);
 	glUniform2f(unis[3], scroll.x, scroll.y);
 	glUniform4f(unis[4], move.x, move.y, move.z, move.w);
+	glUniform1i(unis[5], images[0]);
+	glUniform1i(unis[6], images[1]);
+	glUniform1i(unis[7], images[2]);
+	glUniform1i(unis[8], images[3]);
 }
 
 void		update_keys(void)
@@ -305,7 +120,7 @@ void		update_keys(void)
 		move.w -= MOVE_AMOUNT;
 }
 
-void		loop(GLFWwindow *win, GLuint program, GLuint vao, GLint *unis)
+void		loop(GLFWwindow *win, GLuint program, GLuint vao, GLint *unis, GLint *images)
 {
 	float ratio;
 	int width, height;
@@ -317,7 +132,7 @@ void		loop(GLFWwindow *win, GLuint program, GLuint vao, GLint *unis)
 	update_keys();
 
 	if (!input_pause)
-		updateUniforms(unis);
+		updateUniforms(unis, images);
 
 	//glEnable(GL_ARB_multisample);
 	glEnable(GL_MULTISAMPLE);
@@ -339,6 +154,10 @@ GLint		*getUniformLocation(GLuint program)
 	unis[2] = glGetUniformLocation(program, "iMouse");
 	unis[3] = glGetUniformLocation(program, "iScrollAmount");
 	unis[4] = glGetUniformLocation(program, "iMoveAmount");
+	unis[5] = glGetUniformLocation(program, "iChannel0");
+	unis[6] = glGetUniformLocation(program, "iChannel1");
+	unis[7] = glGetUniformLocation(program, "iChannel2");
+	unis[8] = glGetUniformLocation(program, "iChannel3");
 	return unis;
 }
 
@@ -374,12 +193,28 @@ void		checkFileChanged(GLuint *program, char *file, int *fd)
 	}
 }
 
+GLint		*loadImages(char **av)
+{
+	static GLint	texts[0xF0];
+
+	for (int i = 0; av[i]; i++)
+	{
+		printf("%s\n", av[i]);
+		texts[i] = SOIL_load_OGL_texture(av[i], SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID,
+				SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y | SOIL_FLAG_NTSC_SAFE_RGB | SOIL_FLAG_COMPRESS_TO_DXT);
+		if (texts[i] == 0)
+			printf("can't load texture: %s\n", SOIL_last_result()), exit(-1);
+	}
+	return texts;
+}
+
 int			main(int ac, char **av)
 {
-	if (ac != 2)
+	if (ac < 2)
 		usage(*av);
 
 	int			fd = getFileFd(av[1]);
+	double		t1;
 
 	GLFWwindow *win = init(av[1]);
 
@@ -387,11 +222,14 @@ int			main(int ac, char **av)
 	GLuint		vbo = createVBO();
 	GLuint		vao = createVAO(vbo, program);
 	GLint		*unis = getUniformLocation(program);
+	GLint		*images = loadImages(av + 2);
 
-	while (!glfwWindowShouldClose(win))
+	while ((t1 = glfwGetTime()), !glfwWindowShouldClose(win))
 	{
 		checkFileChanged(&program, av[1], &fd);
-		loop(win, program, vao, unis);
+		loop(win, program, vao, unis, images);
+		printf("%sfps:%.3f%s", "\x1b\x37", 1 / (glfwGetTime() - t1), "\x1b\x38");
+		fflush(stdout);
 	}
 
 	close(fd);

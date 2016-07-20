@@ -6,15 +6,19 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2016/07/11 18:11:58 by alelievr          #+#    #+#             */
-/*   Updated: 2016/07/14 23:01:51 by alelievr         ###   ########.fr       */
+/*   Updated: 2016/07/21 00:22:31 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef SHADERPIXEL_H
 # define SHADERPIXEL_H
 
+# include <stdio.h>
+# include <stdlib.h>
+# include <stdbool.h>
 # define GLFW_INCLUDE_GLCOREARB
 # include "GLFW/glfw3.h"
+# include "SOIL.h"
 
 # define WIN_W 1080
 # define WIN_H 720
@@ -40,8 +44,34 @@ typedef struct s_vec4
 	float w;
 }				vec4;
 
+enum			KEY_BITS
+{
+	RIGHT,
+	LEFT,
+	UP,
+	DOWN,
+	FORWARD,
+	BACK,
+	PLUS,
+	MOIN,
+};
+
+#define BIT_SET(i, pos, v) (v) ? (i |= 1 << pos) : (i &= ~(1 << pos))
+#define BIT_GET(i, pos) (i >> pos) & 1
+#define MOVE_AMOUNT 0.01f;
+
+extern vec4			mouse;
+extern vec2			scroll;
+extern vec4			move;
+extern int			keys;
+extern int			input_pause;
+extern long			lastModifiedFile;
+
+GLFWwindow		*init(char *fname);
+GLuint			createProgram(int fd, bool fatal);
+
 static const char* vertex_shader_text =
-"#version 410\n"
+"#version 150\n"
 "in vec2		iResolutionIn;\n"
 "out vec2		iResolution;\n"
 "in vec2		fragPosition;\n"
@@ -60,7 +90,7 @@ static const char* fragment_shader_image_text =
 "}\n";
 
 static const char* fragment_shader_text =
-"#version 410\n"
+"#version 150\n"
 "in vec4 outColor;\n"
 "out vec4 fragColor;\n"
 "\n"
@@ -70,6 +100,10 @@ static const char* fragment_shader_text =
 "uniform vec4		iMouse;\n"
 "uniform vec2		iScrollAmount;\n"
 "uniform vec4		iMoveAmount;\n"
+"uniform sampler2D	iChannel0;\n"
+"uniform sampler2D	iChannel1;\n"
+"uniform sampler2D	iChannel2;\n"
+"uniform sampler2D	iChannel3;\n"
 "\n"
 "void mainImage(vec2 f);\n"
 "\n"

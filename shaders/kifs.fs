@@ -42,7 +42,7 @@ vec3 tex3D( sampler2D tex, in vec3 p, in vec3 n ){
     
     n = max((abs(n) - 0.2)*7., 0.001); // n = max(abs(n), 0.001), etc.
     n /= (n.x + n.y + n.z ); 
-	p = (texture2D(tex, p.yz)*n.x + texture2D(tex, p.zx)*n.y + texture2D(tex, p.xy)*n.z).xyz;
+	p = (texture(tex, p.yz)*n.x + texture(tex, p.zx)*n.y + texture(tex, p.xy)*n.z).xyz;
     
     return p*p;
 }
@@ -321,7 +321,7 @@ vec3 envMap(vec3 rd){
     vec2 uv = vec2(atan(rd.y,rd.x)/6.283, acos(rd.z)/3.14159);
     uv = fract(uv);
    
-    vec3 col = texture2D(iChannel1, uv).zyx;//*(1.-lod*.8)
+    vec3 col = texture(iChannel1, uv).zyx;//*(1.-lod*.8)
     return smoothstep(.0, 1., col*col*2.);
     
 }
@@ -329,7 +329,7 @@ vec3 envMap(vec3 rd){
 //////
 
 
-void mainImage( out vec4 fragColor, in vec2 fragCoord ){
+void mainImage( in vec2 fragCoord ){
     
     
     // Unit direction ray vector: Note the absence of a divide term. I came across
