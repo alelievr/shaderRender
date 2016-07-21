@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2016/07/11 18:11:03 by alelievr          #+#    #+#             */
-/*   Updated: 2016/07/21 00:49:19 by alelievr         ###   ########.fr       */
+/*   Updated: 2016/07/21 02:40:00 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -98,6 +98,15 @@ void		updateUniforms(GLint *unis, GLint *images)
 	glUniform1i(unis[6], images[1]);
 	glUniform1i(unis[7], images[2]);
 	glUniform1i(unis[8], images[3]);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, images[0]);
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, images[1]);
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, images[2]);
+	glActiveTexture(GL_TEXTURE3);
+	glBindTexture(GL_TEXTURE_2D, images[3]);
 }
 
 void		update_keys(void)
@@ -131,11 +140,12 @@ void		loop(GLFWwindow *win, GLuint program, GLuint vao, GLint *unis, GLint *imag
 
 	update_keys();
 
-	if (!input_pause)
-		updateUniforms(unis, images);
-
 	//glEnable(GL_ARB_multisample);
 	glEnable(GL_MULTISAMPLE);
+	glEnable(GL_TEXTURE_2D);
+
+	if (!input_pause)
+		updateUniforms(unis, images);
 
 	glUseProgram(program);
 	glBindVertexArray(vao);
