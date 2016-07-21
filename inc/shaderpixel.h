@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2016/07/11 18:11:58 by alelievr          #+#    #+#             */
-/*   Updated: 2016/07/21 00:59:47 by alelievr         ###   ########.fr       */
+/*   Updated: 2016/07/21 14:43:20 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -106,6 +106,16 @@ static const char* fragment_shader_text =
 "uniform sampler2D	iChannel3;\n"
 "\n"
 "void mainImage(vec2 f);\n"
+"\n"
+"vec4 texture2D(sampler2D s, vec2 coord, float f)\n"
+"{\n"
+"	return texture(s, coord, f);\n"
+"}\n"
+"\n"
+"vec4 texture2D(sampler2D s, vec2 coord)\n"
+"{\n"
+"	return texture(s, coord);\n"
+"}\n"
 "\n"
 "void main()\n"
 "{\n"

@@ -12,7 +12,7 @@
 
 
 mat2 mm2(in float a){float c = cos(a), s = sin(a);return mat2(c,-s,s,c);}
-float noise( in float x ){return x * 5.56565f * cos(x * 9.56458f);}
+float noise( in float x ){return texture2D(iChannel0, vec2(x*.01,1.)).x;}
 
 float hash( float n ){return fract(sin(n)*43758.5453);}
 
@@ -24,7 +24,7 @@ float noise(in vec3 p)
 	f = f*f*(3.0-2.0*f);
 	
 	vec2 uv = (ip.xy+vec2(37.0,17.0)*ip.z) + f.xy;
-	vec2 rg = vec2(0);
+	vec2 rg = texture2D( iChannel0, (uv+ 0.5)/256.0, -100.0 ).yx;
 	return mix(rg.x, rg.y, f.z);
 }
 
