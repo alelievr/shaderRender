@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2016/07/21 00:12:11 by alelievr          #+#    #+#             */
-/*   Updated: 2016/07/21 02:40:57 by alelievr         ###   ########.fr       */
+/*   Updated: 2016/07/21 17:56:22 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,6 +65,12 @@ static void mouse_scroll_callback(GLFWwindow *win, double xOffset, double yOffse
 	scroll.y += yOffset;
 }
 
+static void resize_callback(GLFWwindow *win, int width, int height)
+{
+	window.x = width;
+	window.y = height;
+}
+
 GLFWwindow	*init(char *name)
 {
 	GLFWwindow *win;
@@ -84,6 +90,7 @@ GLFWwindow	*init(char *name)
 	glfwSetCursorPosCallback(win, mouse_callback);
 	glfwSetMouseButtonCallback(win, mouse_click_callback);
 	glfwSetScrollCallback(win, mouse_scroll_callback);
+	glfwSetWindowSizeCallback(win, resize_callback);
 	glfwMakeContextCurrent (win);
 	glfwSwapInterval(1);
 

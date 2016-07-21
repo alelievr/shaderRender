@@ -517,8 +517,8 @@ void TraceRay (in vec3 rayPos, in vec3 rayDir, inout vec3 pixelColor, in int dep
 			// do texture sampling for the floorbox
 			if (collisionInfo.m_Id == floorBox.m_Id)
 			{
-				//collisionInfo.m_material.m_diffuseColor = 
-				//texture2D(iChannel0, collisionInfo.m_intersectionPoint.xz * 0.25).xyz;
+				collisionInfo.m_material.m_diffuseColor = 
+				texture2D(iChannel0, collisionInfo.m_intersectionPoint.xz * 0.25).xyz;
 			}
 			
 			// point lights
@@ -608,7 +608,7 @@ void mainImage( in vec2 fragCoord )
 		
 		rayTarget = (f * cameraDistance)
 				  + (l * percent.x * cameraViewWidth)
-		          + (u * percent.y * cameraViewHeight);	
+		          + (u * percent.y * cameraViewHeight);		
 	}
 	
 	vec3 rayDir = normalize(rayTarget);

@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2016/07/11 18:11:03 by alelievr          #+#    #+#             */
-/*   Updated: 2016/07/21 02:40:00 by alelievr         ###   ########.fr       */
+/*   Updated: 2016/07/21 18:25:24 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,12 +19,13 @@
 #include <stdbool.h>
 #include <sys/stat.h>
 
-vec4         mouse = {0, 0, 0, 0};
-vec2         scroll = {0, 0};
-vec4         move = {0, 0, 0, 0};
-int        	 keys = 0;
-int          input_pause = 0;
-long         lastModifiedFile = 0;
+vec4        mouse = {0, 0, 0, 0};
+vec2        scroll = {0, 0};
+vec4        move = {0, 0, 0, 0};
+vec2		window = {WIN_W, WIN_H};
+int        	keys = 0;
+int         input_pause = 0;
+long        lastModifiedFile = 0;
 
 float points[] = {
    	-1.0f,  -1.0f,
@@ -94,19 +95,21 @@ void		updateUniforms(GLint *unis, GLint *images)
 	glUniform4f(unis[2], mouse.x, WIN_H - mouse.y, mouse.y, mouse.y);
 	glUniform2f(unis[3], scroll.x, scroll.y);
 	glUniform4f(unis[4], move.x, move.y, move.z, move.w);
-	glUniform1i(unis[5], images[0]);
-	glUniform1i(unis[6], images[1]);
-	glUniform1i(unis[7], images[2]);
-	glUniform1i(unis[8], images[3]);
+	glUniform2f(unis[5], window.x, window.y);
 
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, images[0]);
 	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, images[1]);
+	glBindTexture(GL_TEXTURE_2D, images[0]);
 	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_2D, images[2]);
+	glBindTexture(GL_TEXTURE_2D, images[1]);
 	glActiveTexture(GL_TEXTURE3);
+	glBindTexture(GL_TEXTURE_2D, images[2]);
+	glActiveTexture(GL_TEXTURE4);
 	glBindTexture(GL_TEXTURE_2D, images[3]);
+
+	glUniform1i(unis[6], images[0]);
+	glUniform1i(unis[7], images[1]);
+	glUniform1i(unis[8], images[2]);
+	glUniform1i(unis[9], images[3]);
 }
 
 void		update_keys(void)
@@ -164,10 +167,12 @@ GLint		*getUniformLocation(GLuint program)
 	unis[2] = glGetUniformLocation(program, "iMouse");
 	unis[3] = glGetUniformLocation(program, "iScrollAmount");
 	unis[4] = glGetUniformLocation(program, "iMoveAmount");
-	unis[5] = glGetUniformLocation(program, "iChannel0");
-	unis[6] = glGetUniformLocation(program, "iChannel1");
-	unis[7] = glGetUniformLocation(program, "iChannel2");
-	unis[8] = glGetUniformLocation(program, "iChannel3");
+	unis[5] = glGetUniformLocation(program, "iResolution");
+
+	unis[6] = glGetUniformLocation(program, "iChannel0");
+	unis[7] = glGetUniformLocation(program, "iChannel1");
+	unis[8] = glGetUniformLocation(program, "iChannel2");
+	unis[9] = glGetUniformLocation(program, "iChannel3");
 	return unis;
 }
 
@@ -206,11 +211,13 @@ void		checkFileChanged(GLuint *program, char *file, int *fd)
 GLint		*loadImages(char **av)
 {
 	static GLint	texts[0xF0];
+	int				width;
+	int				height;
 
 	for (int i = 0; av[i]; i++)
 	{
 		texts[i] = SOIL_load_OGL_texture(av[i], SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID,
-				SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y | SOIL_FLAG_NTSC_SAFE_RGB | SOIL_FLAG_COMPRESS_TO_DXT);
+				SOIL_FLAG_MIPMAPS | SOIL_FLAG_NTSC_SAFE_RGB | SOIL_FLAG_COMPRESS_TO_DXT | SOIL_FLAG_TEXTURE_REPEATS);
 		if (texts[i] == 0)
 			printf("can't load texture: %s\n", SOIL_last_result()), exit(-1);
 	}

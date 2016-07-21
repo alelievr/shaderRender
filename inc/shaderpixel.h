@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2016/07/11 18:11:58 by alelievr          #+#    #+#             */
-/*   Updated: 2016/07/21 14:43:20 by alelievr         ###   ########.fr       */
+/*   Updated: 2016/07/21 15:03:24 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,6 +63,7 @@ enum			KEY_BITS
 extern vec4			mouse;
 extern vec2			scroll;
 extern vec4			move;
+extern vec2			window;
 extern int			keys;
 extern int			input_pause;
 extern long			lastModifiedFile;
@@ -73,12 +74,12 @@ GLuint			createProgram(int fd, bool fatal);
 static const char* vertex_shader_text =
 "#version 410\n"
 "in vec2		iResolutionIn;\n"
-"out vec2		iResolution;\n"
+//"out vec2		iResolution;\n"
 "in vec2		fragPosition;\n"
 "out vec4		outColor;\n"
 "void main()\n"
 "{\n"
-"	iResolution = iResolutionIn;\n"
+//"	iResolution = iResolutionIn;\n"
 "	gl_Position = vec4(fragPosition, 0.0, 1.0);\n"
 "}\n";
 
@@ -94,7 +95,7 @@ static const char* fragment_shader_text =
 "in vec4 outColor;\n"
 "out vec4 fragColor;\n"
 "\n"
-"in vec2			iResolution;\n"
+"uniform vec2		iResolution;\n"
 "uniform float		iGlobalTime;\n"
 "uniform int		iFrame;\n"
 "uniform vec4		iMouse;\n"
