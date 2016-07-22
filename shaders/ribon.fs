@@ -19,7 +19,7 @@ void mainImage( in vec2 fragCoord )
 		z = (vec2( z.x, -z.y ) / d) + p; 
 		z.x =  abs(z.x);
 		f = max( f, (dot(z-p,z-p) ));
-		g = min( g, sin(dot(z+p,z+p))+1.0);
+		g = min( g, sin(dot(z+p,z+p))+1);
 	}
 	f = abs(-log(f) / 3.5);
 	g = abs(-log(g) / 8.0);
