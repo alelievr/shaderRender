@@ -6,7 +6,7 @@
 #    By: alelievr <marvin@42.fr>                    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2014/07/15 15:13:38 by alelievr          #+#    #+#              #
-#    Updated: 2016/07/21 01:00:25 by alelievr         ###   ########.fr        #
+#    Updated: 2016/07/25 19:14:11 by alelievr         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -46,8 +46,8 @@ SOILLIB		=	SOIL2-clone/libSOIL2.a
 NAME		=	visualishader
 
 #	Compiler
-WERROR		=	-Werror
-CFLAGS		=	-ferror-limit=999
+WERROR		=	#-Werror
+CFLAGS		=	#-ferror-limit=999
 CPROTECTION	=	-z execstack -fno-stack-protector
 
 DEBUGFLAGS1	=	-ggdb -fsanitize=address -fno-omit-frame-pointer -fno-optimize-sibling-calls -O0
@@ -56,7 +56,7 @@ OPTFLAGS1	=	-funroll-loops -O2
 OPTFLAGS2	=	-pipe -funroll-loops -Ofast
 
 #	Framework
-FRAMEWORK	=	OpenGL AppKit IOKit CoreVideo
+FRAMEWORK	=	
 
 #################
 ##  COLORS     ##
@@ -91,10 +91,11 @@ OPTFLAGS	=	""
 ifeq "$(OS)" "Windows_NT"
 endif
 ifeq "$(OS)" "Linux"
-	LDLIBS		+= ""
-	DEBUGFLAGS	+= " -fsanitize=memory -fsanitize-memory-use-after-dtor -fsanitize=thread"
+	LDLIBS		+= "-lm" "-lGL" "-lGLU" "-lX11" "-lXrandr" "-lXrender" "-lXi" "-lXxf86vm" "-lpthread" "-ldl" "-lXinerama" "-lXcursor" "-lrt"
+	DEBUGFLAGS	+= "-fsanitize=memory" "-fsanitize-memory-use-after-dtor" "-fsanitize=thread"
 endif
 ifeq "$(OS)" "Darwin"
+	FRAMEWORK	= "OpenGL AppKit IOKit CoreVideo"
 endif
 
 #################
@@ -112,7 +113,7 @@ VFRAME		=	$(addprefix -framework ,$(FRAMEWORK))
 INCFILES	=	$(foreach inc, $(INCDIRS), $(wildcard $(inc)/*.h))
 CPPFLAGS	=	$(addprefix -I,$(INCDIRS))
 LDFLAGS		=	$(addprefix -L,$(LIBDIRS))
-LINKER		=	$(CC)
+LINKER		=	clang
 
 disp_indent	=	for I in `seq 1 $(MAKELEVEL)`; do \
 					test "$(MAKELEVEL)" '!=' '0' && printf "\t"; \
@@ -184,7 +185,7 @@ $(NAME): $(OBJ)
 	@$(if $(findstring lft,$(LDLIBS)),$(call color_exec_t,$(CCLEAR),$(CCLEAR),\
 		make -j 4 -C libft))
 	@$(call color_exec,$(CLINK_T),$(CLINK),"Link of $(NAME):",\
-		$(LINKER) $(WERROR) $(CFLAGS) $(LDFLAGS) $(LDLIBS) $(OPTFLAGS) $(DEBUGFLAGS) $(LINKDEBUG) $(VFRAME) -o $@ $^)
+		$(LINKER) $(WERROR) $(CFLAGS) $(LDFLAGS) $(OPTFLAGS) $(DEBUGFLAGS) $(LINKDEBUG) $(VFRAME) -o $@ $^ $(LDLIBS))
 
 $(OBJDIR)/%.o: %.cpp $(INCFILES)
 	@mkdir -p $(OBJDIR)
@@ -195,7 +196,7 @@ $(OBJDIR)/%.o: %.cpp $(INCFILES)
 $(OBJDIR)/%.o: %.c $(INCFILES)
 	@mkdir -p $(OBJDIR)
 	@$(call color_exec,$(COBJ_T),$(COBJ),"Object: $@",\
-		$(CC) $(WERROR) $(CFLAGS) $(OPTFLAGS) $(DEBUGFLAGS) $(CPPFLAGS) -o $@ -c $<)
+		clang $(WERROR) $(CFLAGS) $(OPTFLAGS) $(DEBUGFLAGS) $(CPPFLAGS) -o $@ -c $<)
 
 $(OBJDIR)/%.o: %.s
 	@mkdir -p $(OBJDIR)
