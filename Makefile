@@ -6,7 +6,7 @@
 #    By: alelievr <marvin@42.fr>                    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2014/07/15 15:13:38 by alelievr          #+#    #+#              #
-#    Updated: 2016/07/25 19:14:11 by alelievr         ###   ########.fr        #
+#    Updated: 2016/07/25 19:39:00 by alelievr         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -95,7 +95,7 @@ ifeq "$(OS)" "Linux"
 	DEBUGFLAGS	+= "-fsanitize=memory" "-fsanitize-memory-use-after-dtor" "-fsanitize=thread"
 endif
 ifeq "$(OS)" "Darwin"
-	FRAMEWORK	= "OpenGL AppKit IOKit CoreVideo"
+	FRAMEWORK	= OpenGL AppKit IOKit CoreVideo
 endif
 
 #################
