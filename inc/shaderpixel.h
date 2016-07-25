@@ -5,8 +5,8 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2016/07/11 18:11:58 by alelievr          #+#    #+#             */
-/*   Updated: 2016/07/25 18:40:02 by alelievr         ###   ########.fr       */
+/*   Created  2016/07/11 18:11:58 by alelievr          #+#    #+#             */
+/*   Updated  2016/07/25 19:04:51 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,7 @@
 # define GLFW_INCLUDE_GLCOREARB
 # include "GLFW/glfw3.h"
 # include "SOIL2.h"
+//#include <glext.h>
 
 # define WIN_W 1080
 # define WIN_H 720
