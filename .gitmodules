@@ -4,3 +4,4 @@
 [submodule "SOIL2-clone"]
 	path = SOIL2-clone
 	url = https://github.com/alelievr/SOIL2-clone
+	branch = 7b5c23051d7f8ef4151171e983ed025b7e62a98a
