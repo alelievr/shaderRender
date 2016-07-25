@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2016/07/11 18:11:58 by alelievr          #+#    #+#             */
-/*   Updated: 2016/07/21 15:03:24 by alelievr         ###   ########.fr       */
+/*   Updated: 2016/07/25 18:40:02 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -73,7 +73,7 @@ GLuint			createProgram(int fd, bool fatal);
 
 static const char* vertex_shader_text =
 "#version 410\n"
-"in vec2		iResolutionIn;\n"
+//"in vec2		iResolutionIn;\n"
 //"out vec2		iResolution;\n"
 "in vec2		fragPosition;\n"
 "out vec4		outColor;\n"

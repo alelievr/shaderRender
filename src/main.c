@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2016/07/11 18:11:03 by alelievr          #+#    #+#             */
-/*   Updated: 2016/07/21 18:25:24 by alelievr         ###   ########.fr       */
+/*   Updated: 2016/07/25 18:53:04 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,12 +34,6 @@ float points[] = {
 	1.0f, 1.0f,
 	1.0f, -1.0f,
    	-1.0f,  -1.0f,
-	WIN_W, WIN_H,
-	WIN_W, WIN_H,
-	WIN_W, WIN_H,
-	WIN_W, WIN_H,
-	WIN_W, WIN_H,
-	WIN_W, WIN_H,
 };
 
 static void		usage(const char *n) __attribute__((noreturn));
@@ -74,9 +68,6 @@ GLuint		createVAO(GLuint vbo, int program)
 	glEnableVertexAttribArray(fragPos);
 	glVertexAttribPointer(fragPos, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, (void*) 0);
 
-	resPos = glGetAttribLocation(program, "iResolutionIn");
-	glEnableVertexAttribArray(resPos);
-	glVertexAttribPointer(resPos, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, (void*)(sizeof(float) * 12));
 	return vao;
 }
 
@@ -231,6 +222,7 @@ int			main(int ac, char **av)
 
 	int			fd = getFileFd(av[1]);
 	double		t1;
+	int			frameDisplay = 0;
 
 	GLFWwindow *win = init(av[1]);
 
@@ -244,8 +236,13 @@ int			main(int ac, char **av)
 	{
 		checkFileChanged(&program, av[1], &fd);
 		loop(win, program, vao, unis, images);
-		printf("%sfps:%.3f%s", "\x1b\x37", 1 / (glfwGetTime() - t1), "\x1b\x38");
-		fflush(stdout);
+		if (frameDisplay == 6)
+		{
+			printf("%sfps:%.3f%s", "\x1b\x37", 1 / (glfwGetTime() - t1), "\x1b\x38");
+			fflush(stdout);
+			frameDisplay = 0;
+		}
+		frameDisplay++;
 	}
 
 	close(fd);
