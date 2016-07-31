@@ -19,7 +19,7 @@
 # define GLFW_INCLUDE_GLCOREARB
 # include "GLFW/glfw3.h"
 # include "SOIL2.h"
-//#include <glext.h>
+# include "fmod.h"
 
 # define WIN_W 1080
 # define WIN_H 720
@@ -44,6 +44,21 @@ typedef struct s_vec4
 	float z;
 	float w;
 }				vec4;
+
+typedef struct	s_riff_header
+{
+	int			:32;				//0
+	int			chunk_size;			//4
+	char		format[4];			//8
+	int			:32;				//12
+	int			sub_chunk1_size;	//16
+	short		audio_format;		//20
+	short		num_channels;		//22
+	int			sample_rate;		//24
+	int			byte_rate;			//28
+	short		block_align;		//32
+	short		bit_per_sample;		//34
+}				riff_header;
 
 enum			KEY_BITS
 {
@@ -73,7 +88,7 @@ GLFWwindow		*init(char *fname);
 GLuint			createProgram(int fd, bool fatal);
 
 static const char* vertex_shader_text =
-"#version 410\n"
+"#version 330\n"
 //"in vec2		iResolutionIn;\n"
 //"out vec2		iResolution;\n"
 "in vec2		fragPosition;\n"
@@ -92,7 +107,7 @@ static const char* fragment_shader_image_text =
 "}\n";
 
 static const char* fragment_shader_text =
-"#version 410\n"
+"#version 330\n"
 "in vec4 outColor;\n"
 "out vec4 fragColor;\n"
 "\n"
@@ -106,6 +121,10 @@ static const char* fragment_shader_text =
 "uniform sampler2D	iChannel1;\n"
 "uniform sampler2D	iChannel2;\n"
 "uniform sampler2D	iChannel3;\n"
+"uniform sampler2D	iSoundChannel0;\n"
+"uniform sampler2D	iSoundChannel1;\n"
+"uniform sampler2D	iSoundChannel2;\n"
+"uniform sampler2D	iSoundChannel3;\n"
 "\n"
 "void mainImage(vec2 f);\n"
 "\n"

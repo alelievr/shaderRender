@@ -33,9 +33,9 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
 		BIT_SET(keys, FORWARD, action == GLFW_PRESS || action == GLFW_REPEAT);
 	if (key == GLFW_KEY_E)
 		BIT_SET(keys, BACK, action == GLFW_PRESS || action == GLFW_REPEAT);
-	if (key == GLFW_KEY_KP_ADD)
+	if (key == GLFW_KEY_KP_ADD || key == GLFW_KEY_EQUAL)
 		BIT_SET(keys, PLUS, action == GLFW_PRESS || action == GLFW_REPEAT);
-	if (key == GLFW_KEY_KP_SUBTRACT)
+	if (key == GLFW_KEY_KP_SUBTRACT || key == GLFW_KEY_MINUS)
 		BIT_SET(keys, MOIN, action == GLFW_PRESS || action == GLFW_REPEAT);
 	if (key == GLFW_KEY_SPACE)
 		input_pause ^= action == GLFW_PRESS;
@@ -80,8 +80,8 @@ GLFWwindow	*init(char *name)
 	glfwSetErrorCallback(error_callback);
 	if (!glfwInit())
 		printf("glfwInit error !\n"), exit(-1);
-	glfwWindowHint (GLFW_CONTEXT_VERSION_MAJOR, 4);
- 	glfwWindowHint (GLFW_CONTEXT_VERSION_MINOR, 1);
+	glfwWindowHint (GLFW_CONTEXT_VERSION_MAJOR, 3);
+ 	glfwWindowHint (GLFW_CONTEXT_VERSION_MINOR, 2);
  	glfwWindowHint (GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
  	glfwWindowHint (GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	if (!(win = glfwCreateWindow(WIN_W, WIN_H, name, NULL, NULL)))

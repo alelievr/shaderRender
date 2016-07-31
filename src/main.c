@@ -164,6 +164,11 @@ GLint		*getUniformLocation(GLuint program)
 	unis[7] = glGetUniformLocation(program, "iChannel1");
 	unis[8] = glGetUniformLocation(program, "iChannel2");
 	unis[9] = glGetUniformLocation(program, "iChannel3");
+
+	unis[10] = glGetUniformLocation(program, "iSoundChannel0");
+	unis[11] = glGetUniformLocation(program, "iSoundChannel1");
+	unis[12] = glGetUniformLocation(program, "iSoundChannel2");
+	unis[13] = glGetUniformLocation(program, "iSoundChannel3");
 	return unis;
 }
 
@@ -236,7 +241,7 @@ int			main(int ac, char **av)
 	{
 		checkFileChanged(&program, av[1], &fd);
 		loop(win, program, vao, unis, images);
-		if (frameDisplay == 6)
+		if (frameDisplay == 10)
 		{
 			printf("%sfps:%.3f%s", "\x1b\x37", 1 / (glfwGetTime() - t1), "\x1b\x38");
 			fflush(stdout);
