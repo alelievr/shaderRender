@@ -89,6 +89,7 @@ typedef struct	s_sound
 	int				fd;
 	int				tex_length;
 	GLint			gl_id;
+	char			*image_buffer;
 	FMOD_SOUND		*sound;
 	enum SOUND_FORMAT	sound_format;
 	riff_header	riff;

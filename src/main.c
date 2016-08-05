@@ -105,13 +105,13 @@ void		updateUniforms(GLint *unis, GLint *images, int *sounds)
 	soundTex[2] = get_sound_texture(sounds[2]);
 	soundTex[3] = get_sound_texture(sounds[3]);
 
-	glActiveTexture(GL_TEXTURE5);
+	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, soundTex[0]);
-	glActiveTexture(GL_TEXTURE6);
+	glActiveTexture(GL_TEXTURE2);
 	glBindTexture(GL_TEXTURE_2D, soundTex[1]);
-	glActiveTexture(GL_TEXTURE7);
+	glActiveTexture(GL_TEXTURE3);
 	glBindTexture(GL_TEXTURE_2D, soundTex[2]);
-	glActiveTexture(GL_TEXTURE8);
+	glActiveTexture(GL_TEXTURE4);
 	glBindTexture(GL_TEXTURE_2D, soundTex[3]);
 
 	glUniform1i(unis[6], images[0]);
