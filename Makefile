@@ -6,7 +6,7 @@
 #    By: alelievr <marvin@42.fr>                    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2014/07/15 15:13:38 by alelievr          #+#    #+#              #
-#    Updated: 2016/08/03 14:46:07 by alelievr         ###   ########.fr        #
+#    Updated: 2016/08/05 15:48:51 by alelievr         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -19,6 +19,8 @@ SRCDIR		=	src
 SRC			=	main.c			\
 				glfw_init.c		\
 				shader.c		\
+				fmod.c			\
+				wav.c			\
 
 #	Objects
 OBJDIR		=	obj
@@ -91,11 +93,10 @@ OPTFLAGS	=	""
 ifeq "$(OS)" "Windows_NT"
 endif
 ifeq "$(OS)" "Linux"
-	LDLIBS		+= "-lm" "-lGL" "-lGLU" "-lX11" "-lXrandr" "-lXrender" "-lXi" "-lXxf86vm" "-lpthread" "-ldl" "-lXinerama" "-lXcursor" "-lrt fmod/lib/libfmod-linux.so.8.8"
+	LDLIBS		+= "-lm" "-lGL" "-lGLU" "-lX11" "-lXrandr" "-lXrender" "-lXi" "-lXxf86vm" "-lpthread" "-ldl" "-lXinerama" "-lXcursor" "-lrt"
 	DEBUGFLAGS	+= "-fsanitize=memory" "-fsanitize-memory-use-after-dtor" "-fsanitize=thread"
 endif
 ifeq "$(OS)" "Darwin"
-#	LDLIBS		+= fmod/lib/libfmod.dylib
 	FRAMEWORK	= OpenGL AppKit IOKit CoreVideo
 endif
 

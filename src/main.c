@@ -18,6 +18,7 @@
 #include <unistd.h>
 #include <stdbool.h>
 #include <sys/stat.h>
+#include <string.h>
 
 vec4        mouse = {0, 0, 0, 0};
 vec2        scroll = {0, 0};
@@ -71,7 +72,7 @@ GLuint		createVAO(GLuint vbo, int program)
 	return vao;
 }
 
-void		updateUniforms(GLint *unis, GLint *images)
+void		updateUniforms(GLint *unis, GLint *images, int *sounds)
 {
 	struct timeval	t;
 	static int		frames = 0;
@@ -97,10 +98,31 @@ void		updateUniforms(GLint *unis, GLint *images)
 	glActiveTexture(GL_TEXTURE4);
 	glBindTexture(GL_TEXTURE_2D, images[3]);
 
+	GLuint			soundTex[4];
+
+	soundTex[0] = get_sound_texture(sounds[0]);
+	soundTex[1] = get_sound_texture(sounds[1]);
+	soundTex[2] = get_sound_texture(sounds[2]);
+	soundTex[3] = get_sound_texture(sounds[3]);
+
+	glActiveTexture(GL_TEXTURE5);
+	glBindTexture(GL_TEXTURE_2D, soundTex[0]);
+	glActiveTexture(GL_TEXTURE6);
+	glBindTexture(GL_TEXTURE_2D, soundTex[1]);
+	glActiveTexture(GL_TEXTURE7);
+	glBindTexture(GL_TEXTURE_2D, soundTex[2]);
+	glActiveTexture(GL_TEXTURE8);
+	glBindTexture(GL_TEXTURE_2D, soundTex[3]);
+
 	glUniform1i(unis[6], images[0]);
 	glUniform1i(unis[7], images[1]);
 	glUniform1i(unis[8], images[2]);
 	glUniform1i(unis[9], images[3]);
+
+	glUniform1i(unis[10], soundTex[0]);
+	glUniform1i(unis[11], soundTex[1]);
+	glUniform1i(unis[12], soundTex[2]);
+	glUniform1i(unis[13], soundTex[3]);
 }
 
 void		update_keys(void)
@@ -123,7 +145,7 @@ void		update_keys(void)
 		move.w -= MOVE_AMOUNT;
 }
 
-void		loop(GLFWwindow *win, GLuint program, GLuint vao, GLint *unis, GLint *images)
+void		loop(GLFWwindow *win, GLuint program, GLuint vao, GLint *unis, GLint *images, int *sounds)
 {
 	float ratio;
 	int width, height;
@@ -139,7 +161,7 @@ void		loop(GLFWwindow *win, GLuint program, GLuint vao, GLint *unis, GLint *imag
 	glEnable(GL_TEXTURE_2D);
 
 	if (!input_pause)
-		updateUniforms(unis, images);
+		updateUniforms(unis, images, sounds);
 
 	glUseProgram(program);
 	glBindVertexArray(vao);
@@ -204,20 +226,54 @@ void		checkFileChanged(GLuint *program, char *file, int *fd)
 	}
 }
 
+int			checkFileExtention(char *file, char **exts)
+{
+	char	*ext = file + strlen(file) - 1;
+
+	while (ext != file && *ext != '.')
+		ext--;
+	ext++;
+	while (*exts)
+	{
+		if (!strcmp(ext, *exts))
+			return (1);
+		exts++;
+	}
+	return (0);
+}
+
 GLint		*loadImages(char **av)
 {
 	static GLint	texts[0xF0];
+	int				k = 0;
 	int				width;
 	int				height;
 
 	for (int i = 0; av[i]; i++)
 	{
-		texts[i] = SOIL_load_OGL_texture(av[i], SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID,
+		if (!checkFileExtention(av[i], (char *[]){"png", "jpg", "tiff", "jpeg", NULL}))
+			continue ;
+		texts[k] = SOIL_load_OGL_texture(av[i], SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID,
 				SOIL_FLAG_MIPMAPS | SOIL_FLAG_NTSC_SAFE_RGB | SOIL_FLAG_COMPRESS_TO_DXT | SOIL_FLAG_TEXTURE_REPEATS);
-		if (texts[i] == 0)
+		if (texts[k] == 0)
 			printf("can't load texture: %s\n", SOIL_last_result()), exit(-1);
+		k++;
 	}
 	return texts;
+}
+
+int			*loadSounds(char **av)
+{
+	static int		sounds[0xF0];
+	int				k = 0;
+
+	for (int i = 0; av[i]; i++)
+	{
+		if (!checkFileExtention(av[i], (char *[]){"wav", NULL}))
+			continue ;
+		sounds[k++] = load_wav_file(av[i]);
+	}
+	return sounds;
 }
 
 int			main(int ac, char **av)
@@ -230,17 +286,20 @@ int			main(int ac, char **av)
 	int			frameDisplay = 0;
 
 	GLFWwindow *win = init(av[1]);
+	fmod_init();
 
 	GLuint		program = createProgram(fd, true);
 	GLuint		vbo = createVBO();
 	GLuint		vao = createVAO(vbo, program);
 	GLint		*unis = getUniformLocation(program);
 	GLint		*images = loadImages(av + 2);
+	int			*sounds = loadSounds(av + 2);
 
+	play_all_sounds();
 	while ((t1 = glfwGetTime()), !glfwWindowShouldClose(win))
 	{
 		checkFileChanged(&program, av[1], &fd);
-		loop(win, program, vao, unis, images);
+		loop(win, program, vao, unis, images, sounds);
 		if (frameDisplay == 10)
 		{
 			printf("%sfps:%.3f%s", "\x1b\x37", 1 / (glfwGetTime() - t1), "\x1b\x38");

@@ -6,14 +6,60 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2016/07/30 16:57:22 by alelievr          #+#    #+#             */
-/*   Updated: 2016/07/30 23:00:14 by alelievr         ###   ########.fr       */
+/*   Updated: 2016/08/05 16:50:12 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "shaderpixel.h"
+#include <fcntl.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <limits.h>
+
+static t_sound		sounds[0xF0];
+
+char		*getRawFrameData(int id)
+{
+	static char	buff[0xF000];
+	int		bit_per_frame = sounds[id].riff.sample_rate;
+
+	if (bit_per_frame == 0)
+		return NULL;
+	int		r = read(sounds[id].fd, buff, bit_per_frame / 8);
+	return buff;
+}
+
+GLvoid		*raw_sound_to_data(char *data, int size)
+{
+	char	*ret = malloc(sizeof(int) * size);
+	int		j = 0;
+
+	for (int i = 0; i < size / 2; i++)
+	{
+		short	pix = *(short *)(data + i * 2);
+		ret[j++] = pix / 4;
+		ret[j++] = pix / 4;
+		ret[j++] = pix / 4;
+		ret[j++] = 255;
+	}
+	return ret;
+}
+
+GLuint		get_sound_texture(int id)
+{
+	char	*data = getRawFrameData(id);
+
+	if (data == NULL)
+		return 0;
+	GLvoid *d = raw_sound_to_data(data, sounds[id].tex_length);
+	
+	glTexImage2D(GL_TEXTURE_2D, 0, 0, 0, 1, sounds[id].tex_length, GL_RGBA, GL_UNSIGNED_BYTE, d);
+	return sounds[id].gl_id;
+}
 
 int			load_wav_file(char *f)
 {
+	static int	id = 0;
 	int			fd;
 	int			ret;
 	riff_header	header;
@@ -22,7 +68,38 @@ int			load_wav_file(char *f)
 		perror("open"), exit(-1);
 	if ((ret = read(fd, &header, sizeof(riff_header))) == -1)
 		perror("read"), exit(-1);
-	printf("sample rate: %i\n", header->sample_rate);
-	printf("file format: %c%c%c%c\n", header->format[0], header->format[1], header->format[2], header->format[3])
-	printf("bit per sample: %i\n", header->bit_per_sample);
+	++id;
+	printf("sample rate: %i\n", header.sample_rate);
+	printf("file format: %c%c%c%c\n", header.format[0], header.format[1], header.format[2], header.format[3]);
+	printf("bit per sample: %i\n", header.bit_per_sample);
+
+	GLuint		texId;
+
+	int			imgWidth = header.sample_rate / 60 / 8;
+
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	glGenTextures(1, &texId);
+	glBindTexture(GL_TEXTURE_2D, texId);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, imgWidth, 
+			1, 0, GL_RGBA, GL_UNSIGNED_BYTE, malloc(sizeof(int) * imgWidth));
+
+	FMOD_SOUND *s = load_sound(f);
+
+	sounds[id] = (t_sound){id, fd, imgWidth, texId, s, WAVE, header};
+	return id;
+}
+
+void		play_all_sounds(void)
+{
+	for (int i = 1; i < 0xF0; i++)
+	{
+		if (sounds[i].sound == NULL)
+			break ;
+		printf("playing sound: %i\n", i);
+		play_sound(sounds[i].sound);
+	}
 }

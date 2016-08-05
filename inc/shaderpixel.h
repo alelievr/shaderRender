@@ -21,6 +21,12 @@
 # include "SOIL2.h"
 # include "fmod.h"
 
+# if __APPLE__
+#  define FMOD_LIB "fmod/lib/libfmod.dylib"
+# else
+#  define FMOD_LIB "fmod/lib/libfmod-linux.so.8.8"
+# endif
+
 # define WIN_W 1080
 # define WIN_H 720
 
@@ -72,6 +78,22 @@ enum			KEY_BITS
 	MOIN,
 };
 
+enum			SOUND_FORMAT
+{
+	WAVE,
+};
+
+typedef struct	s_sound
+{
+	int				id;
+	int				fd;
+	int				tex_length;
+	GLint			gl_id;
+	FMOD_SOUND		*sound;
+	enum SOUND_FORMAT	sound_format;
+	riff_header	riff;
+}				t_sound;
+
 #define BIT_SET(i, pos, v) (v) ? (i |= 1 << pos) : (i &= ~(1 << pos))
 #define BIT_GET(i, pos) (i >> pos) & 1
 #define MOVE_AMOUNT 0.01f;
@@ -86,6 +108,12 @@ extern long			lastModifiedFile;
 
 GLFWwindow		*init(char *fname);
 GLuint			createProgram(int fd, bool fatal);
+int				load_wav_file(char *f);
+GLuint			get_sound_texture(int id);
+void			fmod_init(void);
+FMOD_SOUND		*load_sound(char *f);
+void			play_all_sounds(void);
+void			play_sound(FMOD_SOUND *s);
 
 static const char* vertex_shader_text =
 "#version 330\n"
