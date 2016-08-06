@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2016/07/30 16:57:22 by alelievr          #+#    #+#             */
-/*   Updated: 2016/08/05 21:46:17 by alelievr         ###   ########.fr       */
+/*   Updated: 2016/08/06 13:34:06 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,28 +26,40 @@ char		*getRawFrameData(int id)
 
 	if (bit_per_frame == 0)
 		return NULL;
-	int		r = read(sounds[id].fd, buff, bit_per_frame * sounds[id].riff.bit_per_sample / 8);
+	int		r = read(sounds[id].fd, buff, bit_per_frame *
+			sounds[id].riff.bit_per_sample / 8 * sounds[id].riff.num_channels);
 	return buff;
 }
 
-GLvoid		*raw_sound_to_data(char *buff, char *data, int size, int bit_per_sample)
+float		get_sample_value(char *data, int i, int bit_per_sample, int chan)
+{
+	float		value;
+
+	if (bit_per_sample == 32)
+		value = (*(float *)(data + (i * 4 * chan)) + 1) / 2;
+	else if (bit_per_sample == 16)
+		value = (float)(*(short *)(data + (i * 2 * chan)) + SHRT_MAX) / (float)SHRT_MAX;
+	else
+		value = (float)(*(data + (i * chan)) + 127) / 256;
+	if (value > 1)
+		value = 1;
+	if (value < 0)
+		value = 0;
+	return value;
+}
+
+GLvoid		*raw_sound_to_data(char *buff, char *data, int size, int bit_per_sample, int chan)
 {
 	int		j = 0;
 
 	for (int i = 0; i < size; i++)
 	{
-		int		value = 0;
-		int		r = 1;
-		if (bit_per_sample == 16)
-		{
-			value = *(short *)(data + i * 2);
-			r = 256;
-		}
-		else
-			value = *(data + i);
-		buff[j++] = value / r;
-		buff[j++] = value / r;
-		buff[j++] = value / r;
+		float	f1 = get_sample_value(data, i, bit_per_sample, chan);
+		float	f2 = get_sample_value(data, i + 1, bit_per_sample, chan);
+		char	value = (f1 + f2) * 128;
+		buff[j++] = value;
+		buff[j++] = value;
+		buff[j++] = value;
 		buff[j++] = 255;
 	}
 	return buff;
@@ -60,7 +72,7 @@ GLuint		get_sound_texture(int id)
 	if (data == NULL)
 		return 0;
 	GLvoid *d = raw_sound_to_data(sounds[id].image_buffer, data, sounds[id].tex_length,
-			sounds[id].riff.bit_per_sample);
+			sounds[id].riff.bit_per_sample, sounds[id].riff.num_channels);
 
 	glBindTexture(GL_TEXTURE_2D, sounds[id].gl_id);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, sounds[id].tex_length, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, d);
@@ -82,6 +94,7 @@ int			load_wav_file(char *f)
 	printf("sample rate: %i\n", header.sample_rate);
 	printf("file format: %c%c%c%c\n", header.format[0], header.format[1], header.format[2], header.format[3]);
 	printf("bit per sample: %i\n", header.bit_per_sample);
+	printf("channels: %i\n", header.num_channels);
 
 
 	GLuint		texId;
