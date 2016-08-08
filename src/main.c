@@ -77,6 +77,7 @@ void		updateUniforms(GLint *unis, GLint *images, int *sounds)
 	struct timeval	t;
 	static int		frames = 0;
 	static time_t	lTime = 0;
+	static int		glTextures[] = {GL_TEXTURE1, GL_TEXTURE2, GL_TEXTURE3, GL_TEXTURE4, GL_TEXTURE5, GL_TEXTURE6, GL_TEXTURE7, GL_TEXTURE8};
 
 	if (lTime == 0)
 		lTime = time(NULL);
@@ -89,15 +90,13 @@ void		updateUniforms(GLint *unis, GLint *images, int *sounds)
 	glUniform4f(unis[4], move.x, move.y, move.z, move.w);
 	glUniform2f(unis[5], window.x, window.y);
 
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, images[0]);
-	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_2D, images[1]);
-	glActiveTexture(GL_TEXTURE3);
-	glBindTexture(GL_TEXTURE_2D, images[2]);
-	glActiveTexture(GL_TEXTURE4);
-	glBindTexture(GL_TEXTURE_2D, images[3]);
-
+	int		i = 0;
+	for (int j = 0; j < 4; j++)
+		if (images[j] != 0)
+		{
+			glActiveTexture(glTextures[i++]);
+			glBindTexture(GL_TEXTURE_2D, images[j]);
+		}
 	GLuint			soundTex[4];
 
 	soundTex[0] = get_sound_texture(sounds[0]);
@@ -105,14 +104,12 @@ void		updateUniforms(GLint *unis, GLint *images, int *sounds)
 	soundTex[2] = get_sound_texture(sounds[2]);
 	soundTex[3] = get_sound_texture(sounds[3]);
 
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, soundTex[0]);
-	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_2D, soundTex[1]);
-	glActiveTexture(GL_TEXTURE3);
-	glBindTexture(GL_TEXTURE_2D, soundTex[2]);
-	glActiveTexture(GL_TEXTURE4);
-	glBindTexture(GL_TEXTURE_2D, soundTex[3]);
+	for (int j = 0; j < 4; j++)
+		if (sounds[j] != 0)
+		{
+			glActiveTexture(glTextures[i++]);
+			glBindTexture(GL_TEXTURE_2D, soundTex[j]);
+		}
 
 	glUniform1i(unis[6], images[0]);
 	glUniform1i(unis[7], images[1]);

@@ -32,7 +32,7 @@ float map( in vec3 p, in vec3 c, out vec4 resColor )
     {
 		dz = 8.0*pow(m,3.5)*dz;
         
-#if 0
+#if 1
         float x = zz.x; float x2 = x*x; float x4 = x2*x2;
         float y = zz.y; float y2 = y*y; float y4 = y2*y2;
         float z = zz.z; float z2 = z*z; float z4 = z2*z2;
