@@ -103,6 +103,7 @@ extern vec4			mouse;
 extern vec2			scroll;
 extern vec4			move;
 extern vec2			window;
+extern vec4			fractalWindow;
 extern int			keys;
 extern int			input_pause;
 extern long			lastModifiedFile;
@@ -148,6 +149,7 @@ static const char* fragment_shader_text =
 "uniform vec4		iMouse;\n"
 "uniform vec2		iScrollAmount;\n"
 "uniform vec4		iMoveAmount;\n"
+"uniform vec4		iFractalWindow;\n"
 "uniform sampler2D	iChannel0;\n"
 "uniform sampler2D	iChannel1;\n"
 "uniform sampler2D	iChannel2;\n"

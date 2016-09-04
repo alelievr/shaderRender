@@ -24,6 +24,7 @@ vec4        mouse = {0, 0, 0, 0};
 vec2        scroll = {0, 0};
 vec4        move = {0, 0, 0, 0};
 vec2		window = {WIN_W, WIN_H};
+vec4		fractalWindow = {-1, -1, 1, 1}; //xmin, ymin, xmax, ymax
 int        	keys = 0;
 int         input_pause = 0;
 long        lastModifiedFile = 0;
@@ -89,6 +90,7 @@ void		updateUniforms(GLint *unis, GLint *images, int *sounds)
 	glUniform2f(unis[3], scroll.x, scroll.y);
 	glUniform4f(unis[4], move.x, move.y, move.z, move.w);
 	glUniform2f(unis[5], window.x, window.y);
+	glUniform4f(unis[6], fractalWindow.x, fractalWindow.y, fractalWindow.z, fractalWindow.w);
 
 	int		i = 0;
 	for (int j = 0; j < 4; j++)
@@ -111,15 +113,15 @@ void		updateUniforms(GLint *unis, GLint *images, int *sounds)
 			glBindTexture(GL_TEXTURE_2D, soundTex[j]);
 		}
 
-	glUniform1i(unis[6], images[0]);
-	glUniform1i(unis[7], images[1]);
-	glUniform1i(unis[8], images[2]);
-	glUniform1i(unis[9], images[3]);
+	glUniform1i(unis[10], images[0]);
+	glUniform1i(unis[11], images[1]);
+	glUniform1i(unis[12], images[2]);
+	glUniform1i(unis[13], images[3]);
 
-	glUniform1i(unis[10], soundTex[0]);
-	glUniform1i(unis[11], soundTex[1]);
-	glUniform1i(unis[12], soundTex[2]);
-	glUniform1i(unis[13], soundTex[3]);
+	glUniform1i(unis[14], soundTex[0]);
+	glUniform1i(unis[15], soundTex[1]);
+	glUniform1i(unis[16], soundTex[2]);
+	glUniform1i(unis[17], soundTex[3]);
 }
 
 void		update_keys(void)
@@ -178,16 +180,17 @@ GLint		*getUniformLocation(GLuint program)
 	unis[3] = glGetUniformLocation(program, "iScrollAmount");
 	unis[4] = glGetUniformLocation(program, "iMoveAmount");
 	unis[5] = glGetUniformLocation(program, "iResolution");
+	unis[6] = glGetUniformLocation(program, "iFractalWindow");
 
-	unis[6] = glGetUniformLocation(program, "iChannel0");
-	unis[7] = glGetUniformLocation(program, "iChannel1");
-	unis[8] = glGetUniformLocation(program, "iChannel2");
-	unis[9] = glGetUniformLocation(program, "iChannel3");
+	unis[10] = glGetUniformLocation(program, "iChannel0");
+	unis[11] = glGetUniformLocation(program, "iChannel1");
+	unis[12] = glGetUniformLocation(program, "iChannel2");
+	unis[13] = glGetUniformLocation(program, "iChannel3");
 
-	unis[10] = glGetUniformLocation(program, "iSoundChannel0");
-	unis[11] = glGetUniformLocation(program, "iSoundChannel1");
-	unis[12] = glGetUniformLocation(program, "iSoundChannel2");
-	unis[13] = glGetUniformLocation(program, "iSoundChannel3");
+	unis[14] = glGetUniformLocation(program, "iSoundChannel0");
+	unis[15] = glGetUniformLocation(program, "iSoundChannel1");
+	unis[16] = glGetUniformLocation(program, "iSoundChannel2");
+	unis[17] = glGetUniformLocation(program, "iSoundChannel3");
 	return unis;
 }
 
