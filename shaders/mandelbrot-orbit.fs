@@ -47,9 +47,9 @@ void mainImage( in vec2 fragCoord )
 		d3 = min(d3, dist9);		
 	}
 	
-	d = pow(abs(1. - sqrt(abs(d))), 2.);
-	d2 = pow(abs(1. - sqrt(abs(d2))), 10.);
-	d3 = pow(abs(1. - sqrt(abs(d3))), 10.);
+	d = pow(abs(1. - sqrt(abs(d))), (sin(iGlobalTime) + 2) * 10);
+	d2 = pow(abs(1. - sqrt(abs(d2))), (cos(iGlobalTime) + 2) * 10);
+	d3 = pow(abs(1. - sqrt(abs(d3))), 10);
 	
 	fragColor = vec4( d, d2, d3, 1.0 );
 }

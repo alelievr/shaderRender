@@ -24,7 +24,11 @@ vec4        mouse = {0, 0, 0, 0};
 vec2        scroll = {0, 0};
 vec4        move = {0, 0, 0, 0};
 vec2		window = {WIN_W, WIN_H};
+#if DOUBLE_PRECISION
+dvec4		fractalWindow = {-1, -1, 1, 1}; //xmin, ymin, xmax, ymax
+#else
 vec4		fractalWindow = {-1, -1, 1, 1}; //xmin, ymin, xmax, ymax
+#endif
 int        	keys = 0;
 int         input_pause = 0;
 long        lastModifiedFile = 0;
@@ -90,7 +94,11 @@ void		updateUniforms(GLint *unis, GLint *images, int *sounds)
 	glUniform2f(unis[3], scroll.x, scroll.y);
 	glUniform4f(unis[4], move.x, move.y, move.z, move.w);
 	glUniform2f(unis[5], window.x, window.y);
+#if DOUBLE_PRECISION
+	glUniform4d(unis[6], fractalWindow.x, fractalWindow.y, fractalWindow.z, fractalWindow.w);
+#else
 	glUniform4f(unis[6], fractalWindow.x, fractalWindow.y, fractalWindow.z, fractalWindow.w);
+#endif
 
 	int		i = 0;
 	for (int j = 0; j < 4; j++)
@@ -128,43 +136,31 @@ void		update_keys(void)
 {
 	vec2	winSize;
 
-	vec2 ratemin;
-	vec2 ratemax;
-	vec2 diff;
-	vec2 zero = {(float)WIN_W / 2., (float)WIN_H / 2.};
-
-	ratemin.x = (zero.x / window.x);
-	ratemin.y = (zero.y / window.y);
-	ratemax.x = (zero.x - window.x) / window.x;
-	ratemax.y = (zero.y - window.y) / window.y;
-	diff.x = (fractalWindow.z - fractalWindow.x);
-	diff.y = (fractalWindow.w - fractalWindow.y);
-
 	winSize.x = fractalWindow.z - fractalWindow.x;
 	winSize.y = fractalWindow.w - fractalWindow.y;
 	if (BIT_GET(keys, RIGHT))
 	{
 		move.x += MOVE_AMOUNT;
-		fractalWindow.x += winSize.x / 100;
-		fractalWindow.z += winSize.x / 100;
+		fractalWindow.x += winSize.x / SCALE;
+		fractalWindow.z += winSize.x / SCALE;
 	}
 	if (BIT_GET(keys, LEFT))
 	{
 		move.x -= MOVE_AMOUNT;
-		fractalWindow.x -= winSize.x / 100;
-		fractalWindow.z -= winSize.x / 100;
+		fractalWindow.x -= winSize.x / SCALE;
+		fractalWindow.z -= winSize.x / SCALE;
 	}
 	if (BIT_GET(keys, UP))
 	{
 		move.y += MOVE_AMOUNT;
-		fractalWindow.y += winSize.y / 100;
-		fractalWindow.w += winSize.y / 100;
+		fractalWindow.y += winSize.y / SCALE;
+		fractalWindow.w += winSize.y / SCALE;
 	}
 	if (BIT_GET(keys, DOWN))
 	{
 		move.y -= MOVE_AMOUNT;
-		fractalWindow.y -= winSize.y / 100;
-		fractalWindow.w -= winSize.y / 100;
+		fractalWindow.y -= winSize.y / SCALE;
+		fractalWindow.w -= winSize.y / SCALE;
 	}
 	if (BIT_GET(keys, FORWARD))
 		move.z += MOVE_AMOUNT;
@@ -173,18 +169,18 @@ void		update_keys(void)
 	if (BIT_GET(keys, PLUS))
 	{
 		move.w += MOVE_AMOUNT;
-		fractalWindow.z += ratemax.x * diff.x * 1 / 30;
-		fractalWindow.w += ratemax.y * diff.y * 1 / 30;
-		fractalWindow.x += ratemin.x * diff.x * 1 / 30;
-		fractalWindow.y += ratemin.y * diff.y * 1 / 30;
+		fractalWindow.z += -.5 * winSize.x / 25;
+		fractalWindow.w += -.5 * winSize.y / 25;
+		fractalWindow.x += .5 * winSize.x / 25;
+		fractalWindow.y += .5 * winSize.y / 25;
 	}
 	if (BIT_GET(keys, MOIN))
 	{
 		move.w -= MOVE_AMOUNT;
-		fractalWindow.z += ratemax.x * diff.x * -1 / 30;
-		fractalWindow.w += ratemax.y * diff.y * -1 / 30;
-		fractalWindow.x += ratemin.x * diff.x * -1 / 30;
-		fractalWindow.y += ratemin.y * diff.y * -1 / 30;
+		fractalWindow.z += -.5 * winSize.x / -25;
+		fractalWindow.w += -.5 * winSize.y / -25;
+		fractalWindow.x += .5 * winSize.x / -25;
+		fractalWindow.y += .5 * winSize.y / -25;
 	}
 }
 
