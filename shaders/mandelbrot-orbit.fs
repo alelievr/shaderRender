@@ -8,9 +8,7 @@ void mainImage( in vec2 fragCoord )
 
 	p *= 2.;
     p -= 1.;	
-	p *= exp(-iMoveAmount.w * 4) / 100;
 	p += vec2(0.274,0.482);
-	p += iMoveAmount.xy / 100;
 	
 	vec2 zc = vec2(0, 0);
 	vec2 zp = zc;

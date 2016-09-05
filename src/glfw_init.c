@@ -74,10 +74,10 @@ static void mouse_scroll_callback(GLFWwindow *win, double xOffset, double yOffse
 	ratemax.y = (mouse.y - window.y) / window.y;
 	diff.x = (fractalWindow.z - fractalWindow.x);
 	diff.y = (fractalWindow.w - fractalWindow.y);
-	fractalWindow.z += ratemax.x * diff.x * yOffset / 30;
-	fractalWindow.w += ratemax.y * diff.y * yOffset / 30;
-	fractalWindow.x += ratemin.x * diff.x * yOffset / 30;
-	fractalWindow.y += ratemin.y * diff.y * yOffset / 30;
+	fractalWindow.z += ratemax.x * diff.x * xOffset / 30;
+	fractalWindow.w += ratemax.y * diff.y * xOffset / 30;
+	fractalWindow.x += ratemin.x * diff.x * xOffset / 30;
+	fractalWindow.y += ratemin.y * diff.y * xOffset / 30;
 }
 
 static void resize_callback(GLFWwindow *win, int width, int height)

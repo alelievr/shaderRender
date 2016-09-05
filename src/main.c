@@ -126,22 +126,66 @@ void		updateUniforms(GLint *unis, GLint *images, int *sounds)
 
 void		update_keys(void)
 {
+	vec2	winSize;
+
+	vec2 ratemin;
+	vec2 ratemax;
+	vec2 diff;
+	vec2 zero = {(float)WIN_W / 2., (float)WIN_H / 2.};
+
+	ratemin.x = (zero.x / window.x);
+	ratemin.y = (zero.y / window.y);
+	ratemax.x = (zero.x - window.x) / window.x;
+	ratemax.y = (zero.y - window.y) / window.y;
+	diff.x = (fractalWindow.z - fractalWindow.x);
+	diff.y = (fractalWindow.w - fractalWindow.y);
+
+	winSize.x = fractalWindow.z - fractalWindow.x;
+	winSize.y = fractalWindow.w - fractalWindow.y;
 	if (BIT_GET(keys, RIGHT))
+	{
 		move.x += MOVE_AMOUNT;
+		fractalWindow.x += winSize.x / 100;
+		fractalWindow.z += winSize.x / 100;
+	}
 	if (BIT_GET(keys, LEFT))
+	{
 		move.x -= MOVE_AMOUNT;
+		fractalWindow.x -= winSize.x / 100;
+		fractalWindow.z -= winSize.x / 100;
+	}
 	if (BIT_GET(keys, UP))
+	{
 		move.y += MOVE_AMOUNT;
+		fractalWindow.y += winSize.y / 100;
+		fractalWindow.w += winSize.y / 100;
+	}
 	if (BIT_GET(keys, DOWN))
+	{
 		move.y -= MOVE_AMOUNT;
+		fractalWindow.y -= winSize.y / 100;
+		fractalWindow.w -= winSize.y / 100;
+	}
 	if (BIT_GET(keys, FORWARD))
 		move.z += MOVE_AMOUNT;
 	if (BIT_GET(keys, BACK))
 		move.z -= MOVE_AMOUNT;
 	if (BIT_GET(keys, PLUS))
+	{
 		move.w += MOVE_AMOUNT;
+		fractalWindow.z += ratemax.x * diff.x * 1 / 30;
+		fractalWindow.w += ratemax.y * diff.y * 1 / 30;
+		fractalWindow.x += ratemin.x * diff.x * 1 / 30;
+		fractalWindow.y += ratemin.y * diff.y * 1 / 30;
+	}
 	if (BIT_GET(keys, MOIN))
+	{
 		move.w -= MOVE_AMOUNT;
+		fractalWindow.z += ratemax.x * diff.x * -1 / 30;
+		fractalWindow.w += ratemax.y * diff.y * -1 / 30;
+		fractalWindow.x += ratemin.x * diff.x * -1 / 30;
+		fractalWindow.y += ratemin.y * diff.y * -1 / 30;
+	}
 }
 
 void		loop(GLFWwindow *win, GLuint program, GLuint vao, GLint *unis, GLint *images, int *sounds)
