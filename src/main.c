@@ -316,6 +316,22 @@ int			*loadSounds(char **av)
 	return sounds;
 }
 
+void		display_window_fps(void)
+{
+	static int		frames = 0;
+	static double	last_time = 0;
+	double			current_time = glfwGetTime();
+
+	frames++;
+	if (current_time - last_time >= 1.0)
+	{
+		printf("%sfps:%.3f%s", "\x1b\x37", 1.0 / (1000.0 / (float)frames) * 1000.0, "\x1b\x38");
+		frames = 0;
+		fflush(stdout);
+		last_time++;
+	}
+}
+
 int			main(int ac, char **av)
 {
 	if (ac < 2)
@@ -340,13 +356,7 @@ int			main(int ac, char **av)
 	{
 		checkFileChanged(&program, av[1], &fd);
 		loop(win, program, vao, unis, images, sounds);
-		if (frameDisplay == 10)
-		{
-			printf("%sfps:%.3f%s", "\x1b\x37", 1 / (glfwGetTime() - t1), "\x1b\x38");
-			fflush(stdout);
-			frameDisplay = 0;
-		}
-		frameDisplay++;
+		display_window_fps();
 	}
 
 	close(fd);

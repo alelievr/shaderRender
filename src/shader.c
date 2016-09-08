@@ -17,8 +17,9 @@
 void		checkCompilation(GLuint shader, bool fatal)
 {
 	GLint isCompiled = 0;
+
 	glGetShaderiv(shader, GL_COMPILE_STATUS, &isCompiled);
-	if(isCompiled == GL_FALSE)
+	if (isCompiled == GL_FALSE)
 	{
 		GLint maxLength = 0;
 		glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &maxLength);
@@ -36,8 +37,9 @@ void		checkCompilation(GLuint shader, bool fatal)
 void		checkLink(GLuint program, bool fatal)
 {
 	GLint isLinked = 0;
+
 	glGetProgramiv(program, GL_LINK_STATUS, (int *)&isLinked);
-	if(isLinked == GL_FALSE)
+	if (isLinked == GL_FALSE)
 	{
 		GLint maxLength = 0;
 		glGetProgramiv(program, GL_INFO_LOG_LENGTH, &maxLength);
