@@ -19,6 +19,9 @@
 #include <stdbool.h>
 #include <sys/stat.h>
 #include <string.h>
+#include <time.h>
+
+//#define UNIFORM_DEBUG 1
 
 vec4        mouse = {0, 0, 0, 0};
 vec2        scroll = {0, 0};
@@ -107,14 +110,21 @@ void		updateUniforms(GLint *unis, GLint *images, int *sounds)
 		lTime = time(NULL);
 	gettimeofday(&t, NULL);
 
-	glUniform1f(unis[0], (float)(time(NULL) - lTime) + (float)t.tv_usec / 1000000.0);
+	float ti = (float)(time(NULL) - lTime) + (float)t.tv_usec / 1000000.0;
+	glUniform1f(unis[0], ti);
 	glUniform1i(unis[1], frames++);
 	glUniform4f(unis[2], mouse.x, WIN_H - mouse.y, mouse.y, mouse.y);
 	glUniform2f(unis[3], scroll.x, scroll.y);
 	glUniform4f(unis[4], move.x, move.y, move.z, move.w);
-	check_gl_error("move");
 	glUniform2f(unis[5], window.x, window.y);
-	check_gl_error("window");
+#if UNIFORM_DEBUG
+	printf("window: %f/%f\n", window.x, window.y);
+	printf("scroll: %f/%f\n", scroll.x, scroll.y);
+	printf("move: %f/%f/%f/%f\n", move.x, move.y, move.z, move.w);
+	printf("mouse: %f/%f/%f/%f\n", mouse.x, mouse.y, mouse.z, mouse.w);
+	printf("time: %f\n", ti);
+	printf("frames: %i\n", frames);
+#endif
 #if DOUBLE_PRECISION
 	glUniform4d(unis[6], fractalWindow.x, fractalWindow.y, fractalWindow.z, fractalWindow.w);
 #else
@@ -253,8 +263,6 @@ GLint		*getUniformLocation(GLuint program)
 	unis[16] = glGetUniformLocation(program, "iSoundChannel2");
 	unis[17] = glGetUniformLocation(program, "iSoundChannel3");
 
-	for (int i = 0; i < 18; i++)
-		printf("unis[%i] = %i\n", i, unis[i]);
 	return unis;
 }
 

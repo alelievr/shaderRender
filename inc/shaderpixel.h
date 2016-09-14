@@ -16,6 +16,7 @@
 # include <stdio.h>
 # include <stdlib.h>
 # include <stdbool.h>
+# define GL_GLEXT_PROTOTYPES
 # define GLFW_INCLUDE_GLCOREARB
 # include "GLFW/glfw3.h"
 # include "SOIL2.h"

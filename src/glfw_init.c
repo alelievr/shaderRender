@@ -53,10 +53,14 @@ static void mouse_click_callback(GLFWwindow *win, int button, int action, int mo
 	(void)win;
 	(void)action;
 	(void)mods;
-	if (action == 1)
-		mouse.y = 1;
-	else
-		mouse.y = 0;
+	if (button == 0 && action == 1)
+		mouse.z = 1;
+	else if (button == 0)
+		mouse.z = 0;
+	if (button == 1 && action == 1)
+		mouse.w = 1;
+	else if (button == 1)
+		mouse.w = 0;
 }
 
 static void mouse_scroll_callback(GLFWwindow *win, double xOffset, double yOffset)
@@ -95,8 +99,8 @@ GLFWwindow	*init(char *name)
 	glfwSetErrorCallback(error_callback);
 	if (!glfwInit())
 		printf("glfwInit error !\n"), exit(-1);
-	glfwWindowHint (GLFW_CONTEXT_VERSION_MAJOR, 4);
- 	glfwWindowHint (GLFW_CONTEXT_VERSION_MINOR, 1);
+	glfwWindowHint (GLFW_CONTEXT_VERSION_MAJOR, 3);
+ 	glfwWindowHint (GLFW_CONTEXT_VERSION_MINOR, 2);
  	glfwWindowHint (GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
  	glfwWindowHint (GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	if (!(win = glfwCreateWindow(WIN_W, WIN_H, name, NULL, NULL)))

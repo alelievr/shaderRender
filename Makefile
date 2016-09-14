@@ -6,7 +6,7 @@
 #    By: alelievr <marvin@42.fr>                    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2014/07/15 15:13:38 by alelievr          #+#    #+#              #
-#    Updated: 2016/08/05 15:48:51 by alelievr         ###   ########.fr        #
+#    Updated: 2016/09/14 19:46:11 by alelievr         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -36,7 +36,7 @@ CPPVERSION	=	c++11
 #Example $> make DEBUG=2 will set debuglevel to 2
 
 #	Includes
-INCDIRS		=	. glfw/include inc SOIL2-clone/SOIL2 fmod/inc
+INCDIRS		=	"." "glfw/include" "inc" "SOIL2-clone/SOIL2" "fmod/inc"
 
 #	Libraries
 LIBDIRS		=	glfw/src/ SOIL2-clone
@@ -50,7 +50,7 @@ NAME		=	visualishader
 #	Compiler
 WERROR		=	#-Werror
 CFLAGS		=	#-ferror-limit=999
-CPROTECTION	=	-z execstack -fno-stack-protector
+CPROTECTION	=	"-z" "execstack" "-fno-stack-protector"
 
 DEBUGFLAGS1	=	-ggdb -fsanitize=address -fno-omit-frame-pointer -fno-optimize-sibling-calls -O0
 DEBUGFLAGS2	=	-fsanitize-memory-track-origins=2
@@ -93,7 +93,7 @@ OPTFLAGS	=	""
 ifeq "$(OS)" "Windows_NT"
 endif
 ifeq "$(OS)" "Linux"
-	LDLIBS		+= "-lm" "-lGL" "-lGLU" "-lX11" "-lXrandr" "-lXrender" "-lXi" "-lXxf86vm" "-lpthread" "-ldl" "-lXinerama" "-lXcursor" "-lrt"
+	LDLIBS		+= "-lm" "-lGL" "-lX11" "-lXrandr" "-lXrender" "-lXi" "-lXxf86vm" "-lpthread" "-ldl" "-lXinerama" "-lXcursor" "-lrt"
 	DEBUGFLAGS	+= "-fsanitize=memory" "-fsanitize-memory-use-after-dtor" "-fsanitize=thread"
 endif
 ifeq "$(OS)" "Darwin"
@@ -115,7 +115,7 @@ VFRAME		=	$(addprefix -framework ,$(FRAMEWORK))
 INCFILES	=	$(foreach inc, $(INCDIRS), $(wildcard $(inc)/*.h))
 CPPFLAGS	=	$(addprefix -I,$(INCDIRS))
 LDFLAGS		=	$(addprefix -L,$(LIBDIRS))
-LINKER		=	clang
+LINKER		=	cc
 
 disp_indent	=	for I in `seq 1 $(MAKELEVEL)`; do \
 					test "$(MAKELEVEL)" '!=' '0' && printf "\t"; \
