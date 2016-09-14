@@ -58,7 +58,7 @@ void sphere (vec3 v, float f, ray r, material m, inout hit h) {
 	if (t < h.t) {
 		h.t = t;
 		h.p = r.p + r.d * t;
-		h.n = (h.p - v) / f;
+		h.n = (h.p - v) / f * (sin(iGlobalTime) / 2 - .6);
 		
 		h.m = m;
 	}
@@ -118,13 +118,13 @@ vec3 surface (ray r) {
 }
 
 void mainImage( in vec2 fragCoord ) {
-	vec3 camera = iMoveAmount.xyz * 2.;
+	vec3 camera = iMoveAmount.xyz * 2. + vec3(0, 2, 0);
 	vec2 mouseUV = (iMouse.xy - iResolution.xy / 2) / iResolution.xy;
 //	vec3 forward = normalize(vec3 (mouseUV.x, mouseUV.y, 1));
 	vec3 forward = normalize(vec3 (0, 0, 1));
 	
 	vec2 uv = (fragCoord.xy * 2.0 - iResolution.xy) / iResolution.xx;
-	ray r = getRay (camera, forward, vec3 (0,1,0), uv);
+	ray r = getRay (camera, forward, (vec3 (0,1,0)), uv);
 	
 	fragColor = vec4 (surface (r) * (1.3 - max (abs (uv.x), abs (uv.y * 1.5))), 1.0);
 }

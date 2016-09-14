@@ -5,10 +5,10 @@
 //
 
 #define SHADOW
-//#define REFLECTION
+#define REFLECTION
 
 
-#define RAYCASTSTEPS 80
+#define RAYCASTSTEPS 100
 
 #define EXPOSURE 0.9
 #define EPSILON 0.0001
@@ -69,6 +69,7 @@ bool intersectUnitSphere ( in vec3 ro, in vec3 rd, in vec3 sph, out float dist, 
 		ts = -bs - sqrt( ts );
 		if( ts>0. ) {
 			normal = normalize( (ro+ts*rd)-sph );
+			normal = hash3(normal.xy);
 			dist = ts;
 			return true;
 		}

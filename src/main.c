@@ -77,6 +77,25 @@ GLuint		createVAO(GLuint vbo, int program)
 	return vao;
 }
 
+void check_gl_error(char *block) {
+    GLenum err = glGetError();
+    char *error;
+
+    while(err != GL_NO_ERROR) {
+
+        switch(err) {
+            case GL_INVALID_OPERATION:      error="INVALID_OPERATION";      break;
+            case GL_INVALID_ENUM:           error="INVALID_ENUM";           break;
+            case GL_INVALID_VALUE:          error="INVALID_VALUE";          break;
+            case GL_OUT_OF_MEMORY:          error="OUT_OF_MEMORY";          break;
+            case GL_INVALID_FRAMEBUFFER_OPERATION:  error="INVALID_FRAMEBUFFER_OPERATION";  break;
+        }
+
+		printf("%s: %s\n", block, error);
+        err = glGetError();
+    }
+}
+
 void		updateUniforms(GLint *unis, GLint *images, int *sounds)
 {
 	struct timeval	t;
@@ -93,7 +112,9 @@ void		updateUniforms(GLint *unis, GLint *images, int *sounds)
 	glUniform4f(unis[2], mouse.x, WIN_H - mouse.y, mouse.y, mouse.y);
 	glUniform2f(unis[3], scroll.x, scroll.y);
 	glUniform4f(unis[4], move.x, move.y, move.z, move.w);
+	check_gl_error("move");
 	glUniform2f(unis[5], window.x, window.y);
+	check_gl_error("window");
 #if DOUBLE_PRECISION
 	glUniform4d(unis[6], fractalWindow.x, fractalWindow.y, fractalWindow.z, fractalWindow.w);
 #else
@@ -231,6 +252,9 @@ GLint		*getUniformLocation(GLuint program)
 	unis[15] = glGetUniformLocation(program, "iSoundChannel1");
 	unis[16] = glGetUniformLocation(program, "iSoundChannel2");
 	unis[17] = glGetUniformLocation(program, "iSoundChannel3");
+
+	for (int i = 0; i < 18; i++)
+		printf("unis[%i] = %i\n", i, unis[i]);
 	return unis;
 }
 
