@@ -6,7 +6,7 @@
 #    By: alelievr <marvin@42.fr>                    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2014/07/15 15:13:38 by alelievr          #+#    #+#              #
-#    Updated: 2016/09/14 19:46:11 by alelievr         ###   ########.fr        #
+#    Updated: 2016/09/14 10:48:51 by alelievr         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -50,7 +50,7 @@ NAME		=	visualishader
 #	Compiler
 WERROR		=	#-Werror
 CFLAGS		=	#-ferror-limit=999
-CPROTECTION	=	"-z" "execstack" "-fno-stack-protector"
+CPROTECTION	=	-z execstack -fno-stack-protector
 
 DEBUGFLAGS1	=	-ggdb -fsanitize=address -fno-omit-frame-pointer -fno-optimize-sibling-calls -O0
 DEBUGFLAGS2	=	-fsanitize-memory-track-origins=2
@@ -85,16 +85,16 @@ CNORM_OK	=	"231m"
 
 OS			:=	$(shell uname -s)
 PROC		:=	$(shell uname -p)
-DEBUGFLAGS	=	""
-LINKDEBUG	=	""
-OPTFLAGS	=	""
-#COMPILATION	=	""
+DEBUGFLAGS	=	
+LINKDEBUG	=	
+OPTFLAGS	=	
+#COMPILATION	=	
 
 ifeq "$(OS)" "Windows_NT"
 endif
 ifeq "$(OS)" "Linux"
-	LDLIBS		+= "-lm" "-lGL" "-lX11" "-lXrandr" "-lXrender" "-lXi" "-lXxf86vm" "-lpthread" "-ldl" "-lXinerama" "-lXcursor" "-lrt"
-	DEBUGFLAGS	+= "-fsanitize=memory" "-fsanitize-memory-use-after-dtor" "-fsanitize=thread"
+	LDLIBS		+= -lm -lGL -lX11 -lXrandr -lXrender -lXi -lXxf86vm -lpthread -ldl -lXinerama -lXcursor -lrt
+	DEBUGFLAGS	+= -fsanitize=memory -fsanitize-memory-use-after-dtor -fsanitize=thread
 endif
 ifeq "$(OS)" "Darwin"
 	FRAMEWORK	= OpenGL AppKit IOKit CoreVideo
@@ -139,11 +139,11 @@ ifneq ($(filter 2,$(strip $(DEBUGLEVEL)) ${DEBUG}),)
 endif
 
 ifneq ($(filter 1,$(strip $(OPTLEVEL)) ${OPTI}),)
-	DEBUGFLAGS = ""
+	DEBUGFLAGS = 
 	OPTFLAGS = $(OPTFLAGS1)
 endif
 ifneq ($(filter 2,$(strip $(OPTLEVEL)) ${OPTI}),)
-	DEBUGFLAGS = ""
+	DEBUGFLAGS = 
 	OPTFLAGS = $(OPTFLAGS1) $(OPTFLAGS2)
 endif
 
@@ -156,7 +156,7 @@ ifneq ($(filter %.cpp,$(SRC)),)
 endif
 
 ifdef ${NOWERROR}
-	WERROR = ""
+	WERROR = 
 endif
 
 ifeq "$(strip $(LIBFT))" "2"
