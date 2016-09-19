@@ -11,6 +11,10 @@
 /* ************************************************************************** */
 
 #include "shaderpixel.h"
+#include <math.h>
+
+static vec2 angleAmount;
+static int	cursor_mode;
 
 static void error_callback(int error, const char* description)
 {
@@ -26,26 +30,40 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
 	if (key == GLFW_KEY_LEFT || key == GLFW_KEY_A)
 		BIT_SET(keys, LEFT, action == GLFW_PRESS || action == GLFW_REPEAT);
 	if (key == GLFW_KEY_UP || key == GLFW_KEY_W)
-		BIT_SET(keys, UP, action == GLFW_PRESS || action == GLFW_REPEAT);
-	if (key == GLFW_KEY_DOWN || key == GLFW_KEY_S)
-		BIT_SET(keys, DOWN, action == GLFW_PRESS || action == GLFW_REPEAT);
-	if (key == GLFW_KEY_Q)
 		BIT_SET(keys, FORWARD, action == GLFW_PRESS || action == GLFW_REPEAT);
-	if (key == GLFW_KEY_E)
+	if (key == GLFW_KEY_DOWN || key == GLFW_KEY_S)
 		BIT_SET(keys, BACK, action == GLFW_PRESS || action == GLFW_REPEAT);
+	if (key == GLFW_KEY_Q)
+		BIT_SET(keys, UP, action == GLFW_PRESS || action == GLFW_REPEAT);
+	if (key == GLFW_KEY_E)
+		BIT_SET(keys, DOWN, action == GLFW_PRESS || action == GLFW_REPEAT);
 	if (key == GLFW_KEY_KP_ADD || key == GLFW_KEY_EQUAL)
 		BIT_SET(keys, PLUS, action == GLFW_PRESS || action == GLFW_REPEAT);
 	if (key == GLFW_KEY_KP_SUBTRACT || key == GLFW_KEY_MINUS)
 		BIT_SET(keys, MOIN, action == GLFW_PRESS || action == GLFW_REPEAT);
 	if (key == GLFW_KEY_SPACE)
 		input_pause ^= action == GLFW_PRESS;
+	if (key == GLFW_KEY_SPACE)
+		input_pause ^= action == GLFW_PRESS;
+	if (key == GLFW_KEY_C)
+		cursor_mode ^= action == GLFW_PRESS;
+
+	glfwSetInputMode(window, GLFW_CURSOR, (cursor_mode) ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_DISABLED);
 }
 
 static void mouse_callback(GLFWwindow *win, double x, double y)
 {
 	(void)win;
 	mouse.x = x;
-	mouse.y = window.y - y;
+	mouse.y = y;
+	if (glfwGetInputMode(win, GLFW_CURSOR) == GLFW_CURSOR_DISABLED)
+	{
+    	angleAmount.x += ((window.x / 2.) - mouse.x) / 200;
+    	angleAmount.y += ((window.y / 2.) - mouse.y) / 200;
+    	forward.x = cos(angleAmount.y) * sin(angleAmount.x);
+    	forward.y = sin(angleAmount.y);
+    	forward.z = cos(angleAmount.y) * cos(angleAmount.x);
+	}
 }
 
 static void mouse_click_callback(GLFWwindow *win, int button, int action, int mods)
@@ -112,6 +130,7 @@ GLFWwindow	*init(char *name)
 	glfwSetWindowSizeCallback(win, resize_callback);
 	glfwMakeContextCurrent (win);
 	glfwSwapInterval(1);
+	glfwSetInputMode(win, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
 	return (win);
 }

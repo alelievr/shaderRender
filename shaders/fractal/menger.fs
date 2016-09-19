@@ -18,8 +18,8 @@ vec4 map( in vec3 p )
     float d = sdBox(p,vec3(1.0));
     vec4 res = vec4( d, 1.0, 0.0, 0.0 );
 
-    float ani = smoothstep( -0.2, 0.2, -cos(0.5*iGlobalTime) );
-	float off = 1.5*sin( 0.01*iGlobalTime );
+    float ani = 0;
+	float off = 0;
 	
     float s = 1.0;
     for( int m=0; m<4; m++ )
@@ -65,7 +65,7 @@ float softshadow( in vec3 ro, in vec3 rd, float mint, float k )
     float res = 1.0;
     float t = mint;
 	float h = 1.0;
-    for( int i=0; i<32; i++ )
+    for( int i=0; i<0; i++ )
     {
         h = map(ro + rd*t).x;
         res = min( res, k*h/t );
@@ -93,7 +93,7 @@ vec3 render( in vec3 ro, in vec3 rd )
     vec3 col = mix( vec3(0.3,0.2,0.1)*0.5, vec3(0.7, 0.9, 1.0), 0.5 + 0.5*rd.y );
 	
     vec4 tmat = intersect(ro,rd);
-    if( tmat.x>0.0 )
+    if( tmat.x>-1.0 )
     {
         vec3  pos = ro + tmat.x*rd;
         vec3  nor = calcNormal(pos);
@@ -121,20 +121,23 @@ vec3 render( in vec3 ro, in vec3 rd )
     return pow( col, vec3(0.4545) );
 }
 
-void mainImage( in vec2 fragCoord )
+void mainImage( vec2 coord )
 {
-    vec2 p = -1.0 + 2.0 * fragCoord.xy / iResolution.xy;
-    p.x *= iResolution.x/iResolution.y;
+	vec2    uv = (coord / iResolution) * 2 - 1;
+	vec3    cameraPos = iMoveAmount.xyz;
+	vec3    cameraDir = iForward;
 
-    float ctime = iGlobalTime;
-    // camera
-    vec3 ro = 1.1*vec3(2.5*sin(0.25*ctime),1.0+1.0*cos(ctime*.13),2.5*cos(0.25*ctime));
-    vec3 ww = normalize(vec3(0.0) - ro);
-    vec3 uu = normalize(cross( vec3(0.0,1.0,0.0), ww ));
-    vec3 vv = normalize(cross(ww,uu));
-    vec3 rd = normalize( p.x*uu + p.y*vv + 2.5*ww );
+	//window ratio correciton:
+	uv.x *= iResolution.x / iResolution.y;
 
-    vec3 col = render( ro, rd );
+	//perspective view
+	float   fov = 1.5;
+	vec3    forw = normalize(iForward);
+	vec3    right = normalize(cross(forw, vec3(0, 1, 0)));
+	vec3    up = normalize(cross(right, forw));
+	vec3    rd = normalize(uv.x * right + uv.y * up + fov * forw);
+
+    vec3 col = render( cameraPos, rd );
     
     fragColor = vec4(col,1.0);
 }

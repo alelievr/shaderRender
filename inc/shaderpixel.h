@@ -114,6 +114,7 @@ extern vec4			mouse;
 extern vec2			scroll;
 extern vec4			move;
 extern vec2			window;
+extern vec3			forward;
 #if DOUBLE_PRECISION
 extern dvec4		fractalWindow;
 #else
@@ -167,6 +168,7 @@ static const char* fragment_shader_text =
 "uniform vec4		iMouse;\n"
 "uniform vec2		iScrollAmount;\n"
 "uniform vec4		iMoveAmount;\n"
+"uniform vec3		iForward;\n"
 #if DOUBLE_PRECISION
 "uniform dvec4		iFractalWindow;\n"
 #else

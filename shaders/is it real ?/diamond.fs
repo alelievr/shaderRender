@@ -53,7 +53,8 @@ int find_intersection(vec3 dir,vec3 pos,out float near,out float far,out vec3 ne
 
 vec3 environment(vec3 dir)
 {
-	vec3 rgb=textureCube(iChannel0,vec3(dir.x,dir.y,-dir.z)).xyz;
+	vec3 rgb=texture(iChannel0, vec2(dir.x,dir.y)).xyz;
+	//vec3 rgb=textureCube(iChannel0,vec3(dir.x,dir.y,-dir.z)).xyz;
 	float l=(rgb.x+rgb.y+rgb.z)/3.0;
 	float l2=pow(l,4.0)*4.0;
 	return rgb/l*l2;

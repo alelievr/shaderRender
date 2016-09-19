@@ -19,7 +19,7 @@ void mainImage( in vec2 fragCoord )
 	double d = 1e20;
 	double d2 = 1e20;
 	double d3 = 1e20;
-	for(int i = 0; i < 50; i++)
+	for(int i = 0; i < 1000; i++)
 	{	
 		zp = zc;
 		zc = p + dvec2(zc.x * zc.x - zc.y * zc.y, 2. * zc.x * zc.y);

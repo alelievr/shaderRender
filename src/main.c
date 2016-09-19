@@ -27,6 +27,7 @@ vec4        mouse = {0, 0, 0, 0};
 vec2        scroll = {0, 0};
 vec4        move = {0, 0, 0, 0};
 vec2		window = {WIN_W, WIN_H};
+vec3		forward = {0, 0, 1};
 #if DOUBLE_PRECISION
 dvec4		fractalWindow = {-1, -1, 1, 1}; //xmin, ymin, xmax, ymax
 #else
@@ -65,7 +66,6 @@ GLuint		createVBO(void)
 GLuint		createVAO(GLuint vbo, int program)
 {
 	GLint		fragPos;
-	GLint		resPos;
 	GLuint		vao = 0;
 
 	glGenVertexArrays (1, &vao);
@@ -117,6 +117,7 @@ void		updateUniforms(GLint *unis, GLint *images, int *sounds)
 	glUniform2f(unis[3], scroll.x, scroll.y);
 	glUniform4f(unis[4], move.x, move.y, move.z, move.w);
 	glUniform2f(unis[5], window.x, window.y);
+	glUniform3f(unis[7], forward.x, forward.y, forward.z);
 #if UNIFORM_DEBUG
 	printf("window: %f/%f\n", window.x, window.y);
 	printf("scroll: %f/%f\n", scroll.x, scroll.y);
@@ -124,6 +125,7 @@ void		updateUniforms(GLint *unis, GLint *images, int *sounds)
 	printf("mouse: %f/%f/%f/%f\n", mouse.x, mouse.y, mouse.z, mouse.w);
 	printf("time: %f\n", ti);
 	printf("frames: %i\n", frames);
+	printf("forward: %f/%f/%f\n", forward.x, forward.y, forward.z);
 #endif
 #if DOUBLE_PRECISION
 	glUniform4d(unis[6], fractalWindow.x, fractalWindow.y, fractalWindow.z, fractalWindow.w);
@@ -163,40 +165,49 @@ void		updateUniforms(GLint *unis, GLint *images, int *sounds)
 	glUniform1i(unis[17], soundTex[3]);
 }
 
+vec3        vec3_cross(vec3 v1, vec3 v2)
+{
+	return (vec3){v1.y * v2.z - v1.z * v2.y, v1.z * v2.x - v1.x * v2.z, v1.x * v2.y - v1.y * v2.x};
+}
+
+#define VEC3_ADD_DIV(v1, v2, f) { v1.x += v2.x / f; v1.y += v2.y / f; v1.z += v2.z / f; }
 void		update_keys(void)
 {
 	vec2	winSize;
+
+	vec3    right = vec3_cross(forward, (vec3){0, 1, 0});
+	vec3    up = vec3_cross(forward, right);
 
 	winSize.x = fractalWindow.z - fractalWindow.x;
 	winSize.y = fractalWindow.w - fractalWindow.y;
 	if (BIT_GET(keys, RIGHT))
 	{
-		move.x += MOVE_AMOUNT;
+		VEC3_ADD_DIV(move, right, 10);
 		fractalWindow.x += winSize.x / SCALE;
 		fractalWindow.z += winSize.x / SCALE;
 	}
 	if (BIT_GET(keys, LEFT))
 	{
-		move.x -= MOVE_AMOUNT;
+		VEC3_ADD_DIV(move, -right, 10);
 		fractalWindow.x -= winSize.x / SCALE;
 		fractalWindow.z -= winSize.x / SCALE;
 	}
 	if (BIT_GET(keys, UP))
 	{
-		move.y += MOVE_AMOUNT;
+		VEC3_ADD_DIV(move, up, 10);
 		fractalWindow.y += winSize.y / SCALE;
 		fractalWindow.w += winSize.y / SCALE;
 	}
 	if (BIT_GET(keys, DOWN))
 	{
-		move.y -= MOVE_AMOUNT;
+		VEC3_ADD_DIV(move, -up, 10);
 		fractalWindow.y -= winSize.y / SCALE;
 		fractalWindow.w -= winSize.y / SCALE;
 	}
 	if (BIT_GET(keys, FORWARD))
-		move.z += MOVE_AMOUNT;
+		VEC3_ADD_DIV(move, forward, 10);
 	if (BIT_GET(keys, BACK))
-		move.z -= MOVE_AMOUNT;
+		VEC3_ADD_DIV(move, -forward, 10);
 	if (BIT_GET(keys, PLUS))
 	{
 		move.w += MOVE_AMOUNT;
@@ -238,6 +249,8 @@ void		loop(GLFWwindow *win, GLuint program, GLuint vao, GLint *unis, GLint *imag
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 6);
 
 	glfwSwapBuffers(win);
+	if (glfwGetInputMode(win, GLFW_CURSOR) == GLFW_CURSOR_DISABLED)
+		    glfwSetCursorPos(win, window.x / 2, window.y / 2);
 	glfwPollEvents();
 }
 
@@ -252,6 +265,7 @@ GLint		*getUniformLocation(GLuint program)
 	unis[4] = glGetUniformLocation(program, "iMoveAmount");
 	unis[5] = glGetUniformLocation(program, "iResolution");
 	unis[6] = glGetUniformLocation(program, "iFractalWindow");
+	unis[7] = glGetUniformLocation(program, "iForward");
 
 	unis[10] = glGetUniformLocation(program, "iChannel0");
 	unis[11] = glGetUniformLocation(program, "iChannel1");

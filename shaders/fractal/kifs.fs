@@ -331,23 +331,24 @@ vec3 envMap(vec3 rd){
 
 void mainImage( in vec2 fragCoord ){
     
-    
-    // Unit direction ray vector: Note the absence of a divide term. I came across
-    // this via a comment Shadertoy user "coyote" made. I'm pretty happy with this.
-    vec3 rd = (vec3(2.*fragCoord - iResolution.xy, iResolution.y));
-    
-    // Barrel distortion;
-    rd = normalize(vec3(rd.xy, sqrt(rd.z*rd.z - dot(rd.xy, rd.xy)*0.2)));
+	vec2    uv = (fragCoord / iResolution) * 2 - 1;
+	vec3    cameraDir = iForward;
 
-    
-    // Rotating the ray with Fabrice's cost cuttting matrix. I'm still pretty happy with this also. :)
-    vec2 m = sin(vec2(1.57079632, 0) + iGlobalTime/4.);
-    rd.xy = rd.xy*mat2(m.xy, -m.y, m.x);
-    rd.xz = rd.xz*mat2(m.xy, -m.y, m.x);
-    
+	//window ratio correciton:
+	uv.x *= iResolution.x / iResolution.y;
+
+	//perspective view
+	float   fov = 1.5;
+	vec3    forw = normalize(iForward);
+	vec3    right = normalize(cross(forw, vec3(0, 1, 0)));
+	vec3    up = normalize(cross(right, forw));
+	vec3    rd = normalize(uv.x * right + uv.y * up + fov * forw);
+
+
+	vec3 ro = iMoveAmount.xyz / 2;
     
     // Ray origin, set off in the YZ direction. Note the "0.5." It's an old lattice trick.
-    vec3 ro = vec3(0.0, 0.0, iGlobalTime);
+//    vec3 ro = vec3(0.0, 0.0, iGlobalTime);
     vec3 lp = ro + vec3(0.0, .25, .25); // Light, near the ray origin.
 
     // Set the scene color to black.
