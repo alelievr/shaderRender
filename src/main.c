@@ -25,7 +25,7 @@
 
 vec4        mouse = {0, 0, 0, 0};
 vec2        scroll = {0, 0};
-vec4        move = {0, 0, 0, 0};
+vec4        move = {0, 0, 0, 1};
 vec2		window = {WIN_W, WIN_H};
 vec3		forward = {0, 0, 1};
 #if DOUBLE_PRECISION
@@ -170,7 +170,7 @@ vec3        vec3_cross(vec3 v1, vec3 v2)
 	return (vec3){v1.y * v2.z - v1.z * v2.y, v1.z * v2.x - v1.x * v2.z, v1.x * v2.y - v1.y * v2.x};
 }
 
-#define VEC3_ADD_DIV(v1, v2, f) { v1.x += v2.x / f; v1.y += v2.y / f; v1.z += v2.z / f; }
+#define VEC3_ADD_DIV(v1, v2, f) { v1.x += v2.x / (f); v1.y += v2.y / (f); v1.z += v2.z / (f); }
 void		update_keys(void)
 {
 	vec2	winSize;
@@ -182,35 +182,35 @@ void		update_keys(void)
 	winSize.y = fractalWindow.w - fractalWindow.y;
 	if (BIT_GET(keys, RIGHT))
 	{
-		VEC3_ADD_DIV(move, right, 10);
+		VEC3_ADD_DIV(move, right, 10 / move.w);
 		fractalWindow.x += winSize.x / SCALE;
 		fractalWindow.z += winSize.x / SCALE;
 	}
 	if (BIT_GET(keys, LEFT))
 	{
-		VEC3_ADD_DIV(move, -right, 10);
+		VEC3_ADD_DIV(move, -right, 10 / move.w);
 		fractalWindow.x -= winSize.x / SCALE;
 		fractalWindow.z -= winSize.x / SCALE;
 	}
 	if (BIT_GET(keys, UP))
 	{
-		VEC3_ADD_DIV(move, up, 10);
+		VEC3_ADD_DIV(move, up, 10 / move.w);
 		fractalWindow.y += winSize.y / SCALE;
 		fractalWindow.w += winSize.y / SCALE;
 	}
 	if (BIT_GET(keys, DOWN))
 	{
-		VEC3_ADD_DIV(move, -up, 10);
+		VEC3_ADD_DIV(move, -up, 10 / move.w);
 		fractalWindow.y -= winSize.y / SCALE;
 		fractalWindow.w -= winSize.y / SCALE;
 	}
 	if (BIT_GET(keys, FORWARD))
-		VEC3_ADD_DIV(move, forward, 10);
+		VEC3_ADD_DIV(move, forward, 10 / move.w);
 	if (BIT_GET(keys, BACK))
-		VEC3_ADD_DIV(move, -forward, 10);
+		VEC3_ADD_DIV(move, -forward, 10 / move.w);
 	if (BIT_GET(keys, PLUS))
 	{
-		move.w += MOVE_AMOUNT;
+		move.w *= 1 + MOVE_AMOUNT;
 		fractalWindow.z += -.5 * winSize.x / 25;
 		fractalWindow.w += -.5 * winSize.y / 25;
 		fractalWindow.x += .5 * winSize.x / 25;
@@ -218,7 +218,7 @@ void		update_keys(void)
 	}
 	if (BIT_GET(keys, MOIN))
 	{
-		move.w -= MOVE_AMOUNT;
+		move.w *= 1 - MOVE_AMOUNT;
 		fractalWindow.z += -.5 * winSize.x / -25;
 		fractalWindow.w += -.5 * winSize.y / -25;
 		fractalWindow.x += .5 * winSize.x / -25;
