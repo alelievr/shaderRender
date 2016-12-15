@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2016/07/30 16:57:22 by alelievr          #+#    #+#             */
-/*   Updated: 2017/02/09 13:10:57 by alelievr         ###   ########.fr       */
+/*   Updated: 2016/12/15 21:37:08 by root             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,7 +60,7 @@ GLvoid		*raw_sound_to_data(char *buff, char *data, int size, int bit_per_sample,
 		buff[j++] = value;
 		buff[j++] = value;
 		buff[j++] = value;
-		buff[j++] = 255;
+		buff[j++] = (char)255;
 	}
 	return buff;
 }
