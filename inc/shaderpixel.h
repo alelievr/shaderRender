@@ -24,8 +24,10 @@
 
 # if __APPLE__
 #  define FMOD_LIB "fmod/lib/libfmod.dylib"
+#  include <OpenGL/glext.h>
 # else
 #  define FMOD_LIB "fmod/lib/libfmod-linux.so.8.8"
+#  include <bsd/string.h>
 # endif
 
 # define unused __attribute__((unused))
@@ -189,7 +191,7 @@ void			pause_sound(FMOD_SOUND *s);
 GLuint			get_sound_texture(int id);
 
 static const char* vertex_shader_text =
-"#version 410\n"
+"#version 330\n"
 "in vec2		fragPosition;\n"
 "out vec4		outColor;\n"
 "void main()\n"
@@ -198,7 +200,7 @@ static const char* vertex_shader_text =
 "}\n";
 
 static const char* vertex_buffer_shader_text =
-"#version 410\n"
+"#version 330\n"
 "layout(location = 0) in vec2		fragPosition;\n"
 "out vec4		outColor;\n"
 "void main()\n"

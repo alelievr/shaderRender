@@ -20,7 +20,6 @@
 #include <sys/stat.h>
 #include <string.h>
 #include <time.h>
-#include <OpenGL/glext.h>
 
 //#define UNIFORM_DEBUG 1
 
