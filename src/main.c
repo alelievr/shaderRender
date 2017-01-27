@@ -193,21 +193,21 @@ void		update_keys(void)
 		fractalWindow.z -= winSize.x / SCALE;
 	}
 	if (BIT_GET(keys, UP))
-	{
 		VEC3_ADD_DIV(move, up, 10 / move.w);
+	if (BIT_GET(keys, DOWN))
+		VEC3_ADD_DIV(move, -up, 10 / move.w);
+	if (BIT_GET(keys, FORWARD))
+	{
+		VEC3_ADD_DIV(move, forward, 10 / move.w);
 		fractalWindow.y += winSize.y / SCALE;
 		fractalWindow.w += winSize.y / SCALE;
 	}
-	if (BIT_GET(keys, DOWN))
+	if (BIT_GET(keys, BACK))
 	{
-		VEC3_ADD_DIV(move, -up, 10 / move.w);
+		VEC3_ADD_DIV(move, -forward, 10 / move.w);
 		fractalWindow.y -= winSize.y / SCALE;
 		fractalWindow.w -= winSize.y / SCALE;
 	}
-	if (BIT_GET(keys, FORWARD))
-		VEC3_ADD_DIV(move, forward, 10 / move.w);
-	if (BIT_GET(keys, BACK))
-		VEC3_ADD_DIV(move, -forward, 10 / move.w);
 	if (BIT_GET(keys, PLUS))
 	{
 		move.w *= 1 + MOVE_AMOUNT;

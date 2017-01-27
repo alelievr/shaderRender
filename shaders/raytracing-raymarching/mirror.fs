@@ -128,4 +128,3 @@ void mainImage( in vec2 fragCoord ) {
 	
 	fragColor = vec4 (surface (r) * (1.3 - max (abs (uv.x), abs (uv.y * 1.5))), 1.0);
 }
-

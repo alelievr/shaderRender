@@ -122,9 +122,21 @@ vec3 gather_light(vec3 dir,vec3 pos,vec3 normal,float eta)
 void mainImage( in vec2 fragCoord )
 {
 	vec2 position=(2.0*fragCoord.xy-iResolution.xy)/max(iResolution.x,iResolution.y);
-	vec3 pos=vec3(0.0,0.0,-5.0);
+	vec3 pos = iMoveAmount.xyz;//vec3(0.0,0.0,-5.0);
 //	vec3 dir=normalize(vec3(position,1.0-sqrt(position.x*position.x+position.y*position.y)));
-	vec3 dir=normalize(vec3(position,1.0));
+	//vec3 dir = iForward;//normalize(vec3(position,1.0));
+	vec2    uv = (fragCoord / iResolution) * 2 - 1;
+vec3    cameraDir = iForward;
+
+//window ratio correciton:
+uv.x *= iResolution.x / iResolution.y;
+
+//perspective view
+float   fov = 1.5;
+vec3    forw = normalize(iForward);
+vec3    right = normalize(cross(forw, vec3(0, 1, 0)));
+vec3    up = normalize(cross(right, forw));
+vec3    dir = normalize(uv.x * right + uv.y * up + fov * forw);
 
 	float a=sin(iGlobalTime*0.3);
 	float b=iGlobalTime*0.2;

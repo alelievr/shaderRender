@@ -111,7 +111,7 @@ vec2 rt(vec2 x,float y)
 void mainImage( in vec2 fragCoord )
 {
 	// normalized and aspect ratio corrected pixel coordinate
-    vec2 p = (fragCoord.xy / iResolution.xy)*2.0-1.0;
+ /*   vec2 p = (fragCoord.xy / iResolution.xy)*2.0-1.0;
     p.x *= iResolution.x/ iResolution.y;
 
 	// camera and user input
@@ -121,7 +121,23 @@ void mainImage( in vec2 fragCoord )
 	o.xz = rt(oo.xz, 6.3*iMouse.x/iResolution.x);
 	o.y = oo.y;
 	d.xz = rt(od.xz, 6.3*iMouse.x/iResolution.x);
-	d.y = od.y;
+	d.y = od.y;*/
+
+	vec2    uv = (fragCoord / iResolution) * 2 - 1;
+	vec3    cameraDir = iForward;
+
+	//window ratio correciton:
+	uv.x *= iResolution.x / iResolution.y;
+
+	//perspective view
+	float   fov = 1.5;
+	vec3    forw = normalize(iForward);
+	vec3    right = normalize(cross(forw, vec3(0, 1, 0)));
+	vec3    up = normalize(cross(right, forw));
+	vec3    d = normalize(uv.x * right + uv.y * up + fov * forw);
+
+
+	vec3 o = iMoveAmount.xyz / 2;
 
 	// render
 	vec4 col = vec4(0, 0, 0, 0);

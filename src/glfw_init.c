@@ -60,6 +60,11 @@ static void mouse_callback(GLFWwindow *win, double x, double y)
 	{
     	angleAmount.x += ((window.x / 2.) - mouse.x) / 200;
     	angleAmount.y += ((window.y / 2.) - mouse.y) / 200;
+
+		if (angleAmount.y > 1.5f)
+			angleAmount.y = 1.5f;
+		if (angleAmount.y < -1.5f)
+			angleAmount.y = -1.5f;
     	forward.x = cos(angleAmount.y) * sin(angleAmount.x);
     	forward.y = sin(angleAmount.y);
     	forward.z = cos(angleAmount.y) * cos(angleAmount.x);
@@ -90,10 +95,13 @@ static void mouse_scroll_callback(GLFWwindow *win, double xOffset, double yOffse
 	vec2 ratemax;
 	vec2 diff;
 
-	ratemin.x = (mouse.x / window.x);
-	ratemin.y = (mouse.y / window.y);
-	ratemax.x = (mouse.x - window.x) / window.x;
-	ratemax.y = (mouse.y - window.y) / window.y;
+	vec2 fractal_mouse;
+	fractal_mouse.x = mouse.x;
+	fractal_mouse.y = window.y - mouse.y;
+	ratemin.x = (fractal_mouse.x / window.x);
+	ratemin.y = (fractal_mouse.y / window.y);
+	ratemax.x = (fractal_mouse.x - window.x) / window.x;
+	ratemax.y = (fractal_mouse.y - window.y) / window.y;
 	diff.x = (fractalWindow.z - fractalWindow.x);
 	diff.y = (fractalWindow.w - fractalWindow.y);
 	fractalWindow.z += ratemax.x * diff.x * yOffset / 30;
@@ -111,7 +119,6 @@ static void resize_callback(GLFWwindow *win, int width, int height)
 GLFWwindow	*init(char *name)
 {
 	GLFWwindow *win;
-	GLuint		vertex_buffer;
 
 	//GLFW
 	glfwSetErrorCallback(error_callback);

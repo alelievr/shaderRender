@@ -3,6 +3,11 @@
 
 // The code for this video from 2009: https://www.youtube.com/watch?v=iWr5kSZQ7jk
 
+/*#declare f=function(i,x,y,z,xc,yc,zc)
+{
+	select(i>0 & x*x+y*y+z*z<4, 0, sqrt(x*x+y*y+z*z), f(i-1,(x*x-y*y)*(1-z*z/(x*x+y*y))+xc,2*x*y*(1-z*z/(x*x+y*y))+yc,-2*z*sqrt(x*x+y*y)+zc,xc,yc,zc))
+};*/
+
 bool isphere( in vec4 sph, in vec3 ro, in vec3 rd, out vec2 t )
 {
     vec3 oc = ro - sph.xyz;
@@ -30,10 +35,10 @@ float map( in vec3 p, in vec3 c, out vec4 resColor )
     
 	for( int i=0; i<4; i++ )
     {
-		dz = 8.0*pow(m,3.5)*dz;
+		dz = 2.0*pow(m,3.5)*dz;
         
-#if 0
-        float x = zz.x; float x2 = x*x; float x4 = x2*x2;
+#if 1
+/*        float x = zz.x; float x2 = x*x; float x4 = x2*x2;
         float y = zz.y; float y2 = y*y; float y4 = y2*y2;
         float z = zz.z; float z2 = z*z; float z4 = z2*z2;
 
@@ -44,7 +49,13 @@ float map( in vec3 p, in vec3 c, out vec4 resColor )
 
         zz.x = c.x +  64.0*x*y*z*(x2-z2)*k4*(x4-6.0*x2*z2+z4)*k1*k2;
         zz.y = c.y + -16.0*y2*k3*k4*k4 + k1*k1;
-        zz.z = c.z +  -8.0*y*k4*(x4*x4 - 28.0*x4*x2*z2 + 70.0*x4*z4 - 28.0*x2*z2*z4 + z4*z4)*k1*k2;
+        zz.z = c.z +  -8.0*y*k4*(x4*x4 - 28.0*x4*x2*z2 + 70.0*x4*z4 - 28.0*x2*z2*z4 + z4*z4)*k1*k2;*/
+
+        float r = length(zz);
+        float b = 2.0*acos( clamp(zz.y/r, -1.0, 1.0));
+        float a = 2.0*atan( zz.x, zz.z );
+        zz = c + pow(r,2.0) * vec3( sin(b)*sin(a), cos(b), sin(b)*cos(a) );
+
 #else
         
         float r = length(zz);
@@ -147,6 +158,7 @@ void mainImage(in vec2 fragCoord )
 	vec3 light1 = vec3(  0.577, 0.577, -0.577 );
 	vec3 light2 = vec3( -0.707, 0.000,  0.707 );
 
+	uv.x *= iResolution.x / iResolution.y;
 
 	float r = 1.3+0.1*cos(.29*time);
 //	vec3  ro = vec3( r*cos(.33*time), 0.8*r*sin(.37*time), r*sin(.31*time) );

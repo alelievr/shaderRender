@@ -136,14 +136,11 @@ void			play_sound(FMOD_SOUND *s);
 void			pause_sound(FMOD_SOUND *s);
 
 static const char* vertex_shader_text =
-"#version 330\n"
-//"in vec2		iResolutionIn;\n"
-//"out vec2		iResolution;\n"
+"#version 410\n"
 "in vec2		fragPosition;\n"
 "out vec4		outColor;\n"
 "void main()\n"
 "{\n"
-//"	iResolution = iResolutionIn;\n"
 "	gl_Position = vec4(fragPosition, 0.0, 1.0);\n"
 "}\n";
 
@@ -198,6 +195,7 @@ static const char* fragment_shader_text =
 "void main()\n"
 "{\n"
 "	mainImage(gl_FragCoord.xy);\n"
-"}\n";
+"}\n"
+"#line 1\n";
 
 #endif
