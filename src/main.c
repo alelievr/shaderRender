@@ -118,8 +118,8 @@ void		updateUniforms(GLint *unis, GLint *images, int *sounds)
 	static int		glTextures[] = {GL_TEXTURE1, GL_TEXTURE2, GL_TEXTURE3, GL_TEXTURE4, GL_TEXTURE5, GL_TEXTURE6, GL_TEXTURE7, GL_TEXTURE8};
 
 	float ti = getCurrentTime();
-	printf("ti: %f\n", ti);
-	glUniform1f(unis[0], ti);
+	if (!input_pause)
+		glUniform1f(unis[0], ti);
 	glUniform1i(unis[1], frames++);
 	glUniform4f(unis[2], mouse.x, WIN_H - mouse.y, mouse.y, mouse.y);
 	glUniform2f(unis[3], scroll.x, scroll.y);
@@ -249,8 +249,7 @@ void		loop(GLFWwindow *win, GLuint program, GLuint vao, GLint *unis, GLint *imag
 	glEnable(GL_MULTISAMPLE);
 	glEnable(GL_TEXTURE_2D);
 
-	if (!input_pause)
-		updateUniforms(unis, images, sounds);
+	updateUniforms(unis, images, sounds);
 
 	glUseProgram(program);
 	glBindVertexArray(vao);
