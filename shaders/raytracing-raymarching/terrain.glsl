@@ -125,7 +125,7 @@ void mainImage( in vec2 fragCoord )
 	vec3    rd = normalize(uv.x * right + uv.y * up + fov * forw);
 
 
-	vec3 ro = iMoveAmount.xyz / 2;
+	vec3 ro = iMoveAmount.xyz / 2 + vec3(0, 1, 0);
 
     l1dir=normalize(vec3(0., 0.15, -1.1));
    

@@ -36,6 +36,7 @@ vec4		fractalWindow = {-1, -1, 1, 1}; //xmin, ymin, xmax, ymax
 int        	keys = 0;
 int         input_pause = 0;
 long        lastModifiedFile = 0;
+float		pausedTime = 0;
 
 float points[] = {
    	-1.0f,  -1.0f,
@@ -99,18 +100,25 @@ void check_gl_error(char *block) {
     }
 }
 
-void		updateUniforms(GLint *unis, GLint *images, int *sounds)
+float		getCurrentTime(void)
 {
 	struct timeval	t;
-	static int		frames = 0;
 	static time_t	lTime = 0;
-	static int		glTextures[] = {GL_TEXTURE1, GL_TEXTURE2, GL_TEXTURE3, GL_TEXTURE4, GL_TEXTURE5, GL_TEXTURE6, GL_TEXTURE7, GL_TEXTURE8};
-
+	
 	if (lTime == 0)
 		lTime = time(NULL);
 	gettimeofday(&t, NULL);
 
-	float ti = (float)(time(NULL) - lTime) + (float)t.tv_usec / 1000000.0;
+	return (float)(time(NULL) - lTime) + (float)t.tv_usec / 1000000.0 - pausedTime;
+}
+
+void		updateUniforms(GLint *unis, GLint *images, int *sounds)
+{
+	static int		frames = 0;
+	static int		glTextures[] = {GL_TEXTURE1, GL_TEXTURE2, GL_TEXTURE3, GL_TEXTURE4, GL_TEXTURE5, GL_TEXTURE6, GL_TEXTURE7, GL_TEXTURE8};
+
+	float ti = getCurrentTime();
+	printf("ti: %f\n", ti);
 	glUniform1f(unis[0], ti);
 	glUniform1i(unis[1], frames++);
 	glUniform4f(unis[2], mouse.x, WIN_H - mouse.y, mouse.y, mouse.y);

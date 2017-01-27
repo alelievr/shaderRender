@@ -13,8 +13,9 @@
 #include "shaderpixel.h"
 #include <math.h>
 
-static vec2 angleAmount;
-static int	cursor_mode;
+static vec2 	angleAmount;
+static int		cursor_mode;
+static float	lastPausedTime;
 
 static void error_callback(int error, const char* description)
 {
@@ -23,6 +24,8 @@ static void error_callback(int error, const char* description)
 
 static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
+	struct timeval		t;
+
 	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, GLFW_TRUE);
 	if (key == GLFW_KEY_RIGHT || key == GLFW_KEY_D)
@@ -41,10 +44,14 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
 		BIT_SET(keys, PLUS, action == GLFW_PRESS || action == GLFW_REPEAT);
 	if (key == GLFW_KEY_KP_SUBTRACT || key == GLFW_KEY_MINUS)
 		BIT_SET(keys, MOIN, action == GLFW_PRESS || action == GLFW_REPEAT);
-	if (key == GLFW_KEY_SPACE)
-		input_pause ^= action == GLFW_PRESS;
-	if (key == GLFW_KEY_SPACE)
-		input_pause ^= action == GLFW_PRESS;
+	if (key == GLFW_KEY_SPACE && action != GLFW_REPEAT && action == GLFW_PRESS)
+	{
+		input_pause ^= action;
+		if (input_pause)
+			lastPausedTime = getCurrentTime();
+		else
+			pausedTime += getCurrentTime() - lastPausedTime;
+	}
 	if (key == GLFW_KEY_C)
 		cursor_mode ^= action == GLFW_PRESS;
 

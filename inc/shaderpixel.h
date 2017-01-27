@@ -123,11 +123,13 @@ extern vec4		fractalWindow;
 extern int			keys;
 extern int			input_pause;
 extern long			lastModifiedFile;
+extern float		pausedTime;
 
 GLFWwindow		*init(char *fname);
 GLuint			createProgram(int fd, bool fatal);
 int				load_wav_file(char *f);
 GLuint			get_sound_texture(int id);
+float			getCurrentTime(void);
 void			fmod_init(void);
 FMOD_SOUND		*load_sound(char *f);
 void			play_all_sounds(void);
