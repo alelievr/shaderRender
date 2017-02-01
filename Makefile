@@ -6,7 +6,7 @@
 #    By: alelievr <marvin@42.fr>                    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2014/07/15 15:13:38 by alelievr          #+#    #+#              #
-#    Updated: 2016/09/14 10:48:51 by alelievr         ###   ########.fr        #
+#    Updated: 2017/01/29 00:59:03 by alelievr         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -36,7 +36,7 @@ CPPVERSION	=	c++11
 #Example $> make DEBUG=2 will set debuglevel to 2
 
 #	Includes
-INCDIRS		=	"." "glfw/include" "inc" "SOIL2-clone/SOIL2" "fmod/inc"
+INCDIRS		=	glfw/include inc SOIL2-clone/incs fmod/inc
 
 #	Libraries
 LIBDIRS		=	glfw/src/ SOIL2-clone

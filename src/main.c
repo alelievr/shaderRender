@@ -346,8 +346,9 @@ GLint		*loadImages(char **av)
 	{
 		if (!checkFileExtention(av[i], (char *[]){"png", "jpg", "tiff", "jpeg", NULL}))
 			continue ;
+		//SOIL_FLAG_NEAREST instead of SOIL_FLAG_MIPMAPS for pixelicious textures
 		texts[k] = SOIL_load_OGL_texture(av[i], SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID,
-				SOIL_FLAG_MIPMAPS | SOIL_FLAG_NTSC_SAFE_RGB | SOIL_FLAG_COMPRESS_TO_DXT | SOIL_FLAG_TEXTURE_REPEATS);
+				SOIL_FLAG_MIPMAPS |  SOIL_FLAG_NTSC_SAFE_RGB | SOIL_FLAG_COMPRESS_TO_DXT | SOIL_FLAG_TEXTURE_REPEATS);
 		if (texts[k] == 0)
 			printf("can't load texture: %s\n", SOIL_last_result()), exit(-1);
 		k++;

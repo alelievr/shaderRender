@@ -131,6 +131,7 @@ GLFWwindow	*init(char *name)
 	glfwSetErrorCallback(error_callback);
 	if (!glfwInit())
 		printf("glfwInit error !\n"), exit(-1);
+	glfwWindowHint (GLFW_SAMPLES, 4);
 	glfwWindowHint (GLFW_CONTEXT_VERSION_MAJOR, 3);
  	glfwWindowHint (GLFW_CONTEXT_VERSION_MINOR, 2);
  	glfwWindowHint (GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
