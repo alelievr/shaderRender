@@ -6,11 +6,12 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/09 11:53:14 by alelievr          #+#    #+#             */
-/*   Updated: 2017/02/09 13:14:42 by alelievr         ###   ########.fr       */
+/*   Updated: 2017/02/09 17:15:42 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "shaderpixel.h"
+#include <string.h>
 
 #define	IMAGE_EXT	(const char *[]){"jpg", "png", "tiff", "jpeg", "bmp", NULL}
 #define	SHADER_EXT	(const char *[]){"glsl", "fs", NULL}
@@ -18,7 +19,6 @@
 
 static void		loadImage(t_channel *chan, const char *file, int mode)
 {
-	GLuint	ret;
 	int		flags = 0;
 
 	if (mode & CHAN_NEAREST)
@@ -26,7 +26,7 @@ static void		loadImage(t_channel *chan, const char *file, int mode)
 	else
 		flags |= SOIL_FLAG_MIPMAPS;
 
-	if (mode & CHAN_VFILP)
+	if (mode & CHAN_VFLIP)
 		flags |= SOIL_FLAG_INVERT_Y;
 
 	if (mode & CHAN_CLAMP)
@@ -37,7 +37,7 @@ static void		loadImage(t_channel *chan, const char *file, int mode)
 	flags |= SOIL_FLAG_NTSC_SAFE_RGB | SOIL_FLAG_COMPRESS_TO_DXT;
 
 	chan->id = SOIL_load_OGL_texture(file, SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, flags);
-	if (ret == 0)
+	if (chan->id == 0)
 		printf("can't load texture: %s\n", SOIL_last_result()), exit(-1);
 	chan->type = CHAN_IMAGE;
 }
@@ -59,6 +59,8 @@ void			loadChannel(t_channel *chan, const char *file, int mode)
 {
 	GLuint		ret;	
 
+	if (file != chan->filepath)
+		strcpy(chan->filepath, file);
 	if (checkFileExtention(file, IMAGE_EXT))
 		return (loadImage(chan, file, mode));
 	if (checkFileExtention(file, SHADER_EXT))

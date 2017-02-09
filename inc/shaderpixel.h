@@ -92,7 +92,7 @@ enum			e_channel_mode
 	CHAN_NEAREST			= 0x01,
 	CHAN_LINEAR				= 0x02,
 	CHAN_MIPMAP				= 0x04,
-	CHAN_VFILP				= 0x08,
+	CHAN_VFLIP				= 0x08,
 //	CHAN_CLAMP_BORDER		= 0x10,
 //	CHAN_CLAMP_EDGE			= 0x20,
 	CHAN_CLAMP				= 0x40,
@@ -102,6 +102,7 @@ typedef struct	s_channel
 {
 	GLint		id;
 	int			type;
+	char		filepath[1024];
 }				t_channel;
 
 typedef struct	s_program
@@ -191,11 +192,13 @@ static const char* vertex_shader_text =
 "	gl_Position = vec4(fragPosition, 0.0, 1.0);\n"
 "}\n";
 
-static const char* fragment_shader_image_text = 
+static const char* fragment_shader_texture = 
+"uniform sampler2D	tex;\n"
+"\n"
 "void mainImage(vec2 fragCoord)\n"
 "{\n"
 "	vec2 uv = fragCoord.xy / iResolution.xy;\n"
-"	fragColor = vec4(uv, 0.5 + 0.5 * sin(iGlobalTime), 1.0);\n"
+"	fragColor = texture(tex, uv);\n"
 "}\n";
 
 static const char* fragment_shader_text =
