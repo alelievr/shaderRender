@@ -120,6 +120,8 @@ char		*getFileSource(int fd, t_program *p)
 			line += 18;
 			strreplace(line, "//", "\0\0");
 			int i = 0;
+			int chan = line[-2] - '0';
+			printf("chan = %i\n", chan);
 			while (*line && !isspace(*line))
 				p->channels[chan].file_path[i++] = *line++;
 			p->channels[chan].file_path[i++] = 0;
@@ -129,7 +131,6 @@ char		*getFileSource(int fd, t_program *p)
 			CHECK_ACTIVE_FLAG("linear", CHAN_VFLIP);
 			CHECK_ACTIVE_FLAG("clamp", CHAN_CLAMP);
 			loadChannel(p->channels + chan, p->channels[chan].file_path, mode);
-			chan++;
 		}
 	return ret;
 }

@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/09 11:53:14 by alelievr          #+#    #+#             */
-/*   Updated: 2017/02/09 18:06:10 by alelievr         ###   ########.fr       */
+/*   Updated: 2017/02/09 19:13:00 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,15 +36,19 @@ static void		loadImage(t_channel *chan, const char *file, int mode)
 
 	flags |= SOIL_FLAG_NTSC_SAFE_RGB | SOIL_FLAG_COMPRESS_TO_DXT;
 
+	if (chan->id)
+		glDeleteTextures(1, (GLuint *)&chan->id);
 	chan->id = SOIL_load_OGL_texture(file, SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, flags);
 	if (chan->id == 0)
 		printf("can't load texture: %s\n", SOIL_last_result()), exit(-1);
+	printf("loaded texture at id: %i\n", chan->id);
 	chan->type = CHAN_IMAGE;
 }
 
 void			loadShader(t_channel *chan, const char *file)
 {
 	chan->type = CHAN_SHADER;
+	chan->id = -1;
 	(void)file;
 }
 

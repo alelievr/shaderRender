@@ -112,6 +112,7 @@ typedef struct	s_program
 	char		program_path[1024];
 	int			fd;
 	long		last_modified;
+	GLint		unis[0xF0];
 }				t_program;
 
 enum			KEY_BITS

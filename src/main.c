@@ -131,19 +131,22 @@ void		updateUniforms(GLint *unis, t_channel *channels)
 	int j = 0;
 	for (int i = 0; channels[i].type; i++)
 	{
+		printf("chan: %i\n", j);
+		printf("id: %i\n", channels[i].id);
 		if (channels[i].type == CHAN_IMAGE)
 		{
 			glActiveTexture(glTextures[j]);
 			glBindTexture(GL_TEXTURE_2D, channels[i].id);
+			printf("chan uniform: %i\n", 10 + j);
 			glUniform1i(unis[10 + j++], channels[i].id);
 		}
-		if (channels[i].type == CHAN_SOUND)
+/*		if (channels[i].type == CHAN_SOUND)
 		{
 			int soundTexId = get_sound_texture(channels[i].id);
 			glActiveTexture(glTextures[i]);
 			glBindTexture(GL_TEXTURE_2D, soundTexId);
 			glUniform1i(unis[10 + j++], soundTexId);
-		}
+		}*/
 	}
 }
 
@@ -208,7 +211,7 @@ void		update_keys(void)
 	}
 }
 
-void		loop(GLFWwindow *win, t_program *program, GLuint vao, GLint *unis, t_channel *channels)
+void		loop(GLFWwindow *win, t_program *program, GLuint vao)
 {
 	float ratio;
 	int width, height;
@@ -225,7 +228,7 @@ void		loop(GLFWwindow *win, t_program *program, GLuint vao, GLint *unis, t_chann
 
 	//buffer shader management
 
-	updateUniforms(unis, channels);
+	updateUniforms(program->unis, program->channels);
 
 	glUseProgram(program->id);
 	glBindVertexArray(vao);
@@ -237,30 +240,27 @@ void		loop(GLFWwindow *win, t_program *program, GLuint vao, GLint *unis, t_chann
 	glfwPollEvents();
 }
 
-GLint		*getUniformLocation(t_program *prog)
+void		updateUniformLocation(t_program *prog)
 {
-	static GLint unis[0xF0];
 	const int	program = prog->id;
 
-	unis[0] = glGetUniformLocation(program, "iGlobalTime");
-	unis[1] = glGetUniformLocation(program, "iFrame");
-	unis[2] = glGetUniformLocation(program, "iMouse");
-	unis[3] = glGetUniformLocation(program, "iScrollAmount");
-	unis[4] = glGetUniformLocation(program, "iMoveAmount");
-	unis[5] = glGetUniformLocation(program, "iResolution");
-	unis[6] = glGetUniformLocation(program, "iFractalWindow");
-	unis[7] = glGetUniformLocation(program, "iForward");
+	prog->unis[0] = glGetUniformLocation(program, "iGlobalTime");
+	prog->unis[1] = glGetUniformLocation(program, "iFrame");
+	prog->unis[2] = glGetUniformLocation(program, "iMouse");
+	prog->unis[3] = glGetUniformLocation(program, "iScrollAmount");
+	prog->unis[4] = glGetUniformLocation(program, "iMoveAmount");
+	prog->unis[5] = glGetUniformLocation(program, "iResolution");
+	prog->unis[6] = glGetUniformLocation(program, "iFractalWindow");
+	prog->unis[7] = glGetUniformLocation(program, "iForward");
 
-	unis[10] = glGetUniformLocation(program, "iChannel0");
-	unis[11] = glGetUniformLocation(program, "iChannel1");
-	unis[12] = glGetUniformLocation(program, "iChannel2");
-	unis[13] = glGetUniformLocation(program, "iChannel3");
-	unis[14] = glGetUniformLocation(program, "iChannel4");
-	unis[15] = glGetUniformLocation(program, "iChannel5");
-	unis[16] = glGetUniformLocation(program, "iChannel6");
-	unis[17] = glGetUniformLocation(program, "iChannel7");
-
-	return unis;
+	prog->unis[10] = glGetUniformLocation(program, "iChannel0");
+	prog->unis[11] = glGetUniformLocation(program, "iChannel1");
+	prog->unis[12] = glGetUniformLocation(program, "iChannel2");
+	prog->unis[13] = glGetUniformLocation(program, "iChannel3");
+	prog->unis[14] = glGetUniformLocation(program, "iChannel4");
+	prog->unis[15] = glGetUniformLocation(program, "iChannel5");
+	prog->unis[16] = glGetUniformLocation(program, "iChannel6");
+	prog->unis[17] = glGetUniformLocation(program, "iChannel7");
 }
 
 void		checkFileChanged(t_program *progs)
@@ -276,7 +276,7 @@ void		checkFileChanged(t_program *progs)
 			close(progs[i].fd);
 			progs[i].fd = open(progs[i].program_path, O_RDONLY);
 			if (createProgram(progs + i, progs[i].program_path, false))
-				getUniformLocation(progs + i);
+				updateUniformLocation(progs + i);
 		}
 	}
 }
@@ -312,15 +312,21 @@ int			main(int ac, char **av)
 	createProgram(programs + 0, av[1], true);
 	GLuint		vbo = createVBO();
 	GLuint		vao = createVAO(vbo, programs + 0);
-	GLint		*unis = getUniformLocation(programs + 0);
+	updateUniformLocation(programs + 0);
 	t_channel	*channels = loadChannels(av + 2);
 
 	//merge channel 
+	for (int i = 0; channels[i].id; i++)
+	{
+		if (programs->channels[i].id)
+			glDeleteTextures(1, (GLuint *)&programs->channels[i].id);
+		programs->channels[i] = channels[i];
+	}
 	play_all_sounds();
 	while ((t1 = glfwGetTime()), !glfwWindowShouldClose(win))
 	{
 		checkFileChanged(programs);
-		loop(win, programs, vao, unis, channels);
+		loop(win, programs, vao);
 		display_window_fps();
 	}
 	glfwTerminate();
