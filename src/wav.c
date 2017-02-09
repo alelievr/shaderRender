@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2016/07/30 16:57:22 by alelievr          #+#    #+#             */
-/*   Updated: 2016/08/06 13:34:06 by alelievr         ###   ########.fr       */
+/*   Updated: 2017/02/09 13:10:57 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,7 +79,7 @@ GLuint		get_sound_texture(int id)
 	return sounds[id].gl_id;
 }
 
-int			load_wav_file(char *f)
+int			load_wav_file(const char *f)
 {
 	static int	id = 0;
 	int			fd;

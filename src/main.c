@@ -100,19 +100,7 @@ void check_gl_error(char *block) {
     }
 }
 
-float		getCurrentTime(void)
-{
-	struct timeval	t;
-	static time_t	lTime = 0;
-	
-	if (lTime == 0)
-		lTime = time(NULL);
-	gettimeofday(&t, NULL);
-
-	return (float)(time(NULL) - lTime) + (float)t.tv_usec / 1000000.0 - pausedTime;
-}
-
-void		updateUniforms(GLint *unis, GLint *images, int *sounds)
+void		updateUniforms(GLint *unis, t_channel *channels)
 {
 	static int		frames = 0;
 	static int		glTextures[] = {GL_TEXTURE1, GL_TEXTURE2, GL_TEXTURE3, GL_TEXTURE4, GL_TEXTURE5, GL_TEXTURE6, GL_TEXTURE7, GL_TEXTURE8};
@@ -141,36 +129,23 @@ void		updateUniforms(GLint *unis, GLint *images, int *sounds)
 	glUniform4f(unis[6], fractalWindow.x, fractalWindow.y, fractalWindow.z, fractalWindow.w);
 #endif
 
-	int		i = 0;
-	for (int j = 0; j < 4; j++)
-		if (images[j] != 0)
+	int j = 0;
+	for (int i = 0; channels[i].type; i++)
+	{
+		if (channels[i].type == CHAN_IMAGE)
 		{
-			glActiveTexture(glTextures[i++]);
-			glBindTexture(GL_TEXTURE_2D, images[j]);
+			glActiveTexture(glTextures[j]);
+			glBindTexture(GL_TEXTURE_2D, channels[i].id);
+			glUniform1i(unis[10 + j++], channels[i].id);
 		}
-	GLuint			soundTex[4];
-
-	soundTex[0] = get_sound_texture(sounds[0]);
-	soundTex[1] = get_sound_texture(sounds[1]);
-	soundTex[2] = get_sound_texture(sounds[2]);
-	soundTex[3] = get_sound_texture(sounds[3]);
-
-	for (int j = 0; j < 4; j++)
-		if (sounds[j] != 0)
+		if (channels[i].type == CHAN_SOUND)
 		{
-			glActiveTexture(glTextures[i++]);
-			glBindTexture(GL_TEXTURE_2D, soundTex[j]);
+			int soundTexId = get_sound_texture(channels[i].id);
+			glActiveTexture(glTextures[i]);
+			glBindTexture(GL_TEXTURE_2D, soundTexId);
+			glUniform1i(unis[10 + j++], soundTexId);
 		}
-
-	glUniform1i(unis[10], images[0]);
-	glUniform1i(unis[11], images[1]);
-	glUniform1i(unis[12], images[2]);
-	glUniform1i(unis[13], images[3]);
-
-	glUniform1i(unis[14], soundTex[0]);
-	glUniform1i(unis[15], soundTex[1]);
-	glUniform1i(unis[16], soundTex[2]);
-	glUniform1i(unis[17], soundTex[3]);
+	}
 }
 
 vec3        vec3_cross(vec3 v1, vec3 v2)
@@ -234,7 +209,7 @@ void		update_keys(void)
 	}
 }
 
-void		loop(GLFWwindow *win, GLuint program, GLuint vao, GLint *unis, GLint *images, int *sounds)
+void		loop(GLFWwindow *win, GLuint program, GLuint vao, GLint *unis, t_channel *channels)
 {
 	float ratio;
 	int width, height;
@@ -249,7 +224,9 @@ void		loop(GLFWwindow *win, GLuint program, GLuint vao, GLint *unis, GLint *imag
 	glEnable(GL_MULTISAMPLE);
 	glEnable(GL_TEXTURE_2D);
 
-	updateUniforms(unis, images, sounds);
+	//buffer shader management
+
+	updateUniforms(unis, channels);
 
 	glUseProgram(program);
 	glBindVertexArray(vao);
@@ -278,11 +255,10 @@ GLint		*getUniformLocation(GLuint program)
 	unis[11] = glGetUniformLocation(program, "iChannel1");
 	unis[12] = glGetUniformLocation(program, "iChannel2");
 	unis[13] = glGetUniformLocation(program, "iChannel3");
-
-	unis[14] = glGetUniformLocation(program, "iSoundChannel0");
-	unis[15] = glGetUniformLocation(program, "iSoundChannel1");
-	unis[16] = glGetUniformLocation(program, "iSoundChannel2");
-	unis[17] = glGetUniformLocation(program, "iSoundChannel3");
+	unis[14] = glGetUniformLocation(program, "iChannel4");
+	unis[15] = glGetUniformLocation(program, "iChannel5");
+	unis[16] = glGetUniformLocation(program, "iChannel6");
+	unis[17] = glGetUniformLocation(program, "iChannel7");
 
 	return unis;
 }
@@ -318,58 +294,6 @@ void		checkFileChanged(GLuint *program, char *file, int *fd)
 		}
 	}
 }
-
-int			checkFileExtention(char *file, char **exts)
-{
-	char	*ext = file + strlen(file) - 1;
-
-	while (ext != file && *ext != '.')
-		ext--;
-	ext++;
-	while (*exts)
-	{
-		if (!strcmp(ext, *exts))
-			return (1);
-		exts++;
-	}
-	return (0);
-}
-
-GLint		*loadImages(char **av)
-{
-	static GLint	texts[0xF0];
-	int				k = 0;
-	int				width;
-	int				height;
-
-	for (int i = 0; av[i]; i++)
-	{
-		if (!checkFileExtention(av[i], (char *[]){"png", "jpg", "tiff", "jpeg", NULL}))
-			continue ;
-		//SOIL_FLAG_NEAREST instead of SOIL_FLAG_MIPMAPS for pixelicious textures
-		texts[k] = SOIL_load_OGL_texture(av[i], SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID,
-				SOIL_FLAG_MIPMAPS |  SOIL_FLAG_NTSC_SAFE_RGB | SOIL_FLAG_COMPRESS_TO_DXT | SOIL_FLAG_TEXTURE_REPEATS);
-		if (texts[k] == 0)
-			printf("can't load texture: %s\n", SOIL_last_result()), exit(-1);
-		k++;
-	}
-	return texts;
-}
-
-int			*loadSounds(char **av)
-{
-	static int		sounds[0xF0];
-	int				k = 0;
-
-	for (int i = 0; av[i]; i++)
-	{
-		if (!checkFileExtention(av[i], (char *[]){"wav", NULL}))
-			continue ;
-		sounds[k++] = load_wav_file(av[i]);
-	}
-	return sounds;
-}
-
 void		display_window_fps(void)
 {
 	static int		frames = 0;
@@ -402,14 +326,13 @@ int			main(int ac, char **av)
 	GLuint		vbo = createVBO();
 	GLuint		vao = createVAO(vbo, program);
 	GLint		*unis = getUniformLocation(program);
-	GLint		*images = loadImages(av + 2);
-	int			*sounds = loadSounds(av + 2);
+	t_channel	*channels = loadChannels(av + 2);
 
 	play_all_sounds();
 	while ((t1 = glfwGetTime()), !glfwWindowShouldClose(win))
 	{
 		checkFileChanged(&program, av[1], &fd);
-		loop(win, program, vao, unis, images, sounds);
+		loop(win, program, vao, unis, channels);
 		display_window_fps();
 	}
 

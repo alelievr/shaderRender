@@ -42,7 +42,7 @@ void			fmod_init(void)
 	FMOD_System_Init1(fmod_system, 1, FMOD_INIT_NORMAL, NULL);
 }
 
-FMOD_SOUND			*load_sound(char *fname)
+FMOD_SOUND			*load_sound(const char *fname)
 {
 	FMOD_SOUND *music;
 

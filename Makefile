@@ -6,7 +6,7 @@
 #    By: alelievr <marvin@42.fr>                    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2014/07/15 15:13:38 by alelievr          #+#    #+#              #
-#    Updated: 2017/01/29 00:59:03 by alelievr         ###   ########.fr        #
+#    Updated: 2017/02/09 13:08:14 by alelievr         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -21,6 +21,8 @@ SRC			=	main.c			\
 				shader.c		\
 				fmod.c			\
 				wav.c			\
+				loadChannel.c	\
+				utils.c			\
 
 #	Objects
 OBJDIR		=	obj
@@ -48,8 +50,8 @@ SOILLIB		=	SOIL2-clone/libSOIL2.a
 NAME		=	visualishader
 
 #	Compiler
-WERROR		=	#-Werror
-CFLAGS		=	#-ferror-limit=999
+WERROR		=	-Werror
+CFLAGS		=	-ferror-limit=999
 CPROTECTION	=	-z execstack -fno-stack-protector
 
 DEBUGFLAGS1	=	-ggdb -fsanitize=address -fno-omit-frame-pointer -fno-optimize-sibling-calls -O0

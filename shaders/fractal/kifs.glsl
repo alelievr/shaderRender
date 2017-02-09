@@ -1,3 +1,6 @@
+#pragma iChannel0 textures/lava-rock-4k.jpg linear mipmap clamp-border //default values
+#pragma iChannel1 textures/lava-rock-4k.jpg
+
 /*
 
     KIFS Flythrough

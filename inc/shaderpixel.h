@@ -28,6 +28,8 @@
 #  define FMOD_LIB "fmod/lib/libfmod-linux.so.8.8"
 # endif
 
+# define unused __attribute__((unused))
+
 # define WIN_W 1080
 # define WIN_H 720
 # define SCALE 70
@@ -77,6 +79,37 @@ typedef struct	s_riff_header
 	short		bit_per_sample;		//34
 }				riff_header;
 
+enum			e_channel_type
+{
+	CHAN_NONE,
+	CHAN_IMAGE,
+	CHAN_SOUND,
+	CHAN_SHADER,
+};
+
+enum			e_channel_mode
+{
+	CHAN_NEAREST			= 0x01,
+	CHAN_LINEAR				= 0x02,
+	CHAN_MIPMAP				= 0x04,
+	CHAN_VFILP				= 0x08,
+//	CHAN_CLAMP_BORDER		= 0x10,
+//	CHAN_CLAMP_EDGE			= 0x20,
+	CHAN_CLAMP				= 0x40,
+};
+
+typedef struct	s_channel
+{
+	GLint		id;
+	int			type;
+}				t_channel;
+
+typedef struct	s_program
+{
+	int			id;
+	t_channel	channels[8];
+}				t_program;
+
 enum			KEY_BITS
 {
 	RIGHT,
@@ -125,17 +158,29 @@ extern int			input_pause;
 extern long			lastModifiedFile;
 extern float		pausedTime;
 
+//WINDOW:
 GLFWwindow		*init(char *fname);
+
+//SHADERS:
 GLuint			createProgram(int fd, bool fatal);
-int				load_wav_file(char *f);
-GLuint			get_sound_texture(int id);
+
+//UTILS
 float			getCurrentTime(void);
+void			loadChannel(t_channel *chan, const char *file, int mode);
+t_channel		*loadChannels(char **files);
+bool			checkFileExtention(const char *filename, const char **exts);
+
+//SOUND LOAD
 void			fmod_init(void);
-FMOD_SOUND		*load_sound(char *f);
+int				load_wav_file(const char *f);
+FMOD_SOUND		*load_sound(const char *f);
+
+//SOUND CONTROL
 void			play_all_sounds(void);
 void			pause_all_sounds(void);
 void			play_sound(FMOD_SOUND *s);
 void			pause_sound(FMOD_SOUND *s);
+GLuint			get_sound_texture(int id);
 
 static const char* vertex_shader_text =
 "#version 410\n"
@@ -177,10 +222,10 @@ static const char* fragment_shader_text =
 "uniform sampler2D	iChannel1;\n"
 "uniform sampler2D	iChannel2;\n"
 "uniform sampler2D	iChannel3;\n"
-"uniform sampler2D	iSoundChannel0;\n"
-"uniform sampler2D	iSoundChannel1;\n"
-"uniform sampler2D	iSoundChannel2;\n"
-"uniform sampler2D	iSoundChannel3;\n"
+"uniform sampler2D	iChannel4;\n"
+"uniform sampler2D	iChannel5;\n"
+"uniform sampler2D	iChannel6;\n"
+"uniform sampler2D	iChannel7;\n"
 "\n"
 "void mainImage(vec2 f);\n"
 "\n"
