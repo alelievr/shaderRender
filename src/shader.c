@@ -16,6 +16,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <unistd.h>
+#include <fcntl.h>
 
 void		checkCompilation(GLuint shader, bool fatal)
 {
@@ -120,27 +121,31 @@ char		*getFileSource(int fd, t_program *p)
 			strreplace(line, "//", "\0\0");
 			int i = 0;
 			while (*line && !isspace(*line))
-				p->channels[chan].filepath[i++] = *line++;
-			p->channels[chan].filepath[i++] = 0;
+				p->channels[chan].file_path[i++] = *line++;
+			p->channels[chan].file_path[i++] = 0;
 			CHECK_ACTIVE_FLAG("linear", CHAN_LINEAR);
 			CHECK_ACTIVE_FLAG("nearest", CHAN_NEAREST);
 			CHECK_ACTIVE_FLAG("mipmap", CHAN_MIPMAP);
 			CHECK_ACTIVE_FLAG("linear", CHAN_VFLIP);
 			CHECK_ACTIVE_FLAG("clamp", CHAN_CLAMP);
-			loadChannel(p->channels + chan, p->channels[chan].filepath, mode);
+			loadChannel(p->channels + chan, p->channels[chan].file_path, mode);
 			chan++;
 		}
 	return ret;
 }
 
-GLuint		CompileShaderFragment(int fd, bool fatal)
+GLuint		CompileShaderFragment(t_program *p, int fd, bool fatal)
 {
 	GLuint		ret;
-	t_program	p;
-	const char	*srcs[] = {fragment_shader_text, getFileSource(fd, &p)};
+	const char	*srcs[] = {fragment_shader_text, getFileSource(fd, p)};
 
 	if (srcs[1] == NULL)
-		return (0);
+	{
+		if (fatal)
+			exit(-1);
+		else
+			return (0);
+	}
 	ret = glCreateShader(GL_FRAGMENT_SHADER);
 	glShaderSource(ret, 2, srcs, NULL);
 	glCompileShader(ret);
@@ -159,20 +164,26 @@ GLuint		CompileShaderVertex(bool fatal)
 	return (ret);
 }
 
-GLuint		createProgram(int fd, bool fatal)
+bool		createProgram(t_program *prog, const char *file, bool fatal)
 {
-	GLuint		program;
-
+	int			fd = open(file, O_RDONLY);
+	struct stat	st;
 	GLuint		shaderVertex = CompileShaderVertex(fatal);
-	GLuint		shaderFragment = CompileShaderFragment(fd, fatal);
+	GLuint		shaderFragment = CompileShaderFragment(prog, fd, fatal);
 
+	fstat(fd, &st);
+	prog->last_modified = st.st_mtime;
 	if (shaderVertex == 0 || shaderFragment == 0)
-		return (0);
-	program = glCreateProgram();
-	glAttachShader(program, shaderVertex);
-	glAttachShader(program, shaderFragment);
-	glLinkProgram(program);
-	checkLink(program, fatal);
-
-	return program;
+		return (false);
+	if (prog->id != 0)
+		glDeleteProgram(prog->id);
+	prog->id = glCreateProgram();
+	glAttachShader(prog->id, shaderVertex);
+	glAttachShader(prog->id, shaderFragment);
+	glLinkProgram(prog->id);
+	checkLink(prog->id, fatal);
+	if (file != prog->program_path)
+		strcpy(prog->program_path, file);
+	prog->fd = fd;
+	return (true);
 }

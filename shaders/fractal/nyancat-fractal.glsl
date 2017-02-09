@@ -21,17 +21,16 @@ vec4 getNyanCatColor( vec2 p, float time )
 
 void mainImage( in vec2 fragCoord )
 {
-//	vec2 p = -1.0+2.0*fragCoord.xy / iResolution.xy;
-//	p.x *= iResolution.x/iResolution.y;
+	//	vec2 p = -1.0+2.0*fragCoord.xy / iResolution.xy;
+	//	p.x *= iResolution.x/iResolution.y;
 
     float time = iGlobalTime;
-    time = max( time-5.5, 0.0 );
-    
+
     // zoom	
-//	p = vec2(0.5,-0.05)  + p*0.75 * pow( 0.9, 20.0*(0.5+0.5*cos(0.25*time)) );
+	//	p = vec2(0.5,-0.05)  + p*0.75 * pow( 0.9, 20.0*(0.5+0.5*cos(0.25*time)) );
 	vec2 pix = vec2((iFractalWindow.z - iFractalWindow.x) / iResolution.x, (iFractalWindow.w - iFractalWindow.y) / iResolution.y);
 	vec2 p = vec2(iFractalWindow.x + fragCoord.x * pix.x, iFractalWindow.y + fragCoord.y * pix.y);
-	
+
     vec4 col = vec4(0.0);
 	vec3 s = mix( vec3( 0.2,0.2, 1.0 ), vec3( 0.5,-0.2,0.5), 0.5+0.5*sin(0.5*time) );
 
@@ -45,17 +44,15 @@ void mainImage( in vec2 fragCoord )
 
         // fc(z) = zÂ² + c		
 		z = vec2(z.x*z.x - z.y*z.y, 2.0*z.x*z.y) + c;
-		
+
 		col = getNyanCatColor( s.xy + s.z*z, time );
 		f += 1.0;
 	}
-	
+
 	vec3 bg = 0.5*vec3(1.0,0.5,0.5) * sqrt(f/100.0);
-	
+
 	col.xyz = mix( bg, col.xyz, col.w );
-    
-    col *= step( 2.0, iGlobalTime );
-    col += texture2D( iChannel1, vec2(0.01,0.2) ).x * (1.0-step( 5.5, iGlobalTime ));
-	
+
+
 	fragColor = vec4( col.xyz,1.0);
 }

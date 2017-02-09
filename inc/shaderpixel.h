@@ -102,13 +102,16 @@ typedef struct	s_channel
 {
 	GLint		id;
 	int			type;
-	char		filepath[1024];
+	char		file_path[1024];
 }				t_channel;
 
 typedef struct	s_program
 {
 	int			id;
 	t_channel	channels[8];
+	char		program_path[1024];
+	int			fd;
+	long		last_modified;
 }				t_program;
 
 enum			KEY_BITS
@@ -163,7 +166,7 @@ extern float		pausedTime;
 GLFWwindow		*init(char *fname);
 
 //SHADERS:
-GLuint			createProgram(int fd, bool fatal);
+bool			createProgram(t_program *p, const char *path, bool fatal);
 
 //UTILS
 float			getCurrentTime(void);

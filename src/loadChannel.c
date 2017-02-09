@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/09 11:53:14 by alelievr          #+#    #+#             */
-/*   Updated: 2017/02/09 17:15:42 by alelievr         ###   ########.fr       */
+/*   Updated: 2017/02/09 18:06:10 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,8 +59,8 @@ void			loadChannel(t_channel *chan, const char *file, int mode)
 {
 	GLuint		ret;	
 
-	if (file != chan->filepath)
-		strcpy(chan->filepath, file);
+	if (file != chan->file_path)
+		strcpy(chan->file_path, file);
 	if (checkFileExtention(file, IMAGE_EXT))
 		return (loadImage(chan, file, mode));
 	if (checkFileExtention(file, SHADER_EXT))
@@ -75,6 +75,9 @@ t_channel		*loadChannels(char **files)
 	int					i = -1;
 
 	while (files[++i])
+	{
+		bzero(channs + i, sizeof(t_channel));
 		loadChannel(channs + i, files[i], 0);
+	}
 	return channs;
 }

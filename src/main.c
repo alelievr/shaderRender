@@ -35,7 +35,6 @@ vec4		fractalWindow = {-1, -1, 1, 1}; //xmin, ymin, xmax, ymax
 #endif
 int        	keys = 0;
 int         input_pause = 0;
-long        lastModifiedFile = 0;
 float		pausedTime = 0;
 
 float points[] = {
@@ -64,7 +63,7 @@ GLuint		createVBO(void)
 	return vbo;
 }
 
-GLuint		createVAO(GLuint vbo, int program)
+GLuint		createVAO(GLuint vbo, t_program *program)
 {
 	GLint		fragPos;
 	GLuint		vao = 0;
@@ -74,7 +73,7 @@ GLuint		createVAO(GLuint vbo, int program)
 	glEnableVertexAttribArray (0);
 	glBindBuffer (GL_ARRAY_BUFFER, vbo);
 
-	fragPos = glGetAttribLocation(program, "fragPosition");
+	fragPos = glGetAttribLocation(program->id, "fragPosition");
 	glEnableVertexAttribArray(fragPos);
 	glVertexAttribPointer(fragPos, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, (void*) 0);
 
@@ -209,7 +208,7 @@ void		update_keys(void)
 	}
 }
 
-void		loop(GLFWwindow *win, GLuint program, GLuint vao, GLint *unis, t_channel *channels)
+void		loop(GLFWwindow *win, t_program *program, GLuint vao, GLint *unis, t_channel *channels)
 {
 	float ratio;
 	int width, height;
@@ -228,7 +227,7 @@ void		loop(GLFWwindow *win, GLuint program, GLuint vao, GLint *unis, t_channel *
 
 	updateUniforms(unis, channels);
 
-	glUseProgram(program);
+	glUseProgram(program->id);
 	glBindVertexArray(vao);
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 6);
 
@@ -238,9 +237,10 @@ void		loop(GLFWwindow *win, GLuint program, GLuint vao, GLint *unis, t_channel *
 	glfwPollEvents();
 }
 
-GLint		*getUniformLocation(GLuint program)
+GLint		*getUniformLocation(t_program *prog)
 {
 	static GLint unis[0xF0];
+	const int	program = prog->id;
 
 	unis[0] = glGetUniformLocation(program, "iGlobalTime");
 	unis[1] = glGetUniformLocation(program, "iFrame");
@@ -263,37 +263,24 @@ GLint		*getUniformLocation(GLuint program)
 	return unis;
 }
 
-int			getFileFd(const char *fname)
-{
-	struct stat	st;
-	int		fd = open(fname, O_RDONLY);
-	fstat(fd, &st);
-	lastModifiedFile = st.st_mtime;
-	if (fd == -1 || !S_ISREG(st.st_mode))
-		printf("not a valid file: %s\n", fname), exit(-1);
-	return fd;
-}
-
-void		checkFileChanged(GLuint *program, char *file, int *fd)
+void		checkFileChanged(t_program *progs)
 {
 	struct stat		st;
-	stat(file, &st);
 
-	if (lastModifiedFile != st.st_mtime)
+	for (int i = 0; progs[i].id; i++)
 	{
-		lastModifiedFile = st.st_mtime;
-		close(*fd);
-		*fd = open(file, O_RDONLY);
-		GLint new_program = createProgram(*fd, false);
-		if (new_program != 0)
+		stat(progs[i].program_path, &st);
+		if (progs[i].last_modified != st.st_mtime)
 		{
-			glDeleteProgram(*program);
-			*program = new_program;
-			printf("shader reloaded !\n");
-			getUniformLocation(*program);
+			progs[i].last_modified = st.st_mtime;
+			close(progs[i].fd);
+			progs[i].fd = open(progs[i].program_path, O_RDONLY);
+			if (createProgram(progs + i, progs[i].program_path, false))
+				getUniformLocation(progs + i);
 		}
 	}
 }
+
 void		display_window_fps(void)
 {
 	static int		frames = 0;
@@ -312,31 +299,30 @@ void		display_window_fps(void)
 
 int			main(int ac, char **av)
 {
+	double				t1;
+	int					frameDisplay = 0;
+	static t_program	programs[0xF];
+
 	if (ac < 2)
 		usage(*av);
-
-	int			fd = getFileFd(av[1]);
-	double		t1;
-	int			frameDisplay = 0;
 
 	GLFWwindow *win = init(av[1]);
 	fmod_init();
 
-	GLuint		program = createProgram(fd, true);
+	createProgram(programs + 0, av[1], true);
 	GLuint		vbo = createVBO();
-	GLuint		vao = createVAO(vbo, program);
-	GLint		*unis = getUniformLocation(program);
+	GLuint		vao = createVAO(vbo, programs + 0);
+	GLint		*unis = getUniformLocation(programs + 0);
 	t_channel	*channels = loadChannels(av + 2);
 
+	//merge channel 
 	play_all_sounds();
 	while ((t1 = glfwGetTime()), !glfwWindowShouldClose(win))
 	{
-		checkFileChanged(&program, av[1], &fd);
-		loop(win, program, vao, unis, channels);
+		checkFileChanged(programs);
+		loop(win, programs, vao, unis, channels);
 		display_window_fps();
 	}
-
-	close(fd);
 	glfwTerminate();
 	return (0);
 }
