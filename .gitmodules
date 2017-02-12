@@ -4,3 +4,6 @@
 [submodule "SOIL2-clone"]
 	path = SOIL2-clone
 	url = https://github.com/alelievr/SOIL2-clone
+[submodule "libdrawtext"]
+	path = libdrawtext
+	url = https://github.com/alelievr/libdrawtext
