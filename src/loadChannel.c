@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/09 11:53:14 by alelievr          #+#    #+#             */
-/*   Updated: 2017/02/09 19:13:00 by alelievr         ###   ########.fr       */
+/*   Updated: 2017/02/11 00:56:33 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,8 +36,8 @@ static void		loadImage(t_channel *chan, const char *file, int mode)
 
 	flags |= SOIL_FLAG_NTSC_SAFE_RGB | SOIL_FLAG_COMPRESS_TO_DXT;
 
-	if (chan->id)
-		glDeleteTextures(1, (GLuint *)&chan->id);
+//	if (chan->id)
+//		glDeleteTextures(1, (GLuint *)&chan->id);
 	chan->id = SOIL_load_OGL_texture(file, SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, flags);
 	if (chan->id == 0)
 		printf("can't load texture: %s\n", SOIL_last_result()), exit(-1);
@@ -47,8 +47,25 @@ static void		loadImage(t_channel *chan, const char *file, int mode)
 
 void			loadShader(t_channel *chan, const char *file)
 {
+	GLuint FramebufferName = 0;
+
 	chan->type = CHAN_SHADER;
-	chan->id = -1;
+	glGenFramebuffers(1, &FramebufferName);
+	glBindFramebuffer(GL_FRAMEBUFFER, FramebufferName);
+
+	GLuint renderedTexture;
+	glGenTextures(1, &renderedTexture);
+
+	glBindTexture(GL_TEXTURE_2D, renderedTexture);
+
+	glTexImage2D(GL_TEXTURE_2D, 0,GL_RGB, 1024, 768, 0,GL_RGB, GL_UNSIGNED_BYTE, 0);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, renderedTexture, 0);
+
+	chan->id = FramebufferName;
 	(void)file;
 }
 

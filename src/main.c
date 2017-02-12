@@ -131,13 +131,10 @@ void		updateUniforms(GLint *unis, t_channel *channels)
 	int j = 0;
 	for (int i = 0; channels[i].type; i++)
 	{
-		printf("chan: %i\n", j);
-		printf("id: %i\n", channels[i].id);
 		if (channels[i].type == CHAN_IMAGE)
 		{
 			glActiveTexture(glTextures[j]);
 			glBindTexture(GL_TEXTURE_2D, channels[i].id);
-			printf("chan uniform: %i\n", 10 + j);
 			glUniform1i(unis[10 + j++], channels[i].id);
 		}
 /*		if (channels[i].type == CHAN_SOUND)
@@ -211,6 +208,8 @@ void		update_keys(void)
 	}
 }
 
+struct dtx_font *font;
+
 void		loop(GLFWwindow *win, t_program *program, GLuint vao)
 {
 	float ratio;
@@ -275,7 +274,7 @@ void		checkFileChanged(t_program *progs)
 			progs[i].last_modified = st.st_mtime;
 			close(progs[i].fd);
 			progs[i].fd = open(progs[i].program_path, O_RDONLY);
-			if (createProgram(progs + i, progs[i].program_path, false))
+			if (createProgram(progs + i, progs[i].program_path, false, true))
 				updateUniformLocation(progs + i);
 		}
 	}
@@ -309,13 +308,12 @@ int			main(int ac, char **av)
 	GLFWwindow *win = init(av[1]);
 	fmod_init();
 
-	createProgram(programs + 0, av[1], true);
+	createProgram(programs + 0, av[1], true, ac == 2);
 	GLuint		vbo = createVBO();
 	GLuint		vao = createVAO(vbo, programs + 0);
 	updateUniformLocation(programs + 0);
 	t_channel	*channels = loadChannels(av + 2);
 
-	//merge channel 
 	for (int i = 0; channels[i].id; i++)
 	{
 		if (programs->channels[i].id)
@@ -323,6 +321,7 @@ int			main(int ac, char **av)
 		programs->channels[i] = channels[i];
 	}
 	play_all_sounds();
+
 	while ((t1 = glfwGetTime()), !glfwWindowShouldClose(win))
 	{
 		checkFileChanged(programs);

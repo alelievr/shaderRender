@@ -21,6 +21,7 @@
 # include "GLFW/glfw3.h"
 # include "SOIL2.h"
 # include "fmod.h"
+# include "drawtext.h"
 
 # if __APPLE__
 #  define FMOD_LIB "fmod/lib/libfmod.dylib"
@@ -167,7 +168,7 @@ extern float		pausedTime;
 GLFWwindow		*init(char *fname);
 
 //SHADERS:
-bool			createProgram(t_program *p, const char *path, bool fatal);
+bool			createProgram(t_program *p, const char *path, bool fatal, bool loadChannels);
 
 //UTILS
 float			getCurrentTime(void);

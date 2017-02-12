@@ -6,7 +6,7 @@
 #    By: alelievr <marvin@42.fr>                    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2014/07/15 15:13:38 by alelievr          #+#    #+#              #
-#    Updated: 2017/02/09 13:08:14 by alelievr         ###   ########.fr        #
+#    Updated: 2017/02/12 18:57:23 by alelievr         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -38,13 +38,14 @@ CPPVERSION	=	c++11
 #Example $> make DEBUG=2 will set debuglevel to 2
 
 #	Includes
-INCDIRS		=	glfw/include inc SOIL2-clone/incs fmod/inc
+INCDIRS		=	glfw/include inc SOIL2-clone/incs fmod/inc libdrawtext/inc
 
 #	Libraries
-LIBDIRS		=	glfw/src/ SOIL2-clone
-LDLIBS		=	-lglfw3 -lSOIL2
+LIBDIRS		=	glfw/src/ SOIL2-clone libdrawtext libdrawtext/freetype2/objs/.libs/
+LDLIBS		=	-lglfw3 -lSOIL2 -ldrawtext -lfreetype
 GLFWLIB		=	glfw/src/libglfw3.a
 SOILLIB		=	SOIL2-clone/libSOIL2.a
+LIBDRAWTEXT	=	libdrawtext/libdrawtext.a
 
 #	Output
 NAME		=	visualishader
@@ -174,7 +175,10 @@ endif
 #################
 
 #	First target
-all: $(GLFWLIB) $(SOILLIB) $(NAME)
+all: $(GLFWLIB) $(SOILLIB) $(LIBDRAWTEXT) $(NAME)
+
+$(LIBDRAWTEXT):
+	cd libdrawtext && make
 
 $(SOILLIB):
 	cd SOIL2-clone && make

@@ -97,7 +97,7 @@ char		*strreplace(char *str, const char *find, const char *rep)
 }
 
 #define CHECK_ACTIVE_FLAG(x, y) if (strstr(line, x)) mode |= y;
-char		*getFileSource(int fd, t_program *p)
+char		*getFileSource(int fd, t_program *p, bool loadChannels)
 {
 	struct stat	st;
 	char		*ret;
@@ -112,6 +112,8 @@ char		*getFileSource(int fd, t_program *p)
 	}
 	ret[st.st_size] = 0;
 
+	if (!loadChannels)
+		return ret;
 	int		chan = 0;
 	while (gl(line, fd))
 		if (!strncmp(line, "#pragma iChannel", 16))
@@ -135,10 +137,10 @@ char		*getFileSource(int fd, t_program *p)
 	return ret;
 }
 
-GLuint		CompileShaderFragment(t_program *p, int fd, bool fatal)
+GLuint		CompileShaderFragment(t_program *p, int fd, bool fatal, bool loadChannels)
 {
 	GLuint		ret;
-	const char	*srcs[] = {fragment_shader_text, getFileSource(fd, p)};
+	const char	*srcs[] = {fragment_shader_text, getFileSource(fd, p, loadChannels)};
 
 	if (srcs[1] == NULL)
 	{
@@ -165,12 +167,12 @@ GLuint		CompileShaderVertex(bool fatal)
 	return (ret);
 }
 
-bool		createProgram(t_program *prog, const char *file, bool fatal)
+bool		createProgram(t_program *prog, const char *file, bool fatal, bool loadChannels)
 {
 	int			fd = open(file, O_RDONLY);
 	struct stat	st;
 	GLuint		shaderVertex = CompileShaderVertex(fatal);
-	GLuint		shaderFragment = CompileShaderFragment(prog, fd, fatal);
+	GLuint		shaderFragment = CompileShaderFragment(prog, fd, fatal, loadChannels);
 
 	fstat(fd, &st);
 	prog->last_modified = st.st_mtime;

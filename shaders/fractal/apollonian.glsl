@@ -99,19 +99,21 @@ void mainImage(in vec2 fragCoord )
     #else
     int ii = 1, jj = 1;
     #endif
-    {
-        vec2 q = fragCoord.xy+vec2(float(ii),float(jj))/float(AA);
-        vec2 p = (2.0*q-iResolution.xy)/iResolution.y;
+	{
+		vec2    uv = (fragCoord / iResolution) * 2 - 1;
+		vec3    cameraDir = iForward;
 
-        // camera
-        vec3 ro = vec3( 2.8*sin(0.1+.33*time), 0.4 + 0.30*sin(0.37*time), 2.8*sin(0.5+0.35*time) );
-        vec3 ta = vec3(1.9*sin(1.2+.41*time), 0.4 + 0.10*sin(0.27*time), 1.9*sin(2.0+0.38*time) );
-        float roll = -0.2*cos(0.1*time);
-        vec3 cw = normalize(ta-ro);
-        vec3 cp = vec3(sin(roll), cos(roll),0.0);
-        vec3 cu = normalize(cross(cw,cp));
-        vec3 cv = normalize(cross(cu,cw));
-        vec3 rd = normalize( p.x*cu + p.y*cv + 2.0*cw );
+		//window ratio correciton:
+		uv.x *= iResolution.x / iResolution.y;
+
+		//perspective view
+		float   fov = 1.5;
+		vec3    forw = normalize(iForward);
+		vec3    right = normalize(cross(forw, vec3(0, 1, 0)));
+		vec3    up = normalize(cross(right, forw));
+		vec3    rd = normalize(uv.x * right + uv.y * up + fov * forw);
+
+		vec3 ro = iMoveAmount.xyz / 2 + vec3(0, 1, 1);
 
         tot += render( ro, rd, anim );
     }
