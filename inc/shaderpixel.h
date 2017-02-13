@@ -21,7 +21,6 @@
 # include "GLFW/glfw3.h"
 # include "SOIL2.h"
 # include "fmod.h"
-# include "drawtext.h"
 
 # if __APPLE__
 #  define FMOD_LIB "fmod/lib/libfmod.dylib"
@@ -213,6 +212,53 @@ static const char* fragment_shader_text =
 #endif
 "in vec4 outColor;\n"
 "out vec4 fragColor;\n"
+"\n"
+"uniform vec2		iResolution;\n"
+"uniform float		iGlobalTime;\n"
+"uniform int		iFrame;\n"
+"uniform vec4		iMouse;\n"
+"uniform vec2		iScrollAmount;\n"
+"uniform vec4		iMoveAmount;\n"
+"uniform vec3		iForward;\n"
+#if DOUBLE_PRECISION
+"uniform dvec4		iFractalWindow;\n"
+#else
+"uniform vec4		iFractalWindow;\n"
+#endif
+"uniform sampler2D	iChannel0;\n"
+"uniform sampler2D	iChannel1;\n"
+"uniform sampler2D	iChannel2;\n"
+"uniform sampler2D	iChannel3;\n"
+"uniform sampler2D	iChannel4;\n"
+"uniform sampler2D	iChannel5;\n"
+"uniform sampler2D	iChannel6;\n"
+"uniform sampler2D	iChannel7;\n"
+"\n"
+"void mainImage(vec2 f);\n"
+"\n"
+"vec4 texture2D(sampler2D s, vec2 coord, float f)\n"
+"{\n"
+"	return texture(s, coord, f);\n"
+"}\n"
+"\n"
+"vec4 texture2D(sampler2D s, vec2 coord)\n"
+"{\n"
+"	return texture(s, coord);\n"
+"}\n"
+"\n"
+"void main()\n"
+"{\n"
+"	mainImage(gl_FragCoord.xy);\n"
+"}\n"
+"#line 1\n";
+
+static const char* fragment_render_shader_text =
+"#version 330\n"
+#if DOUBLE_PRECISION
+"#extension GL_ARB_gpu_shader_fp64 : enable\n"
+#endif
+"in vec4 outColor;\n"
+"layout(location = 0) out vec4 fragColor;\n"
 "\n"
 "uniform vec2		iResolution;\n"
 "uniform float		iGlobalTime;\n"

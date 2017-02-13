@@ -1,4 +1,4 @@
-#pragma iChannel0 textures/kifs0.png
+#pragma iChannel0 shaders/test/renderbuffer.glsl
 
 void		mainImage(vec2 fragCoord)
 {

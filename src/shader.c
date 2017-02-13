@@ -133,6 +133,8 @@ char		*getFileSource(int fd, t_program *p, bool loadChannels)
 			CHECK_ACTIVE_FLAG("linear", CHAN_VFLIP);
 			CHECK_ACTIVE_FLAG("clamp", CHAN_CLAMP);
 			loadChannel(p->channels + chan, p->channels[chan].file_path, mode);
+			if (p->channels[chan].type == CHAN_SHADER)
+				createProgram(p + 1, p->channels[chan].file_path, true, true);
 		}
 	return ret;
 }
@@ -140,7 +142,13 @@ char		*getFileSource(int fd, t_program *p, bool loadChannels)
 GLuint		CompileShaderFragment(t_program *p, int fd, bool fatal, bool loadChannels)
 {
 	GLuint		ret;
-	const char	*srcs[] = {fragment_shader_text, getFileSource(fd, p, loadChannels)};
+	static bool	render_sahder = false;
+	const char	*fragment_main_src;
+	if (render_sahder)
+		fragment_main_src = fragment_render_shader_text;
+	else
+		fragment_main_src = fragment_shader_text;
+	const char	*srcs[] = {fragment_main_src, getFileSource(fd, p, loadChannels)};
 
 	if (srcs[1] == NULL)
 	{
@@ -153,6 +161,7 @@ GLuint		CompileShaderFragment(t_program *p, int fd, bool fatal, bool loadChannel
 	glShaderSource(ret, 2, srcs, NULL);
 	glCompileShader(ret);
 	checkCompilation(ret, fatal);
+	render_sahder = true;
 	return (ret);
 }
 
@@ -181,6 +190,7 @@ bool		createProgram(t_program *prog, const char *file, bool fatal, bool loadChan
 	if (prog->id != 0)
 		glDeleteProgram(prog->id);
 	prog->id = glCreateProgram();
+	printf("new program ID: %i\n", prog->id);
 	glAttachShader(prog->id, shaderVertex);
 	glAttachShader(prog->id, shaderFragment);
 	glLinkProgram(prog->id);

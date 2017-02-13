@@ -20,6 +20,7 @@
 #include <sys/stat.h>
 #include <string.h>
 #include <time.h>
+#include <OpenGL/glext.h>
 
 //#define UNIFORM_DEBUG 1
 
@@ -216,26 +217,49 @@ void		loop(GLFWwindow *win, t_program *program, GLuint vao)
 	int width, height;
 	glfwGetFramebufferSize(win, &width, &height);
 	ratio = width / (float) height;
-	glViewport(0, 0, width, height);
-	glClear(GL_COLOR_BUFFER_BIT);
 
 	update_keys();
+
+	//process render buffers if used:
+	for (int i = 1; i < 0xF0; i++)
+	{
+		if (program[i].id)
+		{
+			glBindFramebuffer(GL_FRAMEBUFFER, program->channels[i].id);
+			glViewport(0, 0, width, height);
+			
+			glClear(GL_COLOR_BUFFER_BIT);
+
+			glUseProgram(program[i].id);
+
+			updateUniforms(program[i].unis, program[i].channels);
+
+			glBindVertexArray(vao);
+			glDrawArrays(GL_TRIANGLE_STRIP, 0, 6);
+		}
+		else
+			break ;
+	}
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	glViewport(0, 0, width, height);
+	glClear(GL_COLOR_BUFFER_BIT);
 
 	//glEnable(GL_ARB_multisample);
 	glEnable(GL_MULTISAMPLE);
 	glEnable(GL_TEXTURE_2D);
 
-	//buffer shader management
+	glUseProgram(program->id);
 
 	updateUniforms(program->unis, program->channels);
 
-	glUseProgram(program->id);
 	glBindVertexArray(vao);
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 6);
 
 	glfwSwapBuffers(win);
 	if (glfwGetInputMode(win, GLFW_CURSOR) == GLFW_CURSOR_DISABLED)
-		    glfwSetCursorPos(win, window.x / 2, window.y / 2);
+		glfwSetCursorPos(win, window.x / 2, window.y / 2);
 	glfwPollEvents();
 }
 
@@ -309,16 +333,17 @@ int			main(int ac, char **av)
 	fmod_init();
 
 	createProgram(programs + 0, av[1], true, ac == 2);
+
 	GLuint		vbo = createVBO();
 	GLuint		vao = createVAO(vbo, programs + 0);
 	updateUniformLocation(programs + 0);
-	t_channel	*channels = loadChannels(av + 2);
+	t_channel	*optionnal_channels = loadChannels(av + 2);
 
-	for (int i = 0; channels[i].id; i++)
+	for (int i = 0; optionnal_channels[i].id; i++)
 	{
 		if (programs->channels[i].id)
 			glDeleteTextures(1, (GLuint *)&programs->channels[i].id);
-		programs->channels[i] = channels[i];
+		programs->channels[i] = optionnal_channels[i];
 	}
 	play_all_sounds();
 
