@@ -109,7 +109,8 @@ void		updateUniforms(GLint *unis, t_channel *channels)
 	if (!input_pause)
 		glUniform1f(unis[0], ti);
 	glUniform1i(unis[1], frames++);
-	glUniform4f(unis[2], mouse.x, WIN_H - mouse.y, mouse.y, mouse.y);
+	if (!input_pause)
+		glUniform4f(unis[2], mouse.x, WIN_H - mouse.y, mouse.y, mouse.y);
 	glUniform2f(unis[3], scroll.x, scroll.y);
 	glUniform4f(unis[4], move.x, move.y, move.z, move.w);
 	glUniform2f(unis[5], window.x, window.y);
@@ -122,11 +123,12 @@ void		updateUniforms(GLint *unis, t_channel *channels)
 	printf("time: %f\n", ti);
 	printf("frames: %i\n", frames);
 	printf("forward: %f/%f/%f\n", forward.x, forward.y, forward.z);
+	if (!input_pause)
 #endif
 #if DOUBLE_PRECISION
-	glUniform4d(unis[6], fractalWindow.x, fractalWindow.y, fractalWindow.z, fractalWindow.w);
+		glUniform4d(unis[6], fractalWindow.x, fractalWindow.y, fractalWindow.z, fractalWindow.w);
 #else
-	glUniform4f(unis[6], fractalWindow.x, fractalWindow.y, fractalWindow.z, fractalWindow.w);
+		glUniform4f(unis[6], fractalWindow.x, fractalWindow.y, fractalWindow.z, fractalWindow.w);
 #endif
 
 	int j = 0;
@@ -225,10 +227,13 @@ void		loop(GLFWwindow *win, t_program *program, GLuint vao)
 	{
 		if (program[i].id)
 		{
+			printf("rendering buffer shader !\n");
 			glBindFramebuffer(GL_FRAMEBUFFER, program->channels[i].id);
-			glViewport(0, 0, width, height);
 			
 			glClear(GL_COLOR_BUFFER_BIT);
+
+			glActiveTexture(GL_TEXTURE0);
+			glEnable(GL_DEPTH_TEST);
 
 			glUseProgram(program[i].id);
 
@@ -236,6 +241,25 @@ void		loop(GLFWwindow *win, t_program *program, GLuint vao)
 
 			glBindVertexArray(vao);
 			glDrawArrays(GL_TRIANGLE_STRIP, 0, 6);
+
+			uint8_t *data = malloc(window.x * window.y * 4);
+			typedef struct
+			{
+				int width;
+				int height;
+				uint8_t *data;
+				size_t size;
+			}	ppm_image;
+
+
+			glReadPixels(0, 0, window.x, window.y, GL_RGB, GL_UNSIGNED_BYTE, data);
+
+			int fd = open("f.ppm", O_WRONLY | O_CREAT, 0644);
+			ppm_image img = (ppm_image){window.x, window.y, data, window.x * window.y * 3};
+
+			dprintf(fd, "P6\n# THIS IS A COMMENT\n%d %d\n%d\n", 
+					img.width, img.height, 0xFF);
+			write(fd, img.data, img.width * img.height * 3);
 		}
 		else
 			break ;
@@ -244,7 +268,7 @@ void		loop(GLFWwindow *win, t_program *program, GLuint vao)
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	glViewport(0, 0, width, height);
-	glClear(GL_COLOR_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	//glEnable(GL_ARB_multisample);
 	glEnable(GL_MULTISAMPLE);
@@ -253,6 +277,8 @@ void		loop(GLFWwindow *win, t_program *program, GLuint vao)
 	glUseProgram(program->id);
 
 	updateUniforms(program->unis, program->channels);
+
+	glDisable(GL_DEPTH_TEST);
 
 	glBindVertexArray(vao);
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 6);

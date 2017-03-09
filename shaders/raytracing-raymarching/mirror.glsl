@@ -84,14 +84,15 @@ hit scene (ray r) {
 	return h;
 }
 
-ray getRay (in vec3 origin, in vec3 forward, in vec3 up, in vec2 uv) {
+ray getRay (in vec3 origin, in vec3 forw, in vec2 uv) {
 	ray r;
 	
 	r.p = origin;
-	vec3 right = cross (up, forward);
-	up = cross (forward, right);
-	r.d = normalize (right * uv.x + up * uv.y + forward);
-	
+	float fov = 1.5;
+	vec3 right = normalize(cross(forw, vec3(0, 1, 0)));
+	vec3 up = normalize(cross(right, forw));
+	r.d = normalize(uv.x * right + uv.y * up + fov * forw);
+
 	return r;
 }
 
@@ -119,12 +120,11 @@ vec3 surface (ray r) {
 
 void mainImage( in vec2 fragCoord ) {
 	vec3 camera = iMoveAmount.xyz * 2. + vec3(0, 2, 0);
-	vec2 mouseUV = (iMouse.xy - iResolution.xy / 2) / iResolution.xy;
-//	vec3 forward = normalize(vec3 (mouseUV.x, mouseUV.y, 1));
-	vec3 forward = normalize(vec3 (0, 0, 1));
+	vec3 forward = iForward;
 	
 	vec2 uv = (fragCoord.xy * 2.0 - iResolution.xy) / iResolution.xx;
-	ray r = getRay (camera, forward, (vec3 (0,1,0)), uv);
+	ray r = getRay (camera, forward, uv);
 	
 	fragColor = vec4 (surface (r) * (1.3 - max (abs (uv.x), abs (uv.y * 1.5))), 1.0);
 }
+

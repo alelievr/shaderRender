@@ -1,8 +1,5 @@
 void mainImage( in vec2 fragCoord )
 {
-	//fractal pixel calcul block
-	vec2 uvMouse = (iMouse.xy / (iResolution / 2.)) / (iResolution / 2.) / 10.;
-
 	vec2 pix = vec2((iFractalWindow.z - iFractalWindow.x) / iResolution.x, (iFractalWindow.w - iFractalWindow.y) / iResolution.y);
 	vec2 p = vec2(iFractalWindow.x + fragCoord.x * pix.x, iFractalWindow.y + fragCoord.y * pix.y);
 

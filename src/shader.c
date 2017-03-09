@@ -142,13 +142,7 @@ char		*getFileSource(int fd, t_program *p, bool loadChannels)
 GLuint		CompileShaderFragment(t_program *p, int fd, bool fatal, bool loadChannels)
 {
 	GLuint		ret;
-	static bool	render_sahder = false;
-	const char	*fragment_main_src;
-	if (render_sahder)
-		fragment_main_src = fragment_render_shader_text;
-	else
-		fragment_main_src = fragment_shader_text;
-	const char	*srcs[] = {fragment_main_src, getFileSource(fd, p, loadChannels)};
+	const char	*srcs[] = {fragment_shader_text, getFileSource(fd, p, loadChannels)};
 
 	if (srcs[1] == NULL)
 	{
@@ -161,18 +155,24 @@ GLuint		CompileShaderFragment(t_program *p, int fd, bool fatal, bool loadChannel
 	glShaderSource(ret, 2, srcs, NULL);
 	glCompileShader(ret);
 	checkCompilation(ret, fatal);
-	render_sahder = true;
 	return (ret);
 }
 
 GLuint		CompileShaderVertex(bool fatal)
 {
 	GLuint		ret;
+	static bool	render_shader = false;
+	const char	*vertex_main_src;
 
+	if (render_shader)
+		vertex_main_src = vertex_buffer_shader_text;
+	else
+		vertex_main_src = vertex_shader_text;
 	ret = glCreateShader(GL_VERTEX_SHADER);
-	glShaderSource(ret, 1, &vertex_shader_text, NULL);
+	glShaderSource(ret, 1, &vertex_main_src, NULL);
 	glCompileShader(ret);
 	checkCompilation(ret, fatal);
+	render_shader = true;
 	return (ret);
 }
 
