@@ -31,7 +31,7 @@ iFractalWindow | window coordinates for fractal calcul
 iChannel[0-7] | texture channels
 
 ##Controls
-Negative | Positive | description
+Positive | Negative | description
 --- | --- | ---
 `esc` | X | escape program
 `right arrow` / `D` | `left arrow` / `A` | move horizontally
