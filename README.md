@@ -15,7 +15,7 @@ ShaderRender is a program for shaderpixel rendering with hot-reload fragment sha
 + GL HF
 
 ##Usage
-./visualishader <shader file> [optional texture channels]
+./visualishader \<shader file\> [optional texture channels]
 
 ##Uniforms
 name | description
