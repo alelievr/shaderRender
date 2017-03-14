@@ -40,3 +40,4 @@ Positive | Negative | description
 `numpad +` / `=` | `numpad -` / `-` | move w coordinate
 `space` | X | pause / unpause current time
 `C` | X | lock / unlock mouse cursor
+`R` | X | reset the camera, mouse and forward vector

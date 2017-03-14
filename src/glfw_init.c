@@ -54,6 +54,17 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
 	}
 	if (key == GLFW_KEY_C)
 		cursor_mode ^= action == GLFW_PRESS;
+	if (key == GLFW_KEY_R)
+	{
+#if DOUBLE_PRECISION
+		fractalWindow = (dvec4){-1, -1, 1, 1};
+#else
+		fractalWindow = (vec4){-1, -1, 1, 1};
+#endif
+		move = (vec4){0, 0, 0, 1};
+		forward = (vec3){0, 0, 1};
+		scroll = (vec2){0, 0};
+	}
 
 	glfwSetInputMode(window, GLFW_CURSOR, (cursor_mode) ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_DISABLED);
 }
