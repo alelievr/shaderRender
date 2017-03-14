@@ -4,7 +4,7 @@ ShaderRender is a program for shaderpixel rendering with hot-reload fragment sha
 
 ## Installation
 ### Linux
-+ You will thoses packages `libtool` `autoconf` `cmake` `xorg-dev` `libglu1-mesa-dev` `libbsd-dev`
++ You will need to install thoses packages: `libtool` `autoconf` `cmake` `xorg-dev` `libglu1-mesa-dev` `libbsd-dev`
 + and just `make` the project
 
 ### Mac OSX
