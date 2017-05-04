@@ -1,3 +1,4 @@
+#pragma iChannel0 textures/nyancat.png clamp
 // "Fractal Cartoon" - former "DE edge detection" by Kali
 
 // Cartoon-like effect using eiffies's edge detection found here: 

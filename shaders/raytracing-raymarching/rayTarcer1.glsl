@@ -587,31 +587,21 @@ void mainImage( in vec2 fragCoord )
 {
 	vec2 rawPercent = (fragCoord.xy / iResolution.xy);
 	vec2 percent = rawPercent - vec2(0.5,0.5);
-	
-	vec3 rayPos;
-	vec3 rayTarget;
-	
-	// if the mouse button is down
-	if( iMouse.z > 0.0 ) {
-		rayTarget = (cameraFwd * cameraDistance)
-				  + (cameraLeft * percent.x * cameraViewWidth)
-		          + (cameraUp * percent.y * cameraViewHeight);
-		
-		rayPos = cameraPos;
-	}
-	// else handle the case of the mouse button not being down
-	else {
-		rayPos = vec3(0.0,1.0,-4.0);
-		vec3 f = normalize(cameraAt - rayPos);
-		vec3 l = normalize(cross(f,vec3(0.0,1.0,0.0)));
-		vec3 u = normalize(cross(l,f));
-		
-		rayTarget = (f * cameraDistance)
-				  + (l * percent.x * cameraViewWidth)
-		          + (u * percent.y * cameraViewHeight);		
-	}
-	
-	vec3 rayDir = normalize(rayTarget);
+
+	vec2    uv = (fragCoord / iResolution) * 2 - 1;
+	vec3    cameraDir = iForward + vec3(0, 1, -5);
+
+	//window ratio correciton:
+	uv.x *= iResolution.x / iResolution.y;
+
+	//perspective view
+	float   fov = 1.5;
+	vec3    forw = normalize(iForward);
+	vec3    right = normalize(cross(forw, vec3(0, 1, 0)));
+	vec3    up = normalize(cross(right, forw));
+	vec3    rayDir = normalize(uv.x * right + uv.y * up + fov * forw);
+
+	vec3 rayPos = iMoveAmount.xyz;
 	
 	vec3 pixelColor = vec3(0.0,0.0,0.0);
 	TraceRay(rayPos, rayDir, pixelColor, 0);

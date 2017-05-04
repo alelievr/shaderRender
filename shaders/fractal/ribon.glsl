@@ -13,7 +13,7 @@ void mainImage( in vec2 fragCoord )
 	}
 	vec2 z = ((-res+2.0 * fragCoord.xy) / res.y);
 	vec2 p = ((-res+2.0+mou) / res.y);
-	for( int i = 0; i < 20; i++) 
+	for( int i = 0; i < 40; i++) 
 	{
 		float d = dot(z,z);
 		z = (vec2( z.x, -z.y ) / d) + p; 

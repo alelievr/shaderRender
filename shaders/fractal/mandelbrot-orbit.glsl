@@ -20,7 +20,7 @@ void mainImage( in vec2 fragCoord )
 		zp = zc;
 		zc = p + vec2(zc.x * zc.x - zc.y * zc.y, 2. * zc.x * zc.y);
 		
-		vec2 z = zp + (zc - zp) * sin((iGlobalTime - 30.) * 0.1) * 5.;
+		vec2 z = zp + (zc - zp) * sin((iGlobalTime - 30.) * 0.1) * 5;
 		
 		float dist1 = abs(z.x * z.x * z.x - z.y * z.y);
 		float dist2 = abs(z.x * z.x * z.x - z.y * z.y * z.x);

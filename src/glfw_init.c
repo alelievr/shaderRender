@@ -128,10 +128,18 @@ static void mouse_scroll_callback(GLFWwindow *win, double xOffset, double yOffse
 	fractalWindow.y += ratemin.y * diff.y * yOffset / 30;
 }
 
-static void resize_callback(GLFWwindow *win, int width, int height)
+static void framebuffer_resize_callback(GLFWwindow *win, int width, int height)
+{
+	framebuffer_size.x = width;
+	framebuffer_size.y = height;
+	(void)win;
+}
+
+static void window_resize_callback(GLFWwindow *win, int width, int height)
 {
 	window.x = width;
 	window.y = height;
+	(void)win;
 }
 
 GLFWwindow	*init(char *name)
@@ -153,10 +161,18 @@ GLFWwindow	*init(char *name)
 	glfwSetCursorPosCallback(win, mouse_callback);
 	glfwSetMouseButtonCallback(win, mouse_click_callback);
 	glfwSetScrollCallback(win, mouse_scroll_callback);
-	glfwSetWindowSizeCallback(win, resize_callback);
+	glfwSetFramebufferSizeCallback(win, framebuffer_resize_callback);
+	glfwSetWindowSizeCallback(win, window_resize_callback);
 	glfwMakeContextCurrent (win);
 	glfwSwapInterval(1);
 	glfwSetInputMode(win, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
+	int		winx, winy;
+	glfwGetFramebufferSize(win, &winx, &winy);
+	framebuffer_size.x = winx;
+	framebuffer_size.y = winy;
+
+	glEnable(GL_DEPTH_TEST);
 
 	return (win);
 }

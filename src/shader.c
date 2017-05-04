@@ -130,11 +130,14 @@ char		*getFileSource(int fd, t_program *p, bool loadChannels)
 			CHECK_ACTIVE_FLAG("linear", CHAN_LINEAR);
 			CHECK_ACTIVE_FLAG("nearest", CHAN_NEAREST);
 			CHECK_ACTIVE_FLAG("mipmap", CHAN_MIPMAP);
-			CHECK_ACTIVE_FLAG("linear", CHAN_VFLIP);
+			CHECK_ACTIVE_FLAG("v-flip", CHAN_VFLIP);
 			CHECK_ACTIVE_FLAG("clamp", CHAN_CLAMP);
 			loadChannel(p->channels + chan, p->channels[chan].file_path, mode);
 			if (p->channels[chan].type == CHAN_SHADER)
-				createProgram(p + 1, p->channels[chan].file_path, true, true);
+			{
+				if (createProgram(p + 1, p->channels[chan].file_path, true, true))
+					updateUniformLocation(p + 1);
+			}
 		}
 	return ret;
 }

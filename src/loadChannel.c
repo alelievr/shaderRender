@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/09 11:53:14 by alelievr          #+#    #+#             */
-/*   Updated: 2017/03/09 21:40:58 by alelievr         ###   ########.fr       */
+/*   Updated: 2017/05/04 05:19:00 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,35 +47,43 @@ static void		loadImage(t_channel *chan, const char *file, int mode)
 
 void			loadShader(t_channel *chan, const char *file)
 {
-	GLuint	frameBuffer = 0;
-
 	chan->type = CHAN_SHADER;
-	glGenFramebuffers(1, &frameBuffer);
-	glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
-
-	GLuint renderedTexture;
-	glGenTextures(1, &renderedTexture);
-	glBindTexture(GL_TEXTURE_2D, renderedTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0,GL_RGB, window.x, window.y, 0,GL_RGB, GL_UNSIGNED_BYTE, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glBindTexture(GL_TEXTURE_2D, 0);
-
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, renderedTexture, 0);
 
 	GLuint	rbo;
 	glGenRenderbuffers(1, &rbo);
 	glBindRenderbuffer(GL_RENDERBUFFER, rbo); 
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, window.x, window.y);
-	glBindRenderbuffer(GL_RENDERBUFFER, 0);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_RGB8, framebuffer_size.x, framebuffer_size.y);
 
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
+	GLuint	fbo;
+	glGenFramebuffers(1, &fbo);
+	glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 
-	if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-		puts("framebuffer status error !"), exit(-1);
+	GLuint renderedTexture;
+	glGenTextures(1, &renderedTexture);
+	glBindTexture(GL_TEXTURE_2D, renderedTexture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, framebuffer_size.x, framebuffer_size.y, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-	chan->id = frameBuffer;
-	chan->render_id = rbo;
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, renderedTexture, 0);
+
+	GLenum DrawBuffers[1] = {GL_COLOR_ATTACHMENT0};
+	glDrawBuffers(1, DrawBuffers);
+
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, rbo);
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+	{
+		printf("renderbuffer error: %i\n", glGetError());
+		puts("fbo status error !"), exit(-1);
+	}
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	chan->id = fbo;
+	printf("created renderTexture: %i\n", renderedTexture);
+	chan->render_id = renderedTexture;
 	(void)file;
 }
 

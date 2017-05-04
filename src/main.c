@@ -21,12 +21,14 @@
 #include <string.h>
 #include <time.h>
 
+#define DISPLAY_OPENGL_EXTENTESIONS
 //#define UNIFORM_DEBUG 1
 
 vec4        mouse = {0, 0, 0, 0};
 vec2        scroll = {0, 0};
 vec4        move = {0, 0, 0, 1};
 vec2		window = {WIN_W, WIN_H};
+vec2		framebuffer_size = {0, 0};
 vec3		forward = {0, 0, 1};
 #if DOUBLE_PRECISION
 dvec4		fractalWindow = {-1, -1, 1, 1}; //xmin, ymin, xmax, ymax
@@ -109,13 +111,13 @@ void		updateUniforms(GLint *unis, t_channel *channels)
 		glUniform1f(unis[0], ti);
 	glUniform1i(unis[1], frames++);
 	if (!input_pause)
-		glUniform4f(unis[2], mouse.x, WIN_H - mouse.y, mouse.y, mouse.y);
+		glUniform4f(unis[2], mouse.x, window.y - mouse.y, mouse.y, mouse.y);
 	glUniform2f(unis[3], scroll.x, scroll.y);
 	glUniform4f(unis[4], move.x, move.y, move.z, move.w);
-	glUniform2f(unis[5], window.x, window.y);
+	glUniform2f(unis[5], framebuffer_size.x, framebuffer_size.y);
 	glUniform3f(unis[7], forward.x, forward.y, forward.z);
 #if UNIFORM_DEBUG
-	printf("window: %f/%f\n", window.x, window.y);
+	printf("window: %f/%f\n", framebuffer_size.x, framebuffer_size.y);
 	printf("scroll: %f/%f\n", scroll.x, scroll.y);
 	printf("move: %f/%f/%f/%f\n", move.x, move.y, move.z, move.w);
 	printf("mouse: %f/%f/%f/%f\n", mouse.x, mouse.y, mouse.z, mouse.w);
@@ -136,8 +138,8 @@ void		updateUniforms(GLint *unis, t_channel *channels)
 		if (channels[i].type == CHAN_IMAGE)
 		{
 			glActiveTexture(glTextures[j]);
-			glBindTexture(GL_TEXTURE_2D, channels[i].id);
-			glUniform1i(unis[10 + j++], channels[i].id);
+			glBindTexture(GL_TEXTURE_2D, channels[i].render_id);
+			glUniform1i(unis[10 + j++], channels[i].render_id);
 		}
 /*		if (channels[i].type == CHAN_SOUND)
 		{
@@ -221,18 +223,16 @@ void		loop(GLFWwindow *win, t_program *program, GLuint vao)
 
 	update_keys();
 
+	int r = 1;
 	//process render buffers if used:
 	for (int i = 1; i < 0xF0; i++)
 	{
 		if (program[i].id)
 		{
-			printf("rendering buffer shader !\n");
 			glBindFramebuffer(GL_FRAMEBUFFER, program->channels[i].id);
 			
-			glClear(GL_COLOR_BUFFER_BIT);
-
-			glActiveTexture(GL_TEXTURE0);
-			glEnable(GL_DEPTH_TEST);
+			glClearColor(1, 0, 0, 1);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 			glUseProgram(program[i].id);
 
@@ -250,7 +250,7 @@ void		loop(GLFWwindow *win, t_program *program, GLuint vao)
 				size_t size;
 			}	ppm_image;
 
-
+			glReadBuffer(GL_COLOR_ATTACHMENT0);
 			glReadPixels(0, 0, window.x, window.y, GL_RGB, GL_UNSIGNED_BYTE, data);
 
 			int fd = open("f.ppm", O_WRONLY | O_CREAT, 0644);
@@ -267,15 +267,18 @@ void		loop(GLFWwindow *win, t_program *program, GLuint vao)
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	glViewport(0, 0, width, height);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT);
 
-	//glEnable(GL_ARB_multisample);
 	glEnable(GL_MULTISAMPLE);
 	glEnable(GL_TEXTURE_2D);
 
 	glUseProgram(program->id);
 
-	updateUniforms(program->unis, program->channels);
+	printf("r = %i\n", r);
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, 1);
+	glUniform1i(program->unis[10], r);
+//	updateUniforms(program->unis, program->channels);
 
 	glDisable(GL_DEPTH_TEST);
 
@@ -356,6 +359,19 @@ int			main(int ac, char **av)
 
 	GLFWwindow *win = init(av[1]);
 	fmod_init();
+
+#ifdef DISPLAY_OPENGL_EXTENTESIONS
+	GLint n = 0; 
+	glGetIntegerv(GL_NUM_EXTENSIONS, &n); 
+
+	for (GLint i=0; i<n; i++) 
+	{ 
+		const char* extension = 
+			(const char*)glGetStringi(GL_EXTENSIONS, i);
+		printf("Ext %d: %s\n", i, extension); 
+	} 
+
+#endif
 
 	createProgram(programs + 0, av[1], true, ac == 2);
 

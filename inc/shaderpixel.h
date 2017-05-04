@@ -155,11 +155,12 @@ extern vec4			mouse;
 extern vec2			scroll;
 extern vec4			move;
 extern vec2			window;
+extern vec2			framebuffer_size;
 extern vec3			forward;
 #if DOUBLE_PRECISION
 extern dvec4		fractalWindow;
 #else
-extern vec4		fractalWindow;
+extern vec4			fractalWindow;
 #endif
 extern int			keys;
 extern int			input_pause;
@@ -171,6 +172,7 @@ GLFWwindow		*init(char *fname);
 
 //SHADERS:
 bool			createProgram(t_program *p, const char *path, bool fatal, bool loadChannels);
+void			updateUniformLocation(t_program *p);
 
 //UTILS
 float			getCurrentTime(void);

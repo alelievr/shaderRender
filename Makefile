@@ -6,7 +6,7 @@
 #    By: alelievr <marvin@42.fr>                    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2014/07/15 15:13:38 by alelievr          #+#    #+#              #
-#    Updated: 2016/12/15 21:33:03 by root             ###   ########.fr        #
+#    Updated: 2017/03/30 02:35:07 by alelievr         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -50,7 +50,7 @@ SOILLIB		=	SOIL2-clone/libSOIL2.a
 NAME		=	visualishader
 
 #	Compiler
-WERROR		=	-Werror
+WERROR		=	#-Werror
 CFLAGS		=	
 CPROTECTION	=	-z execstack -fno-stack-protector
 

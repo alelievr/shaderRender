@@ -1,7 +1,7 @@
 #define Power 8
 #define Bailout 4
-#define MinimumDistance 0.0004
-#define MAXRAYS 40
+#define MinimumDistance 0.00004
+#define MAXRAYS 300
 float pi=3.14159265;
 
 float DistanceEstimator(vec3 pos)
@@ -127,7 +127,7 @@ void		mainImage(vec2 coord)
 	vec3    up = normalize(cross(right, iForward));
 	vec3    r = normalize(uv.x * right + uv.y * up + fov * iForward);
 	vec3	o = iMoveAmount.xyz + vec3(0, 0, 0);
-	float dst = trace(o, r);
+	float	dst = trace(o, r);
 	vec3	col;
 	//vec3 nor = fractNormal(o, r);
 //	vec3 nor = vec3(1);
@@ -140,9 +140,8 @@ void		mainImage(vec2 coord)
 
 //	float shaSpot = Shadow(o, light);
 
-	col = vec3((1-(dst*1)), (1-(dst*.05)), (1-(dst*.01)));
-//	if (dst < 1)
-//		col = mix(col, vec3(1, 1, .5), 1-dst);
+	if (dst < 1)
+		col = mix(col, vec3(1, 1, .5), 1-dst);
 
 	//col = Colour(o + r * dst);
 //	col = (col * bri * shaSpot) + (col);
