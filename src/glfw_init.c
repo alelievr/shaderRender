@@ -172,7 +172,5 @@ GLFWwindow	*init(char *name)
 	framebuffer_size.x = winx;
 	framebuffer_size.y = winy;
 
-	glEnable(GL_DEPTH_TEST);
-
 	return (win);
 }

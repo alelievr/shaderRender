@@ -223,13 +223,19 @@ void		loop(GLFWwindow *win, t_program *program, GLuint vao)
 
 	update_keys();
 
-	int r = 1;
 	//process render buffers if used:
 	for (int i = 1; i < 0xF0; i++)
 	{
 		if (program[i].id)
 		{
-			glBindFramebuffer(GL_FRAMEBUFFER, program->channels[i].id);
+			glBindTexture(GL_TEXTURE_2D, 0);
+
+			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, program->channels[i].id);
+			glBlitFramebuffer(0,0,framebuffer_size.x, framebuffer_size.y, 0, 0, 512,512, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+			GLenum DrawBuffers[1] = {GL_COLOR_ATTACHMENT0};
+			glDrawBuffers(1, DrawBuffers);
+
+			glViewport(0, 0, width, height);
 			
 			glClearColor(1, 0, 0, 1);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -237,6 +243,9 @@ void		loop(GLFWwindow *win, t_program *program, GLuint vao)
 			glUseProgram(program[i].id);
 
 			updateUniforms(program[i].unis, program[i].channels);
+
+			glActiveTexture(GL_TEXTURE1);
+			glBindTexture(GL_TEXTURE_2D, 1);
 
 			glBindVertexArray(vao);
 			glDrawArrays(GL_TRIANGLE_STRIP, 0, 6);
@@ -264,9 +273,10 @@ void		loop(GLFWwindow *win, t_program *program, GLuint vao)
 			break ;
 	}
 
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 
 	glViewport(0, 0, width, height);
+	glClearColor(1, 1, 1, 1);
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	glEnable(GL_MULTISAMPLE);
@@ -274,13 +284,11 @@ void		loop(GLFWwindow *win, t_program *program, GLuint vao)
 
 	glUseProgram(program->id);
 
-	printf("r = %i\n", r);
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, 1);
-	glUniform1i(program->unis[10], r);
+	glUniform1i(program->unis[10], 1);
+	printf("unis[10] = %i\n", program->unis[10]);
 //	updateUniforms(program->unis, program->channels);
-
-	glDisable(GL_DEPTH_TEST);
 
 	glBindVertexArray(vao);
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 6);
