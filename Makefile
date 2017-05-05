@@ -6,7 +6,7 @@
 #    By: alelievr <marvin@42.fr>                    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2014/07/15 15:13:38 by alelievr          #+#    #+#              #
-#    Updated: 2017/05/05 03:52:19 by alelievr         ###   ########.fr        #
+#    Updated: 2017/05/05 16:19:59 by alelievr         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -38,13 +38,13 @@ CPPVERSION	=	c++11
 #Example $> make DEBUG=2 will set debuglevel to 2
 
 #	Includes
-INCDIRS		=	nanogui/ext/glfw/include inc SOIL2-clone/incs fmod/inc nanogui/include nanogui/ext/eigen nanogui/ext/nanovg/src/
+INCDIRS		=	nanogui/ext/glfw/include inc SOIL2/incs fmod/inc nanogui/include nanogui/ext/eigen nanogui/ext/nanovg/src/
 
 #	Libraries
-LIBDIRS		=	nanogui SOIL2-clone
-LDLIBS		=	-lnanogui -lSOIL2
+LIBDIRS		=	nanogui
+LDLIBS		=	-lnanogui
 NANOGUILIB	=	nanogui/libnanogui.a
-SOILLIB		=	SOIL2-clone/libSOIL2.a
+SOILLIB		=	SOIL2/libSOIL2.so
 
 #	Output
 NAME		=	visualishader
@@ -123,10 +123,15 @@ LINKER		=	cc
 disp_indent	=	for I in `seq 1 $(MAKELEVEL)`; do \
 					test "$(MAKELEVEL)" '!=' '0' && printf "\t"; \
 				done
-color_exec	=	$(call disp_indent); \
-				echo $(1)➤ $(3)$(2)"\n"$(strip $(4))$(CCLEAR);$(4)
-color_exec_t=	$(call disp_indent); \
-				echo $(1)➤ $(strip $(3))$(2)$(CCLEAR);$(3)
+
+color_exec  =   $(call disp_indent); \
+				echo $$tabs$(1)➤ $(3)$(2); \
+				echo $$tabs '$(strip $(4))' $(CCLEAR); \
+				$(4)
+
+color_exec_t=   $(call disp_indent); \
+				echo $(1)➤ '$(strip $(3))'$(2);$(3);printf $(CCLEAR)
+
 
 ifneq ($(filter 1,$(strip $(DEBUGLEVEL)) ${DEBUG}),)
 	OPTLEVEL = 0
@@ -178,7 +183,7 @@ endif
 all: $(NANOGUILIB) $(SOILLIB) $(NAME)
 
 $(SOILLIB):
-	cd SOIL2-clone && make
+	cd SOIL2 && make dynamic
 
 $(NANOGUILIB):
 	git submodule init
@@ -190,7 +195,7 @@ $(NAME): $(OBJ)
 	@$(if $(findstring lft,$(LDLIBS)),$(call color_exec_t,$(CCLEAR),$(CCLEAR),\
 		make -j 4 -C libft))
 	@$(call color_exec,$(CLINK_T),$(CLINK),"Link of $(NAME):",\
-		$(LINKER) $(WERROR) $(CFLAGS) $(LDFLAGS) $(OPTFLAGS) $(DEBUGFLAGS) $(LINKDEBUG) $(VFRAME) -o $@ $^ $(LDLIBS))
+		$(LINKER) $(WERROR) $(CFLAGS) $(LDFLAGS) $(OPTFLAGS) $(DEBUGFLAGS) $(LINKDEBUG) $(VFRAME) -o $@ $^ $(LDLIBS)  $(SOILLIB))
 
 $(OBJDIR)/%.o: %.cpp $(INCFILES)
 	@mkdir -p $(OBJDIR)

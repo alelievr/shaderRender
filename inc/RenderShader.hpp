@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/05/04 22:50:08 by alelievr          #+#    #+#             */
-/*   Updated: 2017/05/05 03:51:36 by alelievr         ###   ########.fr       */
+/*   Updated: 2017/05/05 14:16:19 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,9 +26,6 @@
 # include <math.h>
 
 //#define UNIFORM_DEBUG 1
-
-vec2		framebuffer_size = {0, 0};
-float		pausedTime = 0;
 
 class RenderShader
 {

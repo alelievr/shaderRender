@@ -12,6 +12,9 @@
 
 #include "RenderShader.hpp"
 
+vec2		framebuffer_size = {0, 0};
+float		pausedTime = 0;
+
 RenderShader::RenderShader()
 {
 	fmod_init();
