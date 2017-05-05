@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/09 11:53:14 by alelievr          #+#    #+#             */
-/*   Updated: 2017/05/04 20:35:30 by alelievr         ###   ########.fr       */
+/*   Updated: 2017/05/05 02:52:49 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,8 @@
 #define	IMAGE_EXT	(const char *[]){"jpg", "png", "tiff", "jpeg", "bmp", NULL}
 #define	SHADER_EXT	(const char *[]){"glsl", "fs", NULL}
 #define	SOUND_EXT	(const char *[]){"wav", "wave", NULL}
+
+static int		staticProgramCounter = 0;
 
 static void		loadImage(t_channel *chan, const char *file, int mode)
 {
@@ -36,8 +38,8 @@ static void		loadImage(t_channel *chan, const char *file, int mode)
 
 	flags |= SOIL_FLAG_NTSC_SAFE_RGB | SOIL_FLAG_COMPRESS_TO_DXT;
 
-//	if (chan->id)
-//		glDeleteTextures(1, (GLuint *)&chan->id);
+	if (chan->id)
+		glDeleteTextures(1, (GLuint *)&chan->id);
 	chan->id = SOIL_load_OGL_texture(file, SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, flags);
 	if (chan->id == 0)
 		printf("can't load texture: %s\n", SOIL_last_result()), exit(-1);
@@ -45,9 +47,13 @@ static void		loadImage(t_channel *chan, const char *file, int mode)
 	chan->type = CHAN_IMAGE;
 }
 
-void			loadShader(t_channel *chan, const char *file)
+void			loadShader(t_program *prog, t_channel *chan, const char *file)
 {
 	chan->type = CHAN_SHADER;
+
+	prog += staticProgramCounter++;
+	if (createProgram(prog, chan->file_path, true, true))
+		updateUniformLocation(prog);
 
 	GLuint	rbo;
 	glGenRenderbuffers(1, &rbo);
@@ -69,9 +75,6 @@ void			loadShader(t_channel *chan, const char *file)
 
 	glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, renderedTexture, 0);
 
-	GLenum DrawBuffers[1] = {GL_COLOR_ATTACHMENT0};
-	glDrawBuffers(1, DrawBuffers);
-
 	glFramebufferRenderbuffer(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, rbo);
 	if (glCheckFramebufferStatus(GL_DRAW_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 	{
@@ -81,42 +84,35 @@ void			loadShader(t_channel *chan, const char *file)
 
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 
+	printf("%p\n", prog);
 	chan->id = fbo;
 	printf("created renderTexture: %i\n", renderedTexture);
-	chan->render_id = renderedTexture;
+	prog->render_texture = renderedTexture;
 	(void)file;
 }
 
 void			loadSound(t_channel *chan, const char *file, int mode)
 {
+	if (chan->id)
+		glDeleteTextures(1, (GLuint *)&chan->id);
+
 	(void)mode;
 	chan->id = load_wav_file(file);
 	chan->type = CHAN_SOUND;
 }
 
-void			loadChannel(t_channel *chan, const char *file, int mode)
+void			loadChannel(t_program *prog, int chan, const char *file, int mode)
 {
 	GLuint		ret;	
+	t_channel	*empty_channel;
 
-	if (file != chan->file_path)
-		strcpy(chan->file_path, file);
+	empty_channel = prog->channels + chan;
+	if (file != empty_channel->file_path)
+		strcpy(empty_channel->file_path, file);
 	if (checkFileExtention(file, IMAGE_EXT))
-		return (loadImage(chan, file, mode));
+		return (loadImage(empty_channel, file, mode));
 	if (checkFileExtention(file, SHADER_EXT))
-		return (loadShader(chan, file));
+		return (loadShader(prog, empty_channel, file));
 	if (checkFileExtention(file, SOUND_EXT))
-		return (loadSound(chan, file, mode));
-}
-
-t_channel		*loadChannels(char **files)
-{
-	static t_channel	channs[0xF00];
-	int					i = -1;
-
-	while (files[++i])
-	{
-		bzero(channs + i, sizeof(t_channel));
-		loadChannel(channs + i, files[i], 0);
-	}
-	return channs;
+		return (loadSound(empty_channel, file, mode));
 }

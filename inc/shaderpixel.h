@@ -103,7 +103,6 @@ enum			e_channel_mode
 typedef struct	s_channel
 {
 	GLint		id;
-	GLint		render_id;
 	int			type;
 	char		file_path[1024];
 }				t_channel;
@@ -116,6 +115,7 @@ typedef struct	s_program
 	int			fd;
 	long		last_modified;
 	GLint		unis[0xF0];
+	GLuint		render_texture;
 }				t_program;
 
 enum			KEY_BITS
@@ -176,8 +176,7 @@ void			updateUniformLocation(t_program *p);
 
 //UTILS
 float			getCurrentTime(void);
-void			loadChannel(t_channel *chan, const char *file, int mode);
-t_channel		*loadChannels(char **files);
+void			loadChannel(t_program *prog, int chanNumber, const char *file, int mode);
 bool			checkFileExtention(const char *filename, const char **exts);
 
 //SOUND LOAD

@@ -104,7 +104,7 @@ char		*getFileSource(int fd, t_program *p, bool loadChannels)
 	char		*line = (char *)(char [0xF00]){0};
 
 	fstat(fd, &st);
-	ret = mmap(NULL, st.st_size + 1, PROT_READ | PROT_WRITE, MAP_PRIVATE, fd, 0);
+	ret = (char *)mmap(NULL, st.st_size + 1, PROT_READ | PROT_WRITE, MAP_PRIVATE, fd, 0);
 	if (ret == MAP_FAILED)
 	{
 		perror("mmap");
@@ -132,12 +132,7 @@ char		*getFileSource(int fd, t_program *p, bool loadChannels)
 			CHECK_ACTIVE_FLAG("mipmap", CHAN_MIPMAP);
 			CHECK_ACTIVE_FLAG("v-flip", CHAN_VFLIP);
 			CHECK_ACTIVE_FLAG("clamp", CHAN_CLAMP);
-			loadChannel(p->channels + chan, p->channels[chan].file_path, mode);
-			if (p->channels[chan].type == CHAN_SHADER)
-			{
-				if (createProgram(p + 1, p->channels[chan].file_path, true, true))
-					updateUniformLocation(p + 1);
-			}
+			loadChannel(p, chan, p->channels[chan].file_path, mode);
 		}
 	return ret;
 }

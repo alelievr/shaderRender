@@ -10,53 +10,20 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "shaderpixel.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/time.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <stdbool.h>
-#include <sys/stat.h>
-#include <string.h>
-#include <time.h>
+#include "RenderShader.hpp"
 
-#define DISPLAY_OPENGL_EXTENTESIONS
-//#define UNIFORM_DEBUG 1
-
-vec4        mouse = {0, 0, 0, 0};
-vec2        scroll = {0, 0};
-vec4        move = {0, 0, 0, 1};
-vec2		window = {WIN_W, WIN_H};
-vec2		framebuffer_size = {0, 0};
-vec3		forward = {0, 0, 1};
-#if DOUBLE_PRECISION
-dvec4		fractalWindow = {-1, -1, 1, 1}; //xmin, ymin, xmax, ymax
-#else
-vec4		fractalWindow = {-1, -1, 1, 1}; //xmin, ymin, xmax, ymax
-#endif
-int        	keys = 0;
-int         input_pause = 0;
-float		pausedTime = 0;
-
-float points[] = {
-   	-1.0f,  -1.0f,
-    -1.0f, 1.0f,
-	1.0f, 1.0f,
-	1.0f, 1.0f,
-	1.0f, -1.0f,
-   	-1.0f,  -1.0f,
-};
-
-static void		usage(const char *n) __attribute__((noreturn));
-static void		usage(const char *n)
+RenderShader::RenderShader()
 {
-	printf("usage: %s <shader>\n", n);
-	exit(0);
+	fmod_init();
+
+	GLuint		vbo = createVBO();
+	vao = createVAO(vbo, program + 0);
+	angleAmount = vec2{0, 0};
+	cursor_mode = 0;
+	lastPausedTime = 0;
 }
 
-
-GLuint		createVBO(void)
+GLuint		RenderShader::createVBO(void)
 {
 	GLuint vbo = 0;
 	glGenBuffers (1, &vbo);
@@ -65,7 +32,7 @@ GLuint		createVBO(void)
 	return vbo;
 }
 
-GLuint		createVAO(GLuint vbo, t_program *program)
+GLuint		RenderShader::createVAO(GLuint vbo, t_program *program)
 {
 	GLint		fragPos;
 	GLuint		vao = 0;
@@ -82,29 +49,9 @@ GLuint		createVAO(GLuint vbo, t_program *program)
 	return vao;
 }
 
-void check_gl_error(char *block) {
-    GLenum err = glGetError();
-    char *error;
-
-    while(err != GL_NO_ERROR) {
-
-        switch(err) {
-            case GL_INVALID_OPERATION:      error="INVALID_OPERATION";      break;
-            case GL_INVALID_ENUM:           error="INVALID_ENUM";           break;
-            case GL_INVALID_VALUE:          error="INVALID_VALUE";          break;
-            case GL_OUT_OF_MEMORY:          error="OUT_OF_MEMORY";          break;
-            case GL_INVALID_FRAMEBUFFER_OPERATION:  error="INVALID_FRAMEBUFFER_OPERATION";  break;
-        }
-
-		printf("%s: %s\n", block, error);
-        err = glGetError();
-    }
-}
-
-void		updateUniforms(GLint *unis, t_channel *channels)
+void		RenderShader::updateUniforms(GLint *unis, t_channel *channels)
 {
 	static int		frames = 0;
-	static int		glTextures[] = {GL_TEXTURE1, GL_TEXTURE2, GL_TEXTURE3, GL_TEXTURE4, GL_TEXTURE5, GL_TEXTURE6, GL_TEXTURE7, GL_TEXTURE8};
 
 	float ti = getCurrentTime();
 	if (!input_pause)
@@ -129,7 +76,7 @@ void		updateUniforms(GLint *unis, t_channel *channels)
 #if DOUBLE_PRECISION
 		glUniform4d(unis[6], fractalWindow.x, fractalWindow.y, fractalWindow.z, fractalWindow.w);
 #else
-		glUniform4f(unis[6], fractalWindow.x, fractalWindow.y, fractalWindow.z, fractalWindow.w);
+	glUniform4f(unis[6], fractalWindow.x, fractalWindow.y, fractalWindow.z, fractalWindow.w);
 #endif
 
 	int j = 0;
@@ -137,32 +84,32 @@ void		updateUniforms(GLint *unis, t_channel *channels)
 	{
 		if (channels[i].type == CHAN_IMAGE)
 		{
-			glActiveTexture(glTextures[j]);
-			glBindTexture(GL_TEXTURE_2D, channels[i].render_id);
-			glUniform1i(unis[10 + j++], channels[i].render_id);
+			glActiveTexture(GL_TEXTURE1 + j);
+			glBindTexture(GL_TEXTURE_2D, channels[i].id);
+			glUniform1i(unis[10 + j++], channels[i].id);
 		}
-/*		if (channels[i].type == CHAN_SOUND)
-		{
-			int soundTexId = get_sound_texture(channels[i].id);
-			glActiveTexture(glTextures[i]);
-			glBindTexture(GL_TEXTURE_2D, soundTexId);
-			glUniform1i(unis[10 + j++], soundTexId);
-		}*/
+		/*		if (channels[i].type == CHAN_SOUND)
+				{
+				int soundTexId = get_sound_texture(channels[i].id);
+				glActiveTexture(GL_TEXTURE1 + i);
+				glBindTexture(GL_TEXTURE_2D, soundTexId);
+				glUniform1i(unis[10 + j++], soundTexId);
+				}*/
 	}
 }
 
-vec3        vec3_cross(vec3 v1, vec3 v2)
+vec3        RenderShader::vec3Cross(vec3 v1, vec3 v2)
 {
 	return (vec3){v1.y * v2.z - v1.z * v2.y, v1.z * v2.x - v1.x * v2.z, v1.x * v2.y - v1.y * v2.x};
 }
 
 #define VEC3_ADD_DIV(v1, v2, f) { v1.x += v2.x / (f); v1.y += v2.y / (f); v1.z += v2.z / (f); }
-void		update_keys(void)
+void		RenderShader::updateKeys(void)
 {
 	vec2	winSize;
 
-	vec3    right = vec3_cross(forward, (vec3){0, 1, 0});
-	vec3    up = vec3_cross(forward, right);
+	vec3    right = vec3Cross(forward, vec3{0, 1, 0});
+	vec3    up = vec3Cross(forward, right);
 
 	winSize.x = fractalWindow.z - fractalWindow.x;
 	winSize.y = fractalWindow.w - fractalWindow.y;
@@ -212,31 +159,24 @@ void		update_keys(void)
 	}
 }
 
-struct dtx_font *font;
-
-void		loop(GLFWwindow *win, t_program *program, GLuint vao)
+void		RenderShader::render(void)
 {
-	float ratio;
-	int width, height;
-	glfwGetFramebufferSize(win, &width, &height);
-	ratio = width / (float) height;
+	checkFileChanged(program);
 
-	update_keys();
+	updateKeys();
 
 	//process render buffers if used:
 	for (int i = 1; i < 0xF0; i++)
 	{
 		if (program[i].id)
 		{
-			glBindTexture(GL_TEXTURE_2D, 0);
-
 			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, program->channels[i].id);
 			glBlitFramebuffer(0,0,framebuffer_size.x, framebuffer_size.y, 0, 0, 512,512, GL_COLOR_BUFFER_BIT, GL_LINEAR);
 			GLenum DrawBuffers[1] = {GL_COLOR_ATTACHMENT0};
 			glDrawBuffers(1, DrawBuffers);
 
-			glViewport(0, 0, width, height);
-			
+			glViewport(0, 0, framebuffer_size.x, framebuffer_size.y);
+
 			glClearColor(1, 0, 0, 1);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -245,12 +185,12 @@ void		loop(GLFWwindow *win, t_program *program, GLuint vao)
 			updateUniforms(program[i].unis, program[i].channels);
 
 			glActiveTexture(GL_TEXTURE1);
-			glBindTexture(GL_TEXTURE_2D, 1);
+			glBindTexture(GL_TEXTURE_2D, program[i].render_texture);
 
 			glBindVertexArray(vao);
 			glDrawArrays(GL_TRIANGLE_STRIP, 0, 6);
 
-			uint8_t *data = malloc(window.x * window.y * 4);
+			uint8_t *data = (uint8_t *)malloc((int)window.x * (int)window.y * 4);
 			typedef struct
 			{
 				int width;
@@ -260,10 +200,10 @@ void		loop(GLFWwindow *win, t_program *program, GLuint vao)
 			}	ppm_image;
 
 			glReadBuffer(GL_COLOR_ATTACHMENT0);
-			glReadPixels(0, 0, window.x, window.y, GL_RGB, GL_UNSIGNED_BYTE, data);
+			glReadPixels(0, 0, (int)window.x, (int)window.y, GL_RGB, GL_UNSIGNED_BYTE, data);
 
 			int fd = open("f.ppm", O_WRONLY | O_CREAT, 0644);
-			ppm_image img = (ppm_image){window.x, window.y, data, window.x * window.y * 3};
+			ppm_image img = (ppm_image){(int)window.x, (int)window.y, data, static_cast< size_t >((int)window.x * (int)window.y * 3)};
 
 			dprintf(fd, "P6\n# THIS IS A COMMENT\n%d %d\n%d\n", 
 					img.width, img.height, 0xFF);
@@ -275,7 +215,7 @@ void		loop(GLFWwindow *win, t_program *program, GLuint vao)
 
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 
-	glViewport(0, 0, width, height);
+	glViewport(0, 0, framebuffer_size.x, framebuffer_size.y);
 	glClearColor(1, 1, 1, 1);
 	glClear(GL_COLOR_BUFFER_BIT);
 
@@ -288,41 +228,13 @@ void		loop(GLFWwindow *win, t_program *program, GLuint vao)
 	glBindTexture(GL_TEXTURE_2D, 1);
 	glUniform1i(program->unis[10], 1);
 	printf("unis[10] = %i\n", program->unis[10]);
-//	updateUniforms(program->unis, program->channels);
+	updateUniforms(program->unis, program->channels);
 
 	glBindVertexArray(vao);
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 6);
-
-	glfwSwapBuffers(win);
-	if (glfwGetInputMode(win, GLFW_CURSOR) == GLFW_CURSOR_DISABLED)
-		glfwSetCursorPos(win, window.x / 2, window.y / 2);
-	glfwPollEvents();
 }
 
-void		updateUniformLocation(t_program *prog)
-{
-	const int	program = prog->id;
-
-	prog->unis[0] = glGetUniformLocation(program, "iGlobalTime");
-	prog->unis[1] = glGetUniformLocation(program, "iFrame");
-	prog->unis[2] = glGetUniformLocation(program, "iMouse");
-	prog->unis[3] = glGetUniformLocation(program, "iScrollAmount");
-	prog->unis[4] = glGetUniformLocation(program, "iMoveAmount");
-	prog->unis[5] = glGetUniformLocation(program, "iResolution");
-	prog->unis[6] = glGetUniformLocation(program, "iFractalWindow");
-	prog->unis[7] = glGetUniformLocation(program, "iForward");
-
-	prog->unis[10] = glGetUniformLocation(program, "iChannel0");
-	prog->unis[11] = glGetUniformLocation(program, "iChannel1");
-	prog->unis[12] = glGetUniformLocation(program, "iChannel2");
-	prog->unis[13] = glGetUniformLocation(program, "iChannel3");
-	prog->unis[14] = glGetUniformLocation(program, "iChannel4");
-	prog->unis[15] = glGetUniformLocation(program, "iChannel5");
-	prog->unis[16] = glGetUniformLocation(program, "iChannel6");
-	prog->unis[17] = glGetUniformLocation(program, "iChannel7");
-}
-
-void		checkFileChanged(t_program *progs)
+void		RenderShader::checkFileChanged(t_program *progs)
 {
 	struct stat		st;
 
@@ -340,7 +252,7 @@ void		checkFileChanged(t_program *progs)
 	}
 }
 
-void		display_window_fps(void)
+void		RenderShader::displayWindowFps(void)
 {
 	static int		frames = 0;
 	static double	last_time = 0;
@@ -356,52 +268,126 @@ void		display_window_fps(void)
 	}
 }
 
-int			main(int ac, char **av)
+void		RenderShader::loadShaderFile(char *file)
 {
-	double				t1;
-	int					frameDisplay = 0;
-	static t_program	programs[0xF];
-
-	if (ac < 2)
-		usage(*av);
-
-	GLFWwindow *win = init(av[1]);
-	fmod_init();
-
-#ifdef DISPLAY_OPENGL_EXTENTESIONS
-	GLint n = 0; 
-	glGetIntegerv(GL_NUM_EXTENSIONS, &n); 
-
-	for (GLint i=0; i<n; i++) 
-	{ 
-		const char* extension = 
-			(const char*)glGetStringi(GL_EXTENSIONS, i);
-		printf("Ext %d: %s\n", i, extension); 
-	} 
-
-#endif
-
-	createProgram(programs + 0, av[1], true, ac == 2);
-
-	GLuint		vbo = createVBO();
-	GLuint		vao = createVAO(vbo, programs + 0);
-	updateUniformLocation(programs + 0);
-	t_channel	*optionnal_channels = loadChannels(av + 2);
-
-	for (int i = 0; optionnal_channels[i].id; i++)
-	{
-		if (programs->channels[i].id)
-			glDeleteTextures(1, (GLuint *)&programs->channels[i].id);
-		programs->channels[i] = optionnal_channels[i];
-	}
+	bzero(program, sizeof(program));
+	createProgram(program + 0, file, true, true);
+	updateUniformLocation(program + 0);
 	play_all_sounds();
-
-	while ((t1 = glfwGetTime()), !glfwWindowShouldClose(win))
-	{
-		checkFileChanged(programs);
-		loop(win, programs, vao);
-		display_window_fps();
-	}
-	glfwTerminate();
-	return (0);
 }
+
+void		RenderShader::windowSizeCallback(int winX, int winY)
+{
+	window.x = winX;
+	window.y = winY;
+}
+
+void		RenderShader::scrollCallback(double xOffset, double yOffset)
+{
+	scroll.x += xOffset;
+	scroll.y += yOffset;
+
+	vec2 ratemin;
+	vec2 ratemax;
+	vec2 diff;
+
+	vec2 fractal_mouse;
+	fractal_mouse.x = mouse.x;
+	fractal_mouse.y = window.y - mouse.y;
+	ratemin.x = (fractal_mouse.x / window.x);
+	ratemin.y = (fractal_mouse.y / window.y);
+	ratemax.x = (fractal_mouse.x - window.x) / window.x;
+	ratemax.y = (fractal_mouse.y - window.y) / window.y;
+	diff.x = (fractalWindow.z - fractalWindow.x);
+	diff.y = (fractalWindow.w - fractalWindow.y);
+	fractalWindow.z += ratemax.x * diff.x * yOffset / 30;
+	fractalWindow.w += ratemax.y * diff.y * yOffset / 30;
+	fractalWindow.x += ratemin.x * diff.x * yOffset / 30;
+	fractalWindow.y += ratemin.y * diff.y * yOffset / 30;
+}
+
+void		RenderShader::clickCallback(int button, int action, int mods)
+{
+	if (button == 0 && action == 1)
+		mouse.z = 1;
+	else if (button == 0)
+		mouse.z = 0;
+	if (button == 1 && action == 1)
+		mouse.w = 1;
+	else if (button == 1)
+		mouse.w = 0;
+}
+
+void		RenderShader::framebufferSizeCallback(int width, int height)
+{
+	framebuffer_size.x = width;
+	framebuffer_size.y = height;
+}
+
+void		RenderShader::mousePositionCallback(GLFWwindow *win, double x, double y)
+{
+	mouse.x = x;
+	mouse.y = y;
+	if (glfwGetInputMode(win, GLFW_CURSOR) == GLFW_CURSOR_DISABLED)
+	{
+    	angleAmount.x += ((window.x / 2.) - mouse.x) / 200;
+    	angleAmount.y += ((window.y / 2.) - mouse.y) / 200;
+
+		if (angleAmount.y > 1.5f)
+			angleAmount.y = 1.5f;
+		if (angleAmount.y < -1.5f)
+			angleAmount.y = -1.5f;
+    	forward.x = cos(angleAmount.y) * sin(angleAmount.x);
+    	forward.y = sin(angleAmount.y);
+    	forward.z = cos(angleAmount.y) * cos(angleAmount.x);
+	}
+}
+
+void		RenderShader::keyCallback(GLFWwindow *window, int key, int scancode, int action, int mods)
+{
+	struct timeval		t;
+
+	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+		glfwSetWindowShouldClose(window, GLFW_TRUE);
+	if (key == GLFW_KEY_RIGHT || key == GLFW_KEY_D)
+		BIT_SET(keys, RIGHT, action == GLFW_PRESS || action == GLFW_REPEAT);
+	if (key == GLFW_KEY_LEFT || key == GLFW_KEY_A)
+		BIT_SET(keys, LEFT, action == GLFW_PRESS || action == GLFW_REPEAT);
+	if (key == GLFW_KEY_UP || key == GLFW_KEY_W)
+		BIT_SET(keys, FORWARD, action == GLFW_PRESS || action == GLFW_REPEAT);
+	if (key == GLFW_KEY_DOWN || key == GLFW_KEY_S)
+		BIT_SET(keys, BACK, action == GLFW_PRESS || action == GLFW_REPEAT);
+	if (key == GLFW_KEY_Q)
+		BIT_SET(keys, UP, action == GLFW_PRESS || action == GLFW_REPEAT);
+	if (key == GLFW_KEY_E)
+		BIT_SET(keys, DOWN, action == GLFW_PRESS || action == GLFW_REPEAT);
+	if (key == GLFW_KEY_KP_ADD || key == GLFW_KEY_EQUAL)
+		BIT_SET(keys, PLUS, action == GLFW_PRESS || action == GLFW_REPEAT);
+	if (key == GLFW_KEY_KP_SUBTRACT || key == GLFW_KEY_MINUS)
+		BIT_SET(keys, MOIN, action == GLFW_PRESS || action == GLFW_REPEAT);
+	if (key == GLFW_KEY_SPACE && action != GLFW_REPEAT && action == GLFW_PRESS)
+	{
+		input_pause ^= action;
+		if (input_pause)
+			lastPausedTime = getCurrentTime();
+		else
+			pausedTime += getCurrentTime() - lastPausedTime;
+	}
+	if (key == GLFW_KEY_C)
+		cursor_mode ^= action == GLFW_PRESS;
+	if (key == GLFW_KEY_R)
+	{
+#if DOUBLE_PRECISION
+		fractalWindow = (dvec4){-1, -1, 1, 1};
+#else
+		fractalWindow = (vec4){-1, -1, 1, 1};
+#endif
+		move = (vec4){0, 0, 0, 1};
+		forward = (vec3){0, 0, 1};
+		scroll = (vec2){0, 0};
+	}
+
+	glfwSetInputMode(window, GLFW_CURSOR, (cursor_mode) ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_DISABLED);
+}
+
+RenderShader::~RenderShader() {}

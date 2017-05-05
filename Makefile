@@ -6,7 +6,7 @@
 #    By: alelievr <marvin@42.fr>                    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2014/07/15 15:13:38 by alelievr          #+#    #+#              #
-#    Updated: 2017/03/30 02:35:07 by alelievr         ###   ########.fr        #
+#    Updated: 2017/05/05 03:52:19 by alelievr         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -16,13 +16,13 @@
 
 #	Sources
 SRCDIR		=	src
-SRC			=	main.c			\
-				glfw_init.c		\
-				shader.c		\
-				fmod.c			\
-				wav.c			\
-				loadChannel.c	\
-				utils.c			\
+SRC			=	RenderShader.cpp\
+				shader.cpp		\
+				fmod.cpp		\
+				wav.cpp			\
+				loadChannel.cpp	\
+				utils.cpp		\
+				application.cpp	\
 
 #	Objects
 OBJDIR		=	obj
@@ -38,12 +38,12 @@ CPPVERSION	=	c++11
 #Example $> make DEBUG=2 will set debuglevel to 2
 
 #	Includes
-INCDIRS		=	glfw/include inc SOIL2-clone/incs fmod/inc
+INCDIRS		=	nanogui/ext/glfw/include inc SOIL2-clone/incs fmod/inc nanogui/include nanogui/ext/eigen nanogui/ext/nanovg/src/
 
 #	Libraries
-LIBDIRS		=	glfw/src/ SOIL2-clone
-LDLIBS		=	-lglfw3 -lSOIL2
-GLFWLIB		=	glfw/src/libglfw3.a
+LIBDIRS		=	nanogui SOIL2-clone
+LDLIBS		=	-lnanogui -lSOIL2
+NANOGUILIB	=	nanogui/libnanogui.a
 SOILLIB		=	SOIL2-clone/libSOIL2.a
 
 #	Output
@@ -175,15 +175,15 @@ endif
 #################
 
 #	First target
-all: $(GLFWLIB) $(SOILLIB) $(NAME)
+all: $(NANOGUILIB) $(SOILLIB) $(NAME)
 
 $(SOILLIB):
 	cd SOIL2-clone && make
 
-$(GLFWLIB):
+$(NANOGUILIB):
 	git submodule init
 	git submodule update
-	cd glfw && cmake . && make
+	cd nanogui && git submodule init && git submodule update && cmake -DNANOGUI_BUILD_EXAMPLE=OFF -DNANOGUI_BUILD_PYTHON=OFF -DNANOGUI_BUILD_SHARED=OFF . && make
 
 #	Linking
 $(NAME): $(OBJ)

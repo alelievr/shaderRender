@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2016/07/30 16:57:22 by alelievr          #+#    #+#             */
-/*   Updated: 2016/12/15 21:37:08 by root             ###   ########.fr       */
+/*   Updated: 2017/05/05 03:35:43 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -102,7 +102,7 @@ int			load_wav_file(const char *f)
 	int			imgWidth = header.sample_rate / 60;
 
 	printf("imgWidth: %i\n", imgWidth);
-	char		*baseData = malloc(sizeof(int) * imgWidth);
+	char		*baseData = (char *)malloc(sizeof(int) * imgWidth);
 	memset(baseData, 127, sizeof(int) * imgWidth);
 
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
@@ -117,7 +117,7 @@ int			load_wav_file(const char *f)
 
 	FMOD_SOUND *s = load_sound(f);
 
-	sounds[id] = (t_sound){id, fd, imgWidth, texId, baseData, s, WAVE, header};
+	sounds[id] = (t_sound){id, fd, imgWidth, static_cast< int >(texId), baseData, s, WAVE, header};
 	return id;
 }
 
