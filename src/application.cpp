@@ -57,17 +57,20 @@ using std::to_string;
 
 nanogui::Screen		*screen;
 RenderShader		*renderShader;
+long				oldTime = 0;
+int					frames = 0;
 
 class ShaderRenderApplication : public nanogui::Screen
 {
 	public:
 
-    	ShaderRenderApplication() : nanogui::Screen(Eigen::Vector2i(1024, 768), "NanoGUI Test")
+    	ShaderRenderApplication(char *shaderFile) : nanogui::Screen(Eigen::Vector2i(1024, 768), "NanoGUI Test")
 		{
         	using namespace nanogui;
 
 			screen = this;
 			renderShader = &this->mRenderShader;
+			renderShader->loadShaderFile(shaderFile);
         	Window *mainGUI = new Window(this, "Button demo");
         	mainGUI->setPosition(Vector2i(15, 15));
         	mainGUI->setLayout(new GroupLayout());
@@ -95,6 +98,13 @@ class ShaderRenderApplication : public nanogui::Screen
 				}
 			);
 
+			glfwSetKeyCallback(window,
+				[](GLFWwindow *win, int key, int scancode, int action, int mods) {
+					screen->keyCallbackEvent(key, scancode, action, mods);
+					renderShader->keyCallback(win, key, scancode, action, mods);
+				}
+			);
+
 			glfwSetMouseButtonCallback(window,
 				[](GLFWwindow *, int button, int action, int modifiers) {
 					screen->mouseButtonCallbackEvent(button, action, modifiers);
@@ -109,9 +119,11 @@ class ShaderRenderApplication : public nanogui::Screen
         		}
     		);
 
+			int		fw, fh;
+			glfwGetFramebufferSize(window, &fw, &fh);
+			framebuffer_size.x = fw;
+			framebuffer_size.y = fh;
 
-        	/* No need to store a pointer, the data structure will be automatically
-           	   freed when the parent window is deleted */
         	new Label(mainGUI, "Push buttons", "sans-bold");
 
         	Button *b = new Button(mainGUI, "Plain button");
@@ -126,7 +138,7 @@ class ShaderRenderApplication : public nanogui::Screen
                 	"fact, that the shown text will span several lines.");
 
 			performLayout();
-    	}
+		}
 
     	~ShaderRenderApplication() {}
 
@@ -136,10 +148,14 @@ class ShaderRenderApplication : public nanogui::Screen
         	Screen::draw(ctx);
     	}
 
-    	virtual void	drawContents()
+		virtual void	drawContents()
 		{
-			mRenderShader.render();
-    	}
+			if (oldTime != time(NULL))
+				cout << "frames: " << frames << endl, frames = 0;
+			renderShader->render(glfwWindow());
+			oldTime = time(NULL);
+			frames++;
+		}
 
 		virtual bool	dropEvent(const std::vector<std::string> & /* filenames */) {
 			//TODO
@@ -148,21 +164,28 @@ class ShaderRenderApplication : public nanogui::Screen
 
 	private:
     	nanogui::ProgressBar	*mProgress;
-    	nanogui::GLShader		mShader;
 		RenderShader			mRenderShader;
-
-    	int mCurrentImage;
 };
 
-int		main(int /* argc */, char ** /* argv */)
+static void	usage(char *prog) __attribute__((noreturn));
+static void	usage(char *prog)
 {
+	cout << "usage: " << prog << " <shader file>" << endl;
+	exit(0);
+}
+
+int		main(int ac, char ** av)
+{
+	if (ac != 2)
+		usage(av[0]);
+
     try {
         nanogui::init();
 
-        nanogui::ref<ShaderRenderApplication> app = new ShaderRenderApplication();
+        nanogui::ref<ShaderRenderApplication> app = new ShaderRenderApplication(av[1]);
         app->drawAll();
         app->setVisible(true);
-        nanogui::mainloop();
+        nanogui::mainloop(-1);
 
     	nanogui::shutdown();
 	} catch (const std::runtime_error &e) {

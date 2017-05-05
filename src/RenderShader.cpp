@@ -19,8 +19,6 @@ RenderShader::RenderShader()
 {
 	fmod_init();
 
-	GLuint		vbo = createVBO();
-	vao = createVAO(vbo, program + 0);
 	angleAmount = vec2{0, 0};
 	cursor_mode = 0;
 	lastPausedTime = 0;
@@ -35,7 +33,7 @@ GLuint		RenderShader::createVBO(void)
 	return vbo;
 }
 
-GLuint		RenderShader::createVAO(GLuint vbo, t_program *program)
+GLuint		RenderShader::createVAO(GLuint vbo)
 {
 	GLint		fragPos;
 	GLuint		vao = 0;
@@ -162,7 +160,7 @@ void		RenderShader::updateKeys(void)
 	}
 }
 
-void		RenderShader::render(void)
+void		RenderShader::render(GLFWwindow *win)
 {
 	checkFileChanged(program);
 
@@ -178,7 +176,7 @@ void		RenderShader::render(void)
 			GLenum DrawBuffers[1] = {GL_COLOR_ATTACHMENT0};
 			glDrawBuffers(1, DrawBuffers);
 
-			glViewport(0, 0, framebuffer_size.x, framebuffer_size.y);
+		//	glViewport(0, 0, framebuffer_size.x, framebuffer_size.y);
 
 			glClearColor(1, 0, 0, 1);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -218,23 +216,19 @@ void		RenderShader::render(void)
 
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 
-	glViewport(0, 0, framebuffer_size.x, framebuffer_size.y);
-	glClearColor(1, 1, 1, 1);
+//	glViewport(0, 0, framebuffer_size.x, framebuffer_size.y);
+	glClearColor(1, 0, 0, 1);
 	glClear(GL_COLOR_BUFFER_BIT);
-
-	glEnable(GL_MULTISAMPLE);
-	glEnable(GL_TEXTURE_2D);
 
 	glUseProgram(program->id);
 
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, 1);
-	glUniform1i(program->unis[10], 1);
-	printf("unis[10] = %i\n", program->unis[10]);
 	updateUniforms(program->unis, program->channels);
 
 	glBindVertexArray(vao);
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 6);
+
+	if (glfwGetInputMode(win, GLFW_CURSOR) == GLFW_CURSOR_DISABLED)
+		glfwSetCursorPos(win, window.x / 2, window.y / 2);
 }
 
 void		RenderShader::checkFileChanged(t_program *progs)
@@ -277,6 +271,8 @@ void		RenderShader::loadShaderFile(char *file)
 	createProgram(program + 0, file, true, true);
 	updateUniformLocation(program + 0);
 	play_all_sounds();
+	GLuint		vbo = createVBO();
+	vao = createVAO(vbo);
 }
 
 void		RenderShader::windowSizeCallback(int winX, int winY)

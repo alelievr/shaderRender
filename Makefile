@@ -6,7 +6,7 @@
 #    By: alelievr <marvin@42.fr>                    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2014/07/15 15:13:38 by alelievr          #+#    #+#              #
-#    Updated: 2017/05/05 16:19:59 by alelievr         ###   ########.fr        #
+#    Updated: 2017/05/06 01:50:16 by alelievr         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -188,6 +188,7 @@ $(SOILLIB):
 $(NANOGUILIB):
 	git submodule init
 	git submodule update
+	patch -i nanoGUIPollEventPatch.patch nanogui/src/common.cpp
 	cd nanogui && git submodule init && git submodule update && cmake -DNANOGUI_BUILD_EXAMPLE=OFF -DNANOGUI_BUILD_PYTHON=OFF -DNANOGUI_BUILD_SHARED=OFF . && make
 
 #	Linking

@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/05/04 22:50:08 by alelievr          #+#    #+#             */
-/*   Updated: 2017/05/05 14:16:19 by alelievr         ###   ########.fr       */
+/*   Updated: 2017/05/05 23:38:46 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,9 +46,9 @@ class RenderShader
 		GLuint		vao;
 		t_program	program[0xF];
 
-		vec2    angleAmount;
-		int     cursor_mode;
-		float   lastPausedTime;
+		vec2		angleAmount;
+		int			cursor_mode;
+		float		lastPausedTime;
 
 		const float points[12] = {
    			-1.0f,  -1.0f,
@@ -60,7 +60,7 @@ class RenderShader
 		};
 
 		GLuint		createVBO(void);
-		GLuint		createVAO(GLuint vbo, t_program *program);
+		GLuint		createVAO(GLuint vbo);
 		void		updateUniforms(GLint *unis, t_channel *channels);
 		vec3		vec3Cross(vec3 v1, vec3 v2);
 		void		updateKeys(void);
@@ -73,7 +73,7 @@ class RenderShader
 
 		virtual ~RenderShader();
 
-		void				render(void);
+		void				render(GLFWwindow *win);
 		void				loadShaderFile(char *file);
 		void				initRenderShaders(RenderShader rs);
 		void				windowSizeCallback(int winX, int winY);

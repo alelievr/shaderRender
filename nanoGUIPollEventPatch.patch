@@ -1,0 +1,16 @@
+diff --git src/common.cpp src/common.cpp
+index 24540f1..f660f0f 100644
+--- src/common.cpp
++++ src/common.cpp
+@@ -106,7 +106,10 @@ void mainloop(int refresh) {
+             }
+ 
+             /* Wait for mouse/keyboard or empty refresh events */
+-            glfwWaitEvents();
++			if (refresh == -1)
++				glfwPollEvents();
++			else
++            	glfwWaitEvents();
+         }
+ 
+         /* Process events once more */
