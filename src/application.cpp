@@ -47,6 +47,8 @@
 #  include <windows.h>
 #endif
 
+#define CHANNEL_COUNT	4
+
 using std::cout;
 using std::cerr;
 using std::endl;
@@ -57,8 +59,6 @@ using std::to_string;
 
 nanogui::Screen		*screen;
 RenderShader		*renderShader;
-long				oldTime = 0;
-int					frames = 0;
 
 class ShaderRenderApplication : public nanogui::Screen
 {
@@ -71,9 +71,11 @@ class ShaderRenderApplication : public nanogui::Screen
 			screen = this;
 			renderShader = &this->mRenderShader;
 			renderShader->loadShaderFile(shaderFile);
-        	Window *mainGUI = new Window(this, "Button demo");
-        	mainGUI->setPosition(Vector2i(15, 15));
-        	mainGUI->setLayout(new GroupLayout());
+
+			//channel view infos allocs:
+			//channelImages = new (ImageView *[CHANNEL_COUNT]);
+			channelTitle = new (Label *[CHANNEL_COUNT]);
+			channelTexts = new (Label *[CHANNEL_COUNT]);
 
 			GLFWwindow *window = glfwWindow();
 
@@ -124,47 +126,99 @@ class ShaderRenderApplication : public nanogui::Screen
 			framebuffer_size.x = fw;
 			framebuffer_size.y = fh;
 
-        	new Label(mainGUI, "Push buttons", "sans-bold");
+        	Window *mainGUI = new Window(this, "INFO");
+        	mainGUI->setPosition(Vector2i(15, 15));
+        	mainGUI->setLayout(new GroupLayout());
 
-        	Button *b = new Button(mainGUI, "Plain button");
-        	b->setCallback([] { cout << "pushed!" << endl; });
-        	b->setTooltip("short tooltip");
+        	fpsLabel = new Label(mainGUI, string("FPS: 0"), "sans-bold");
 
-        	/* Alternative construction notation using variadic template */
-        	b = mainGUI->add<Button>("Styled", ENTYPO_ICON_ROCKET);
-        	b->setBackgroundColor(Color(0, 0, 255, 25));
-        	b->setCallback([] { cout << "pushed!" << endl; });
-        	b->setTooltip("This button has a fairly long tooltip. It is so long, in "
-                	"fact, that the shown text will span several lines.");
+			for (int i = 0; i < CHANNEL_COUNT; i++)
+			{
+				channelTitle[i] = new Label(mainGUI, "channel " + to_string(i));
+				//channelImages[i] = new ImageView(mainGUI, -1);
+				channelTexts[i] = new Label(mainGUI, "unused");
+				t_channel		*c = renderShader->getChannel(i);
+				if (c != NULL)
+				{
+					//file button
+					auto b = new Button(mainGUI, "Open");
+					b->setCallback([&] {
+							string file = file_dialog({
+								{"png", "Portable Network Graphics"},
+								{"jpg", "Joint Photographic Experts Group"},
+								{"tga", "Truevision Targa"}
+							}, false);
+							if (!file.empty())
+							{
+								c = renderShader->getChannel(i);
+								renderShader->updateChannel(c, file.c_str(), 0);
+								channelTexts[i]->setCaption(c->file_path);
+							}
+						}
+					);
+				}
+			}
+			updateChannelGUI(mainGUI);
 
 			performLayout();
+		}
+
+		void			updateChannelGUI(nanogui::Window *mainGUI)
+		{
+        	using namespace nanogui;
+
+			for (int i = 0; i < CHANNEL_COUNT; i++)
+			{
+				t_channel *c = renderShader->getChannel(i);
+				if (c == NULL)
+					continue ;
+				switch (c->type)
+				{
+					case CHAN_IMAGE:
+						channelTexts[i]->setCaption(string("file: ") + c->file_path);
+						//channelImages[i]->bindImage(c->id);
+						break ;
+					case CHAN_SOUND:
+						channelTexts[i]->setCaption(string("file: ") + c->file_path);
+						break ;
+					case CHAN_SHADER:
+						channelTexts[i]->setCaption(string("file: ") + c->file_path);
+						break ;
+				}
+				//file button
+			}
 		}
 
     	~ShaderRenderApplication() {}
 
     	virtual void	draw(NVGcontext *ctx)
 		{
-        	/* Draw the user interface */
         	Screen::draw(ctx);
     	}
 
 		virtual void	drawContents()
 		{
-			if (oldTime != time(NULL))
-				cout << "frames: " << frames << endl, frames = 0;
+			if (mOldTime != time(NULL))
+				fpsLabel->setCaption("FPS: " + to_string(mFrames)), mFrames = 0;
 			renderShader->render(glfwWindow());
-			oldTime = time(NULL);
-			frames++;
+			mOldTime = time(NULL);
+			mFrames++;
 		}
 
-		virtual bool	dropEvent(const std::vector<std::string> & /* filenames */) {
+		/*virtual bool	dropEvent(const std::vector<std::string> & filenames) {
 			//TODO
 			return false;
-		}
+		}*/
 
 	private:
     	nanogui::ProgressBar	*mProgress;
 		RenderShader			mRenderShader;
+		nanogui::Label			*fpsLabel;
+		//nanogui::ImageView		**channelImages;
+		nanogui::Label			**channelTexts;
+		nanogui::Label			**channelTitle;
+		long					mOldTime = 0;
+		int						mFrames = 0;
 };
 
 static void	usage(char *prog) __attribute__((noreturn));

@@ -132,7 +132,7 @@ char		*getFileSource(int fd, t_program *p, bool loadChannels)
 			CHECK_ACTIVE_FLAG("mipmap", CHAN_MIPMAP);
 			CHECK_ACTIVE_FLAG("v-flip", CHAN_VFLIP);
 			CHECK_ACTIVE_FLAG("clamp", CHAN_CLAMP);
-			loadChannel(p, chan, p->channels[chan].file_path, mode);
+			loadChannel(p, p->channels + chan, p->channels[chan].file_path, mode);
 		}
 	return ret;
 }

@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/05/04 22:50:08 by alelievr          #+#    #+#             */
-/*   Updated: 2017/05/05 23:38:46 by alelievr         ###   ########.fr       */
+/*   Updated: 2017/05/06 03:30:25 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,6 +49,7 @@ class RenderShader
 		vec2		angleAmount;
 		int			cursor_mode;
 		float		lastPausedTime;
+		bool		programLoaded;
 
 		const float points[12] = {
    			-1.0f,  -1.0f,
@@ -76,12 +77,16 @@ class RenderShader
 		void				render(GLFWwindow *win);
 		void				loadShaderFile(char *file);
 		void				initRenderShaders(RenderShader rs);
+
 		void				windowSizeCallback(int winX, int winY);
 		void				framebufferSizeCallback(int width, int height);
 		void				scrollCallback(double xOffset, double yOffset);
 		void				clickCallback(int button, int action, int mods);
 		void				mousePositionCallback(GLFWwindow *win, double x, double y);
 		void				keyCallback(GLFWwindow *window, int key, int scancode, int action, int mods);
+
+		t_channel			*getChannel(int channel);
+		void				updateChannel(t_channel *chan, const char *file, int mode);
 
 
 		RenderShader &		operator=(RenderShader & ths) = delete;

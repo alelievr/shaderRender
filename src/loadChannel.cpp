@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/09 11:53:14 by alelievr          #+#    #+#             */
-/*   Updated: 2017/05/05 02:52:49 by alelievr         ###   ########.fr       */
+/*   Updated: 2017/05/06 03:48:50 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -101,18 +101,16 @@ void			loadSound(t_channel *chan, const char *file, int mode)
 	chan->type = CHAN_SOUND;
 }
 
-void			loadChannel(t_program *prog, int chan, const char *file, int mode)
+void			loadChannel(t_program *prog, t_channel *chan, const char *file, int mode)
 {
 	GLuint		ret;	
-	t_channel	*empty_channel;
 
-	empty_channel = prog->channels + chan;
-	if (file != empty_channel->file_path)
-		strcpy(empty_channel->file_path, file);
+	if (file != chan->file_path)
+		strcpy(chan->file_path, file);
 	if (checkFileExtention(file, IMAGE_EXT))
-		return (loadImage(empty_channel, file, mode));
+		return (loadImage(chan, file, mode));
 	if (checkFileExtention(file, SHADER_EXT))
-		return (loadShader(prog, empty_channel, file));
+		return (loadShader(prog, chan, file));
 	if (checkFileExtention(file, SOUND_EXT))
-		return (loadSound(empty_channel, file, mode));
+		return (loadSound(chan, file, mode));
 }

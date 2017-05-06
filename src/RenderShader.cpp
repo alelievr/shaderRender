@@ -22,6 +22,7 @@ RenderShader::RenderShader()
 	angleAmount = vec2{0, 0};
 	cursor_mode = 0;
 	lastPausedTime = 0;
+	programLoaded = false;
 }
 
 GLuint		RenderShader::createVBO(void)
@@ -268,10 +269,11 @@ void		RenderShader::displayWindowFps(void)
 void		RenderShader::loadShaderFile(char *file)
 {
 	bzero(program, sizeof(program));
-	createProgram(program + 0, file, true, true);
+	if (createProgram(program + 0, file, true, true))
+		programLoaded = true;
 	updateUniformLocation(program + 0);
 	play_all_sounds();
-	GLuint		vbo = createVBO();
+	GLuint vbo = createVBO();
 	vao = createVAO(vbo);
 }
 
@@ -387,6 +389,20 @@ void		RenderShader::keyCallback(GLFWwindow *window, int key, int scancode, int a
 	}
 
 	glfwSetInputMode(window, GLFW_CURSOR, (cursor_mode) ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_DISABLED);
+}
+
+t_channel	*RenderShader::getChannel(int chan)
+{
+	if (chan < 10 && programLoaded)
+	{
+		return &program[0].channels[chan];
+	}
+	return NULL;
+}
+
+void		RenderShader::updateChannel(t_channel *chan, const char *file, int mode)
+{
+	loadChannel(program, chan, file, mode);
 }
 
 RenderShader::~RenderShader() {}

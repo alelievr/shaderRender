@@ -176,7 +176,7 @@ void			updateUniformLocation(t_program *p);
 
 //UTILS
 float			getCurrentTime(void);
-void			loadChannel(t_program *prog, int chanNumber, const char *file, int mode);
+void			loadChannel(t_program *prog, t_channel *channel, const char *file, int mode);
 bool			checkFileExtention(const char *filename, const char **exts);
 
 //SOUND LOAD
