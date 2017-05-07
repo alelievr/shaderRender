@@ -226,17 +226,19 @@ void		loop(GLFWwindow *win, t_program *program, GLuint vao)
 	{
 		if (program[i].id)
 		{
-			printf("rendering buffer shader !\n");
-			glBindFramebuffer(GL_FRAMEBUFFER, program->channels[i].id);
+			glBindFramebuffer(GL_FRAMEBUFFER, 1);
 			
+			glClearColor(1, 0, 1, 1);
 			glClear(GL_COLOR_BUFFER_BIT);
-
-			glActiveTexture(GL_TEXTURE0);
-			glEnable(GL_DEPTH_TEST);
 
 			glUseProgram(program[i].id);
 
-			updateUniforms(program[i].unis, program[i].channels);
+			glActiveTexture(GL_TEXTURE1);
+			printf("fbo render id: %i\n", 1);
+			glBindTexture(GL_TEXTURE_2D, 1);
+			printf("ok = %i\n", glGetUniformLocation(program->id, "iChannel0"));
+			glUniform1i(glGetUniformLocation(program->id, "iChannel0"), program->channels[i].render_id);
+			//updateUniforms(program[i].unis, program[i].channels);
 
 			glBindVertexArray(vao);
 			glDrawArrays(GL_TRIANGLE_STRIP, 0, 6);
