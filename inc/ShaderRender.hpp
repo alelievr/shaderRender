@@ -1,17 +1,16 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   RenderShader.hpp                                   :+:      :+:    :+:   */
+/*   ShaderRender.hpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2017/05/04 22:50:08 by alelievr          #+#    #+#             */
-/*   Updated: 2017/05/06 03:30:25 by alelievr         ###   ########.fr       */
+/*   Created: 2017/05/07 21:28:59 by alelievr          #+#    #+#             */
+/*   Updated: 2017/05/07 21:29:11 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef RENDERSHADER_HPP
-# define RENDERSHADER_HPP
+# pragma once
 
 # include "shaderpixel.h"
 # include <stdio.h>
@@ -27,7 +26,7 @@
 
 //#define UNIFORM_DEBUG 1
 
-class RenderShader
+class ShaderRender
 {
 	private:
 		vec4        mouse = {0, 0, 0, 0};
@@ -69,14 +68,14 @@ class RenderShader
 		void		displayWindowFps(void);
 
 	public:
-		RenderShader();
-		RenderShader(const RenderShader & rhs) = delete;
+		ShaderRender();
+		ShaderRender(const ShaderRender & rhs) = delete;
 
-		virtual ~RenderShader();
+		virtual ~ShaderRender();
 
 		void				render(GLFWwindow *win);
 		void				loadShaderFile(char *file);
-		void				initRenderShaders(RenderShader rs);
+		void				initShaderRenders(ShaderRender rs);
 
 		void				windowSizeCallback(int winX, int winY);
 		void				framebufferSizeCallback(int width, int height);
@@ -89,7 +88,5 @@ class RenderShader
 		void				updateChannel(t_channel *chan, const char *file, int mode);
 
 
-		RenderShader &		operator=(RenderShader & ths) = delete;
+		ShaderRender &		operator=(ShaderRender & ths) = delete;
 };
-
-#endif

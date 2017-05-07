@@ -10,12 +10,12 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "RenderShader.hpp"
+#include "ShaderRender.hpp"
 
 vec2		framebuffer_size = {0, 0};
 float		pausedTime = 0;
 
-RenderShader::RenderShader()
+ShaderRender::ShaderRender()
 {
 	fmod_init();
 
@@ -25,7 +25,7 @@ RenderShader::RenderShader()
 	programLoaded = false;
 }
 
-GLuint		RenderShader::createVBO(void)
+GLuint		ShaderRender::createVBO(void)
 {
 	GLuint vbo = 0;
 	glGenBuffers (1, &vbo);
@@ -34,7 +34,7 @@ GLuint		RenderShader::createVBO(void)
 	return vbo;
 }
 
-GLuint		RenderShader::createVAO(GLuint vbo)
+GLuint		ShaderRender::createVAO(GLuint vbo)
 {
 	GLint		fragPos;
 	GLuint		vao = 0;
@@ -51,7 +51,7 @@ GLuint		RenderShader::createVAO(GLuint vbo)
 	return vao;
 }
 
-void		RenderShader::updateUniforms(GLint *unis, t_channel *channels)
+void		ShaderRender::updateUniforms(GLint *unis, t_channel *channels)
 {
 	static int		frames = 0;
 
@@ -100,13 +100,13 @@ void		RenderShader::updateUniforms(GLint *unis, t_channel *channels)
 	}
 }
 
-vec3        RenderShader::vec3Cross(vec3 v1, vec3 v2)
+vec3        ShaderRender::vec3Cross(vec3 v1, vec3 v2)
 {
 	return (vec3){v1.y * v2.z - v1.z * v2.y, v1.z * v2.x - v1.x * v2.z, v1.x * v2.y - v1.y * v2.x};
 }
 
 #define VEC3_ADD_DIV(v1, v2, f) { v1.x += v2.x / (f); v1.y += v2.y / (f); v1.z += v2.z / (f); }
-void		RenderShader::updateKeys(void)
+void		ShaderRender::updateKeys(void)
 {
 	vec2	winSize;
 
@@ -161,7 +161,7 @@ void		RenderShader::updateKeys(void)
 	}
 }
 
-void		RenderShader::render(GLFWwindow *win)
+void		ShaderRender::render(GLFWwindow *win)
 {
 	checkFileChanged(program);
 
@@ -232,7 +232,7 @@ void		RenderShader::render(GLFWwindow *win)
 		glfwSetCursorPos(win, window.x / 2, window.y / 2);
 }
 
-void		RenderShader::checkFileChanged(t_program *progs)
+void		ShaderRender::checkFileChanged(t_program *progs)
 {
 	struct stat		st;
 
@@ -250,7 +250,7 @@ void		RenderShader::checkFileChanged(t_program *progs)
 	}
 }
 
-void		RenderShader::displayWindowFps(void)
+void		ShaderRender::displayWindowFps(void)
 {
 	static int		frames = 0;
 	static double	last_time = 0;
@@ -266,7 +266,7 @@ void		RenderShader::displayWindowFps(void)
 	}
 }
 
-void		RenderShader::loadShaderFile(char *file)
+void		ShaderRender::loadShaderFile(char *file)
 {
 	bzero(program, sizeof(program));
 	if (createProgram(program + 0, file, true, true))
@@ -277,13 +277,13 @@ void		RenderShader::loadShaderFile(char *file)
 	vao = createVAO(vbo);
 }
 
-void		RenderShader::windowSizeCallback(int winX, int winY)
+void		ShaderRender::windowSizeCallback(int winX, int winY)
 {
 	window.x = winX;
 	window.y = winY;
 }
 
-void		RenderShader::scrollCallback(double xOffset, double yOffset)
+void		ShaderRender::scrollCallback(double xOffset, double yOffset)
 {
 	scroll.x += xOffset;
 	scroll.y += yOffset;
@@ -307,7 +307,7 @@ void		RenderShader::scrollCallback(double xOffset, double yOffset)
 	fractalWindow.y += ratemin.y * diff.y * yOffset / 30;
 }
 
-void		RenderShader::clickCallback(int button, int action, int mods)
+void		ShaderRender::clickCallback(int button, int action, int mods)
 {
 	if (button == 0 && action == 1)
 		mouse.z = 1;
@@ -319,13 +319,13 @@ void		RenderShader::clickCallback(int button, int action, int mods)
 		mouse.w = 0;
 }
 
-void		RenderShader::framebufferSizeCallback(int width, int height)
+void		ShaderRender::framebufferSizeCallback(int width, int height)
 {
 	framebuffer_size.x = width;
 	framebuffer_size.y = height;
 }
 
-void		RenderShader::mousePositionCallback(GLFWwindow *win, double x, double y)
+void		ShaderRender::mousePositionCallback(GLFWwindow *win, double x, double y)
 {
 	mouse.x = x;
 	mouse.y = y;
@@ -344,7 +344,7 @@ void		RenderShader::mousePositionCallback(GLFWwindow *win, double x, double y)
 	}
 }
 
-void		RenderShader::keyCallback(GLFWwindow *window, int key, int scancode, int action, int mods)
+void		ShaderRender::keyCallback(GLFWwindow *window, int key, int scancode, int action, int mods)
 {
 	struct timeval		t;
 
@@ -391,7 +391,7 @@ void		RenderShader::keyCallback(GLFWwindow *window, int key, int scancode, int a
 	glfwSetInputMode(window, GLFW_CURSOR, (cursor_mode) ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_DISABLED);
 }
 
-t_channel	*RenderShader::getChannel(int chan)
+t_channel	*ShaderRender::getChannel(int chan)
 {
 	if (chan < 10 && programLoaded)
 	{
@@ -400,9 +400,9 @@ t_channel	*RenderShader::getChannel(int chan)
 	return NULL;
 }
 
-void		RenderShader::updateChannel(t_channel *chan, const char *file, int mode)
+void		ShaderRender::updateChannel(t_channel *chan, const char *file, int mode)
 {
 	loadChannel(program, chan, file, mode);
 }
 
-RenderShader::~RenderShader() {}
+ShaderRender::~ShaderRender() {}

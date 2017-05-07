@@ -6,7 +6,7 @@
 #    By: alelievr <marvin@42.fr>                    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2014/07/15 15:13:38 by alelievr          #+#    #+#              #
-#    Updated: 2017/05/06 01:50:16 by alelievr         ###   ########.fr        #
+#    Updated: 2017/05/07 22:11:19 by alelievr         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -16,9 +16,10 @@
 
 #	Sources
 SRCDIR		=	src
-SRC			=	RenderShader.cpp\
-				shader.cpp		\
-				fmod.cpp		\
+SRC			=	ShaderRender.cpp	\
+				ShaderProgram.cpp	\
+				ShaderChannel.cpp	\
+				fmod.cpp			\
 				wav.cpp			\
 				loadChannel.cpp	\
 				utils.cpp		\
@@ -33,7 +34,7 @@ DEBUGLEVEL	=	0	#can be 0 for no debug 1 for or 2 for harder debug
 					#Warrning: non null debuglevel will disable optlevel
 OPTLEVEL	=	1	#same than debuglevel
 					#Warrning: non null optlevel will disable debuglevel
-CPPVERSION	=	c++11
+CPPVERSION	=	c++14
 #For simpler and faster use, use commnd line variables DEBUG and OPTI:
 #Example $> make DEBUG=2 will set debuglevel to 2
 
@@ -51,7 +52,7 @@ NAME		=	visualishader
 
 #	Compiler
 WERROR		=	#-Werror
-CFLAGS		=	
+CFLAGS		=	-ferror-limit=999
 CPROTECTION	=	-z execstack -fno-stack-protector
 
 DEBUGFLAGS1	=	-ggdb -fsanitize=address -fno-omit-frame-pointer -fno-optimize-sibling-calls -O0

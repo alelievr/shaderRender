@@ -1,55 +1,90 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   ShaderProgram.hpp                                  :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2017/05/07 20:35:23 by alelievr          #+#    #+#             */
+/*   Updated: 2017/05/07 22:08:04 by alelievr         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #ifndef SHADERPROGRAM_HPP
 # define SHADERPROGRAM_HPP
 # include <iostream>
 # include <string>
+# include <vector>
+# include <fstream>
+# include <streambuf>
+# include <regex>
+# include <map>
+# include <exception>
+# include "sys/stat.h"
+
+# include "shaderpixel.h"
+# include "ShaderChannel.hpp"
+
+# define CHANNEL_COUNT 8
 
 class		ShaderProgram
 {
 	private:
-		std::string		_fragmentFile;
-		std::string		_vertexFile;
-		int				_id;
-		int				_framebufferId;
-		int				_render_id;
-		ShaderChannel	_channels;
-		int				_fd;
-		long			_lastModified;
+		struct ShaderFile {
+			std::string		file;
+			std::string		source;
+			long			lastModified;
 
+			ShaderFile(std::string file, std::string source)
+			{
+				struct stat		st;
+
+				this->file = file;
+				this->source = source;
+				stat(file.c_str(), &st);
+				lastModified = st.st_mtime;
+			}
+		};
+
+		std::vector< ShaderFile >			_fragmentFileSources;
+		std::vector< ShaderFile>			_vertexFileSources;
+		GLuint								_id;
+		int									_framebufferId;
+		int									_renderId;
+		ShaderChannel						_channels[CHANNEL_COUNT];
+		long								_lastModified;
+		std::map< std::string, GLuint >		_uniforms;
+
+		const std::string					loadSourceFile(const std::string & file);
+		bool								checkCompilation(GLuint shader);
+		bool								checkLink(GLuint program);
 
 	public:
 		ShaderProgram(void);
-		ShaderProgram(const ShaderProgram&);
+		ShaderProgram(const ShaderProgram&) = delete;
 		virtual ~ShaderProgram(void);
 
-		ShaderProgram &	operator=(ShaderProgram const & src);
+		ShaderProgram &	operator=(ShaderProgram const & src) = delete;
 
+		bool	loadFragmentFile(const std::string & file);
+		bool	loadVertexFile(const std::string & file);
 		bool	compileAndLink(void);
-
-		void	Bind(void);
-
-		std::string	getFragmentFile(void) const;
-		void	setFragmentFile(std::string tmp);
+		void	Use(void);
+		void	updateUniforms(void);
+		void	deleteProgram(void);
+		void	reloadModifiedFiles(void);
 		
-		std::string	getVertexFile(void) const;
-		void	setVertexFile(std::string tmp);
-		
-		int	getId(void) const;
+		int		getId(void) const;
 		void	setId(int tmp);
 		
-		int	getFramebufferId(void) const;
+		int		getFramebufferId(void) const;
 		void	setFramebufferId(int tmp);
 		
-		int	getRender_id(void) const;
-		void	setRender_id(int tmp);
+		int		getRenderId(void) const;
+		void	setRenderId(int tmp);
 		
-		ShaderChannel	getChannels(void) const;
-		void	setChannels(ShaderChannel tmp);
-		
-		int	getFd(void) const;
-		void	setFd(int tmp);
-		
-		long	getLastModified(void) const;
-		void	setLastModified(long tmp);
+		ShaderChannel	getChannel(int index) const;
+		void	setChannel(ShaderChannel chan, int index);
 };
 
 std::ostream &	operator<<(std::ostream & o, ShaderProgram const & r);

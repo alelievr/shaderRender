@@ -1,1 +1,3 @@
 replace all shader file by GLShader class
+find the mainImage prototype and choose the good caller
+channel-recusrsive loading protection
