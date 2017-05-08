@@ -15,56 +15,31 @@
 vec2		framebuffer_size = {0, 0};
 float		pausedTime = 0;
 
-ShaderRender::ShaderRender()
+ShaderRender::ShaderRender(void)
 {
 	fmod_init();
 
 	angleAmount = vec2{0, 0};
-	cursor_mode = 0;
+	cursor_mode = 1;
 	lastPausedTime = 0;
 	programLoaded = false;
 }
 
-GLuint		ShaderRender::createVBO(void)
-{
-	GLuint vbo = 0;
-	glGenBuffers (1, &vbo);
-	glBindBuffer (GL_ARRAY_BUFFER, vbo);
-	glBufferData (GL_ARRAY_BUFFER, sizeof(points), points, GL_STATIC_DRAW);
-	return vbo;
-}
-
-GLuint		ShaderRender::createVAO(GLuint vbo)
-{
-	GLint		fragPos;
-	GLuint		vao = 0;
-
-	glGenVertexArrays (1, &vao);
-	glBindVertexArray (vao);
-	glEnableVertexAttribArray (0);
-	glBindBuffer (GL_ARRAY_BUFFER, vbo);
-
-	fragPos = glGetAttribLocation(program->id, "fragPosition");
-	glEnableVertexAttribArray(fragPos);
-	glVertexAttribPointer(fragPos, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, (void*) 0);
-
-	return vao;
-}
-
-void		ShaderRender::updateUniforms(GLint *unis, t_channel *channels)
+void		ShaderRender::updateUniforms(ShaderProgram *p)
 {
 	static int		frames = 0;
 
 	float ti = getCurrentTime();
 	if (!input_pause)
-		glUniform1f(unis[0], ti);
-	glUniform1i(unis[1], frames++);
-	if (!input_pause)
-		glUniform4f(unis[2], mouse.x, window.y - mouse.y, mouse.y, mouse.y);
-	glUniform2f(unis[3], scroll.x, scroll.y);
-	glUniform4f(unis[4], move.x, move.y, move.z, move.w);
-	glUniform2f(unis[5], framebuffer_size.x, framebuffer_size.y);
-	glUniform3f(unis[7], forward.x, forward.y, forward.z);
+	{
+		p->updateUniform1("iGlobalTime", ti);
+		p->updateUniform4("iMouse", mouse.x, window.y - mouse.y, mouse.y, mouse.y);
+	}
+	p->updateUniform1("iFrame", frames++);
+	p->updateUniform2("iScrollAmount", scroll.x, scroll.y);
+	p->updateUniform4("iMoveAmount", move.x, move.y, move.z, move.w);
+	p->updateUniform2("iResolution", framebuffer_size.x, framebuffer_size.y);
+	p->updateUniform3("iForward", forward.x, forward.y, forward.z);
 #if UNIFORM_DEBUG
 	printf("window: %f/%f\n", framebuffer_size.x, framebuffer_size.y);
 	printf("scroll: %f/%f\n", scroll.x, scroll.y);
@@ -76,27 +51,32 @@ void		ShaderRender::updateUniforms(GLint *unis, t_channel *channels)
 	if (!input_pause)
 #endif
 #if DOUBLE_PRECISION
-		glUniform4d(unis[6], fractalWindow.x, fractalWindow.y, fractalWindow.z, fractalWindow.w);
+	//glUniform4d(unis[6], fractalWindow.x, fractalWindow.y, fractalWindow.z, fractalWindow.w);
 #else
-	glUniform4f(unis[6], fractalWindow.x, fractalWindow.y, fractalWindow.z, fractalWindow.w);
+	p->updateUniform4("iFractalWindow", fractalWindow.x, fractalWindow.y, fractalWindow.z, fractalWindow.w);
 #endif
 
 	int j = 0;
-	for (int i = 0; channels[i].type; i++)
+	int soundTexId;
+	for (int i = 0; i < MAX_CHANNEL_COUNT; i++)
 	{
-		if (channels[i].type == CHAN_IMAGE)
+		auto channel = p->getChannel(i);
+		switch (channel->getType())
 		{
-			glActiveTexture(GL_TEXTURE1 + j);
-			glBindTexture(GL_TEXTURE_2D, channels[i].id);
-			glUniform1i(unis[10 + j++], channels[i].id);
-		}
-		/*		if (channels[i].type == CHAN_SOUND)
-				{
-				int soundTexId = get_sound_texture(channels[i].id);
+			case ShaderChannelType::CHANNEL_IMAGE:
+				glActiveTexture(GL_TEXTURE1 + j);
+				glBindTexture(GL_TEXTURE_2D, channel->getTextureId());
+				p->updateUniform1("iChannel" + std::to_string(j++), channel->getTextureId());
+				break ;
+			case ShaderChannelType::CHANNEL_SOUND:
+				soundTexId = get_sound_texture(channel->getTextureId());
 				glActiveTexture(GL_TEXTURE1 + i);
 				glBindTexture(GL_TEXTURE_2D, soundTexId);
-				glUniform1i(unis[10 + j++], soundTexId);
-				}*/
+				p->updateUniform1("iChannel" + std::to_string(j++), soundTexId);
+				break ;
+			default:
+				break ;
+		}
 	}
 }
 
@@ -163,11 +143,11 @@ void		ShaderRender::updateKeys(void)
 
 void		ShaderRender::render(GLFWwindow *win)
 {
-	checkFileChanged(program);
+//	checkFileChanged(program);
 
 	updateKeys();
 
-	//process render buffers if used:
+/*	//process render buffers if used:
 	for (int i = 1; i < 0xF0; i++)
 	{
 		if (program[i].id)
@@ -213,26 +193,24 @@ void		ShaderRender::render(GLFWwindow *win)
 		}
 		else
 			break ;
-	}
+	}*/
 
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 
-//	glViewport(0, 0, framebuffer_size.x, framebuffer_size.y);
 	glClearColor(1, 0, 0, 1);
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	glUseProgram(program->id);
+	_program.use();
 
-	updateUniforms(program->unis, program->channels);
+	updateUniforms(&_program);
 
-	glBindVertexArray(vao);
-	glDrawArrays(GL_TRIANGLE_STRIP, 0, 6);
+	_program.draw();
 
 	if (glfwGetInputMode(win, GLFW_CURSOR) == GLFW_CURSOR_DISABLED)
 		glfwSetCursorPos(win, window.x / 2, window.y / 2);
 }
 
-void		ShaderRender::checkFileChanged(t_program *progs)
+/*void		ShaderRender::checkFileChanged(t_program *progs)
 {
 	struct stat		st;
 
@@ -248,7 +226,7 @@ void		ShaderRender::checkFileChanged(t_program *progs)
 				updateUniformLocation(progs + i);
 		}
 	}
-}
+}*/
 
 void		ShaderRender::displayWindowFps(void)
 {
@@ -268,13 +246,8 @@ void		ShaderRender::displayWindowFps(void)
 
 void		ShaderRender::loadShaderFile(char *file)
 {
-	bzero(program, sizeof(program));
-	if (createProgram(program + 0, file, true, true))
-		programLoaded = true;
-	updateUniformLocation(program + 0);
-	play_all_sounds();
-	GLuint vbo = createVBO();
-	vao = createVAO(vbo);
+	_program.loadFragmentFile(file);
+	_program.compileAndLink();
 }
 
 void		ShaderRender::windowSizeCallback(int winX, int winY)
@@ -391,18 +364,21 @@ void		ShaderRender::keyCallback(GLFWwindow *window, int key, int scancode, int a
 	glfwSetInputMode(window, GLFW_CURSOR, (cursor_mode) ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_DISABLED);
 }
 
-t_channel	*ShaderRender::getChannel(int chan)
+ShaderChannel	*ShaderRender::getChannel(int chan)
 {
-	if (chan < 10 && programLoaded)
+	//TODO: chan max number
+	if (chan < 8 && programLoaded)
 	{
-		return &program[0].channels[chan];
+		return _program.getChannel(chan);
 	}
 	return NULL;
 }
 
-void		ShaderRender::updateChannel(t_channel *chan, const char *file, int mode)
+//no need, channels can self-update
+/*void		ShaderRender::updateChannel(const std::string file, int index, int mode)
 {
-	loadChannel(program, chan, file, mode);
-}
+	//TODO
+	_program(program, chan, file, mode);
+}*/
 
 ShaderRender::~ShaderRender() {}

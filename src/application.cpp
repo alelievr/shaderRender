@@ -22,7 +22,7 @@
 #include <nanogui/tabwidget.h>
 #include <iostream>
 #include <string>
-#include "RenderShader.hpp"
+#include "ShaderRender.hpp"
 
 // Includes for the GLTexture class.
 #include <cstdint>
@@ -47,8 +47,6 @@
 #  include <windows.h>
 #endif
 
-#define CHANNEL_COUNT	4
-
 using std::cout;
 using std::cerr;
 using std::endl;
@@ -58,7 +56,7 @@ using std::pair;
 using std::to_string;
 
 nanogui::Screen		*screen;
-RenderShader		*renderShader;
+ShaderRender		*renderShader;
 
 class ShaderRenderApplication : public nanogui::Screen
 {
@@ -69,13 +67,13 @@ class ShaderRenderApplication : public nanogui::Screen
         	using namespace nanogui;
 
 			screen = this;
-			renderShader = &this->mRenderShader;
+			renderShader = &this->mShaderRender;
 			renderShader->loadShaderFile(shaderFile);
 
 			//channel view infos allocs:
-			//channelImages = new (ImageView *[CHANNEL_COUNT]);
-			channelTitle = new (Label *[CHANNEL_COUNT]);
-			channelTexts = new (Label *[CHANNEL_COUNT]);
+			//channelImages = new (ImageView *[MAX_CHANNEL_COUNT]);
+			channelTitle = new (Label *[MAX_CHANNEL_COUNT]);
+			channelTexts = new (Label *[MAX_CHANNEL_COUNT]);
 
 			GLFWwindow *window = glfwWindow();
 
@@ -132,12 +130,12 @@ class ShaderRenderApplication : public nanogui::Screen
 
         	fpsLabel = new Label(mainGUI, string("FPS: 0"), "sans-bold");
 
-			for (int i = 0; i < CHANNEL_COUNT; i++)
+			for (int i = 0; i < MAX_CHANNEL_COUNT; i++)
 			{
 				channelTitle[i] = new Label(mainGUI, "channel " + to_string(i));
 				//channelImages[i] = new ImageView(mainGUI, -1);
 				channelTexts[i] = new Label(mainGUI, "unused");
-				t_channel		*c = renderShader->getChannel(i);
+				ShaderChannel	*c = renderShader->getChannel(i);
 				if (c != NULL)
 				{
 					//file button
@@ -150,9 +148,10 @@ class ShaderRenderApplication : public nanogui::Screen
 							}, false);
 							if (!file.empty())
 							{
-								c = renderShader->getChannel(i);
+								//TODO: reload the channel
+								/*c = renderShader->getChannel(i);
 								renderShader->updateChannel(c, file.c_str(), 0);
-								channelTexts[i]->setCaption(c->file_path);
+								channelTexts[i]->setCaption(c->file_path);*/
 							}
 						}
 					);
@@ -167,22 +166,24 @@ class ShaderRenderApplication : public nanogui::Screen
 		{
         	using namespace nanogui;
 
-			for (int i = 0; i < CHANNEL_COUNT; i++)
+			for (int i = 0; i < MAX_CHANNEL_COUNT; i++)
 			{
-				t_channel *c = renderShader->getChannel(i);
+				ShaderChannel *c = renderShader->getChannel(i);
 				if (c == NULL)
 					continue ;
-				switch (c->type)
+				switch (c->getType())
 				{
-					case CHAN_IMAGE:
-						channelTexts[i]->setCaption(string("file: ") + c->file_path);
+					case ShaderChannelType::CHANNEL_IMAGE:
+						channelTexts[i]->setCaption(string("file: ") + c->getChannelFile());
 						//channelImages[i]->bindImage(c->id);
 						break ;
-					case CHAN_SOUND:
-						channelTexts[i]->setCaption(string("file: ") + c->file_path);
+					case ShaderChannelType::CHANNEL_SOUND:
+						channelTexts[i]->setCaption(string("file: ") + c->getChannelFile());
 						break ;
-					case CHAN_SHADER:
-						channelTexts[i]->setCaption(string("file: ") + c->file_path);
+					case ShaderChannelType::CHANNEL_PROGRAM:
+						channelTexts[i]->setCaption(string("file: ") + c->getChannelFile());
+						break ;
+					default:
 						break ;
 				}
 				//file button
@@ -212,7 +213,7 @@ class ShaderRenderApplication : public nanogui::Screen
 
 	private:
     	nanogui::ProgressBar	*mProgress;
-		RenderShader			mRenderShader;
+		ShaderRender			mShaderRender;
 		nanogui::Label			*fpsLabel;
 		//nanogui::ImageView		**channelImages;
 		nanogui::Label			**channelTexts;

@@ -1,12 +1,17 @@
+#include "shaderpixel.h"
 #include "ShaderChannel.hpp"
+#include "ShaderProgram.hpp"
 
+#define	IMAGE_EXT	(const char *[]){"jpg", "png", "tiff", "jpeg", "bmp", NULL}
+#define	SHADER_EXT	(const char *[]){"glsl", "fs", NULL}
+#define	SOUND_EXT	(const char *[]){"wav", "wave", NULL}
 
 ShaderChannel::ShaderChannel(void)
 {
 	std::cout << "Default constructor of ShaderChannel called" << std::endl;
 	this->_channelFile = "";
 	this->_index = 0;
-	this->_type = ShaderChanneltype::CHANNEL_NONE;
+	this->_type = ShaderChannelType::CHANNEL_NONE;
 	this->_program = NULL;
 	this->_textureId = 0;
 }
@@ -17,20 +22,42 @@ ShaderChannel::ShaderChannel(ShaderChannel const & src)
 	std::cout << "Copy constructor called" << std::endl;
 }
 
-ShaderChannel::~ShaderChannel(void)
+ShaderChannel::~ShaderChannel(void) {}
+
+bool		ShaderChannel::loadImage(const std::string & file, int mode)
 {
-	std::cout << "Destructor of ShaderChannel called" << std::endl;
+	_type = ShaderChannelType::CHANNEL_IMAGE;
+
+	int		flags = 0;
+
+	if (mode & CHAN_NEAREST)
+		flags |= SOIL_FLAG_NEAREST;
+	else
+		flags |= SOIL_FLAG_MIPMAPS;
+
+	if (mode & CHAN_VFLIP)
+		flags |= SOIL_FLAG_INVERT_Y;
+
+	if (mode & CHAN_CLAMP)
+		;
+	else
+		flags |= SOIL_FLAG_TEXTURE_REPEATS;
+
+	flags |= SOIL_FLAG_NTSC_SAFE_RGB | SOIL_FLAG_COMPRESS_TO_DXT;
+
+	if (_textureId)
+		glDeleteTextures(1, (GLuint *)&_textureId);
+	_textureId = SOIL_load_OGL_texture(file.c_str(), SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, flags);
+	if (_textureId == 0)
+		printf("can't load texture: %s\n", SOIL_last_result()), exit(-1);
+	printf("loaded texture at id: %i\n", _textureId);
+
+	return true;
 }
 
-void		ShaderChannel::loadImage(const std::string & file, int mode)
+bool		ShaderChannel::loadShader(const std::string & file, int mode)
 {
-
-	_type = ShaderChannelType::CHANNEL_IMAGED;
-}
-
-void		ShaderChannel::loadShader(const std::string & file, int mode)
-{
-	_type = ShaderChannelType::CHANNEL_SHADER;
+	_type = ShaderChannelType::CHANNEL_PROGRAM;
 
 	//TODO: reload shader in _program
 
@@ -53,22 +80,27 @@ void		ShaderChannel::loadShader(const std::string & file, int mode)
 	if (glCheckFramebufferStatus(GL_DRAW_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 	{
 		printf("renderbuffer error: %i\n", glGetError());
-		puts("fbo status error !"), exit(-1);
+		puts("fbo status error !\n");
+		return false;
 	}
 
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 
-	_program->_framebufferId = fbo;
-	_program->_renderId = renderedTexture;
+	_program->setFramebufferId(fbo);
+	_program->setRenderId(renderedTexture);
+
+	return true;
 }
 
-void		ShaderChannel::loadSound(const std::string & file)
+bool		ShaderChannel::loadSound(const std::string & file)
 {
-	if (chan->id)
-		glDeleteTextures(1, (GLuint *)&chan->id);
+	if (_textureId)
+		glDeleteTextures(1, (GLuint *)&_textureId);
 
-	chan->id = load_wav_file(file);
+	//TODO
+	//_textureId = load_wav_file(file);
 	_type = ShaderChannelType::CHANNEL_SOUND;
+	return (_textureId != -1);
 }
 
 bool		ShaderChannel::updateChannel(const std::string & file, int mode)
@@ -76,12 +108,13 @@ bool		ShaderChannel::updateChannel(const std::string & file, int mode)
 	_channelFile = file;
 
 	const char *file_path = file.c_str();
-	if (checkFileExtention(file, IMAGE_EXT))
+	if (checkFileExtention(file_path, IMAGE_EXT))
 		return (loadImage(file, mode));
-	if (checkFileExtention(file, SHADER_EXT))
+	if (checkFileExtention(file_path, SHADER_EXT))
 		return (loadShader(file, mode));
-	if (checkFileExtention(file, SOUND_EXT))
+	if (checkFileExtention(file_path, SOUND_EXT))
 		return (loadSound(file));
+	return false;
 }
 
 

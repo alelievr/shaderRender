@@ -6,7 +6,7 @@
 #    By: alelievr <marvin@42.fr>                    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2014/07/15 15:13:38 by alelievr          #+#    #+#              #
-#    Updated: 2017/05/07 22:11:19 by alelievr         ###   ########.fr        #
+#    Updated: 2017/05/08 02:02:54 by alelievr         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -21,7 +21,6 @@ SRC			=	ShaderRender.cpp	\
 				ShaderChannel.cpp	\
 				fmod.cpp			\
 				wav.cpp			\
-				loadChannel.cpp	\
 				utils.cpp		\
 				application.cpp	\
 
@@ -52,7 +51,7 @@ NAME		=	visualishader
 
 #	Compiler
 WERROR		=	#-Werror
-CFLAGS		=	-ferror-limit=999
+CFLAGS		=	
 CPROTECTION	=	-z execstack -fno-stack-protector
 
 DEBUGFLAGS1	=	-ggdb -fsanitize=address -fno-omit-frame-pointer -fno-optimize-sibling-calls -O0

@@ -3,18 +3,20 @@
 # include <iostream>
 # include <string>
 
-class ShaderProgram;
+# include "shaderpixel.h"
+
+class		ShaderProgram;
+
+enum class ShaderChannelType {
+	CHANNEL_NONE,
+	CHANNEL_IMAGE,
+	CHANNEL_SOUND,
+	CHANNEL_PROGRAM,
+};
 
 class		ShaderChannel
 {
 	private:
-		enum class ShaderChannelType {
-			CHANNEL_NONE,
-			CHANNEL_IMAGE,
-			CHANNEL_SOUND,
-			CHANNEL_PROGRAM,
-		};
-
 		std::string			_channelFile;
 		int					_index;
 		bool				_loaded;
@@ -22,9 +24,9 @@ class		ShaderChannel
 		ShaderProgram *		_program;
 		int					_textureId;
 
-		void				loadImage(const std::string & file, int mode);
-		void				loadShader(const std::string & file, int mode);
-		void				loadSound(const std::string & file);
+		bool				loadImage(const std::string & file, int mode);
+		bool				loadShader(const std::string & file, int mode);
+		bool				loadSound(const std::string & file);
 
 	public:
 		ShaderChannel();
@@ -41,11 +43,8 @@ class		ShaderChannel
 		void				setIndex(int tmp);
 		
 		ShaderChannelType	getType(void) const;
-		
 		ShaderProgram *		getProgram(void) const;
-		
 		int					getTextureId(void) const;
-
 		bool				getLoaded(void) const;
 };
 

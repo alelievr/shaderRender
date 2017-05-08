@@ -32,9 +32,10 @@
 
 # define unused __attribute__((unused))
 
-# define WIN_W 1080
-# define WIN_H 720
-# define SCALE 70
+# define MAX_CHANNEL_COUNT	8
+# define WIN_W				1080
+# define WIN_H				720
+# define SCALE				70
 //# define DOUBLE_PRECISION 1
 
 typedef struct s_vec2
