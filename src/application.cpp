@@ -68,7 +68,6 @@ class ShaderRenderApplication : public nanogui::Screen
 
 			screen = this;
 			renderShader = &this->mShaderRender;
-			renderShader->loadShaderFile(shaderFile);
 
 			//channel view infos allocs:
 			//channelImages = new (ImageView *[MAX_CHANNEL_COUNT]);
@@ -124,6 +123,7 @@ class ShaderRenderApplication : public nanogui::Screen
 			framebuffer_size.x = fw;
 			framebuffer_size.y = fh;
 
+
         	Window *mainGUI = new Window(this, "INFO");
         	mainGUI->setPosition(Vector2i(15, 15));
         	mainGUI->setLayout(new GroupLayout());
@@ -158,6 +158,8 @@ class ShaderRenderApplication : public nanogui::Screen
 				}
 			}
 			updateChannelGUI(mainGUI);
+
+			renderShader->attachShader(shaderFile);
 
 			performLayout();
 		}

@@ -74,6 +74,10 @@ void		ShaderRender::updateUniforms(ShaderProgram *p)
 				glBindTexture(GL_TEXTURE_2D, soundTexId);
 				p->updateUniform1("iChannel" + std::to_string(j++), soundTexId);
 				break ;
+			case ShaderChannelType::CHANNEL_PROGRAM:
+				glActiveTexture(GL_TEXTURE1 + j);
+				glBindTexture(GL_TEXTURE_2D, channel->getTextureId());
+				p->updateUniform1("iChannel" + std::to_string(j++), channel->getTextureId());
 			default:
 				break ;
 		}
@@ -147,30 +151,29 @@ void		ShaderRender::render(GLFWwindow *win)
 
 	updateKeys();
 
-/*	//process render buffers if used:
-	for (int i = 1; i < 0xF0; i++)
+	//process render buffers if used:
+	for (int i = 0; i < MAX_CHANNEL_COUNT; i++)
 	{
-		if (program[i].id)
+		auto channel = _program.getChannel(i);
+		if (channel->getType() == ShaderChannelType::CHANNEL_PROGRAM)
 		{
-			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, program->channels[i].id);
-			glBlitFramebuffer(0,0,framebuffer_size.x, framebuffer_size.y, 0, 0, 512,512, GL_COLOR_BUFFER_BIT, GL_LINEAR);
-			GLenum DrawBuffers[1] = {GL_COLOR_ATTACHMENT0};
-			glDrawBuffers(1, DrawBuffers);
+			auto fboProgram = channel->getProgram();
+
+			glBindFramebuffer(GL_FRAMEBUFFER, fboProgram->getFramebufferId());
 
 		//	glViewport(0, 0, framebuffer_size.x, framebuffer_size.y);
 
-			glClearColor(1, 0, 0, 1);
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			glClearColor(0, 1, 0, 1);
+			glClear(GL_COLOR_BUFFER_BIT);
 
-			glUseProgram(program[i].id);
-
-			updateUniforms(program[i].unis, program[i].channels);
+			fboProgram->use();
 
 			glActiveTexture(GL_TEXTURE1);
-			glBindTexture(GL_TEXTURE_2D, program[i].render_texture);
+			glBindTexture(GL_TEXTURE_2D, 2);
+			fboProgram->updateUniform1("iChannel0", 2);
+			updateUniforms(fboProgram);
 
-			glBindVertexArray(vao);
-			glDrawArrays(GL_TRIANGLE_STRIP, 0, 6);
+			fboProgram->draw();
 
 			uint8_t *data = (uint8_t *)malloc((int)window.x * (int)window.y * 4);
 			typedef struct
@@ -193,16 +196,24 @@ void		ShaderRender::render(GLFWwindow *win)
 		}
 		else
 			break ;
-	}*/
+	}
 
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	glClearColor(1, 0, 0, 1);
 	glClear(GL_COLOR_BUFFER_BIT);
 
+	glEnable(GL_MULTISAMPLE);
+	glEnable(GL_TEXTURE_2D);
+
 	_program.use();
 
 	updateUniforms(&_program);
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, 2);
+	_program.updateUniform1("iChannel1", 2);
+
+	glDisable(GL_DEPTH_TEST);
 
 	_program.draw();
 
@@ -244,7 +255,7 @@ void		ShaderRender::displayWindowFps(void)
 	}
 }
 
-void		ShaderRender::loadShaderFile(char *file)
+void		ShaderRender::attachShader(const std::string file)
 {
 	_program.loadFragmentFile(file);
 	_program.compileAndLink();

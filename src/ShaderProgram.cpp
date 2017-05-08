@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/05/07 20:35:27 by alelievr          #+#    #+#             */
-/*   Updated: 2017/05/08 02:25:59 by alelievr         ###   ########.fr       */
+/*   Updated: 2017/05/08 03:08:09 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,6 @@
 
 ShaderProgram::ShaderProgram(void)
 {
-	std::cout << "Default constructor of ShaderProgram called" << std::endl;
 	this->_id = 0;
 	this->_framebufferId = 0;
 	this->_renderId = 0;
@@ -54,7 +53,6 @@ const std::string		ShaderProgram::loadSourceFile(const std::string & filePath)
 				CHECK_ACTIVE_FLAG("mipmap", CHAN_MIPMAP);
 				CHECK_ACTIVE_FLAG("v-flip", CHAN_VFLIP);
 				CHECK_ACTIVE_FLAG("clamp", CHAN_CLAMP);
-				std::cout << "  submatch " << i << ": " << piece << '\n';
 			}
 			std::cout << "mode: " << mode << std::endl;
 			_channels[channelIndex].updateChannel(channelFile, mode);

@@ -8,7 +8,6 @@
 
 ShaderChannel::ShaderChannel(void)
 {
-	std::cout << "Default constructor of ShaderChannel called" << std::endl;
 	this->_channelFile = "";
 	this->_index = 0;
 	this->_type = ShaderChannelType::CHANNEL_NONE;
@@ -22,7 +21,10 @@ ShaderChannel::ShaderChannel(ShaderChannel const & src)
 	std::cout << "Copy constructor called" << std::endl;
 }
 
-ShaderChannel::~ShaderChannel(void) {}
+ShaderChannel::~ShaderChannel(void) {
+	if (_program != NULL)
+		delete _program;
+}
 
 bool		ShaderChannel::loadImage(const std::string & file, int mode)
 {
@@ -59,35 +61,39 @@ bool		ShaderChannel::loadShader(const std::string & file, int mode)
 {
 	_type = ShaderChannelType::CHANNEL_PROGRAM;
 
-	//TODO: reload shader in _program
+	//TODO: load shader in _program
+	_program = new ShaderProgram();
+	_program->loadFragmentFile(file);
+	_program->compileAndLink();
 
 	GLuint	fbo;
 	glGenFramebuffers(1, &fbo);
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo);
+	glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 
 	GLuint renderedTexture;
 	glGenTextures(1, &renderedTexture);
 	glBindTexture(GL_TEXTURE_2D, renderedTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, framebuffer_size.x, framebuffer_size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, framebuffer_size.x, framebuffer_size.y, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
 	//TODO: load mode link the image
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-	glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, renderedTexture, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, renderedTexture, 0);
 
-	if (glCheckFramebufferStatus(GL_DRAW_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+	GLenum drawBuffers[1] = {GL_COLOR_ATTACHMENT0};
+	glDrawBuffers(1, drawBuffers);
+
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 	{
-		printf("renderbuffer error: %i\n", glGetError());
-		puts("fbo status error !\n");
+		printf("fbo status error: %i\n", glGetError());
 		return false;
 	}
 
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-
 	_program->setFramebufferId(fbo);
 	_program->setRenderId(renderedTexture);
+	_textureId = renderedTexture;
+	std::cout << "created framebufferId: " << fbo << ", renderTexture: " << renderedTexture << std::endl;
 
 	return true;
 }

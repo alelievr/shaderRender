@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/05/07 21:28:59 by alelievr          #+#    #+#             */
-/*   Updated: 2017/05/08 01:05:21 by alelievr         ###   ########.fr       */
+/*   Updated: 2017/05/08 02:30:13 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,7 +66,7 @@ class ShaderRender
 		virtual ~ShaderRender(void);
 
 		void				render(GLFWwindow *win);
-		void				loadShaderFile(char *file);
+		void				attachShader(const std::string file);
 		void				initShaderRenders(ShaderRender rs);
 
 		void				windowSizeCallback(int winX, int winY);
