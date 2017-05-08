@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/05/07 20:35:27 by alelievr          #+#    #+#             */
-/*   Updated: 2017/05/08 02:05:48 by alelievr         ###   ########.fr       */
+/*   Updated: 2017/05/08 02:25:59 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,10 +28,11 @@ ShaderProgram::ShaderProgram(void)
 
 ShaderProgram::~ShaderProgram(void) {}
 
-#define CHECK_ACTIVE_FLAG(x, y) if (strstr(line, x)) mode |= y;
+#define CHECK_ACTIVE_FLAG(x, y) if (strstr(piece, x)) mode |= y;
 const std::string		ShaderProgram::loadSourceFile(const std::string & filePath)
 {
 	int				chan = 0;
+	int				mode;
 	std::string		fileSource = "";
 	std::string		line;
 	std::smatch		match;
@@ -39,32 +40,24 @@ const std::string		ShaderProgram::loadSourceFile(const std::string & filePath)
 	std::ifstream	file(filePath);
 
 	while (std::getline(file, line)) {
-		if (std::regex_match(line, match, std::regex("^\\s*#\\s*pragma[\\s]{1,}iChannel\\d\\s{1,}.*")))
+		if (std::regex_match(line, match, std::regex("^\\s*#\\s*pragma\\s{1,}iChannel(\\d)\\s{1,}([^\\s]*)\\s*(\\w*)\\s*(\\w*)\\s*(\\w*)\\s*(\\w*)\\s*(\\w*)\\s*(\\w*)\\s*(\\w*)\\s*(\\w*)\\s*(\\w*).*")))
 		{
-			for (size_t i = 0; i < match.size(); ++i) {
-				std::ssub_match sub_match = match[i];
-				std::string piece = sub_match.str();
-				std::cout << "  submatch " << i << ": " << piece << '\n';
-			}   
+			std::string channelFile = match[2];
+			int			channelIndex = std::stoi(match[1]);
 
-			//TODO
-			int		mode = 0;
-			int		channelIndex = 0;
-			std::string file = "textures/EXPLOSION.png";
-			/*line += 18;
-			strreplace(line, "//", "\0\0");
-			int i = 0;
-			int chan = line[-2] - '0';
-			printf("chan = %i\n", chan);
-			while (*line && !isspace(*line))
-				p->channels[chan].file_path[i++] = *line++;
-			p->channels[chan].file_path[i++] = 0;
-			CHECK_ACTIVE_FLAG("linear", CHAN_LINEAR);
-			CHECK_ACTIVE_FLAG("nearest", CHAN_NEAREST);
-			CHECK_ACTIVE_FLAG("mipmap", CHAN_MIPMAP);
-			CHECK_ACTIVE_FLAG("v-flip", CHAN_VFLIP);
-			CHECK_ACTIVE_FLAG("clamp", CHAN_CLAMP);*/
-			_channels[channelIndex].updateChannel(file, mode);
+			mode = 0;
+			for (size_t i = 2; i < match.size(); ++i) {
+				std::ssub_match sub_match = match[i];
+				const char * piece = sub_match.str().c_str();
+				CHECK_ACTIVE_FLAG("linear", CHAN_LINEAR);
+				CHECK_ACTIVE_FLAG("nearest", CHAN_NEAREST);
+				CHECK_ACTIVE_FLAG("mipmap", CHAN_MIPMAP);
+				CHECK_ACTIVE_FLAG("v-flip", CHAN_VFLIP);
+				CHECK_ACTIVE_FLAG("clamp", CHAN_CLAMP);
+				std::cout << "  submatch " << i << ": " << piece << '\n';
+			}
+			std::cout << "mode: " << mode << std::endl;
+			_channels[channelIndex].updateChannel(channelFile, mode);
 		}
 		else
 			fileSource += line + "\n";
