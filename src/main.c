@@ -139,6 +139,12 @@ void		updateUniforms(GLint *unis, t_channel *channels)
 			glBindTexture(GL_TEXTURE_2D, channels[i].id);
 			glUniform1i(unis[10 + j++], channels[i].id);
 		}
+		if (channels[i].type == CHAN_SHADER)
+		{
+			glActiveTexture(glTextures[j]);
+			glBindTexture(GL_TEXTURE_2D, channels[i].id);
+			glUniform1i(unis[10 + j++], channels[i].id);
+		}
 /*		if (channels[i].type == CHAN_SOUND)
 		{
 			int soundTexId = get_sound_texture(channels[i].id);
@@ -233,34 +239,12 @@ void		loop(GLFWwindow *win, t_program *program, GLuint vao)
 
 			glUseProgram(program[i].id);
 
-			glActiveTexture(GL_TEXTURE1);
-			printf("fbo render id: %i\n", 1);
-			glBindTexture(GL_TEXTURE_2D, 1);
-			printf("ok = %i\n", glGetUniformLocation(program->id, "iChannel0"));
-			glUniform1i(glGetUniformLocation(program->id, "iChannel0"), program->channels[i].render_id);
-			//updateUniforms(program[i].unis, program[i].channels);
+			updateUniforms(program[i].unis, program[i].channels);
+
+			glBindTexture(GL_TEXTURE_2D, 0);
 
 			glBindVertexArray(vao);
 			glDrawArrays(GL_TRIANGLE_STRIP, 0, 6);
-
-			uint8_t *data = malloc(window.x * window.y * 4);
-			typedef struct
-			{
-				int width;
-				int height;
-				uint8_t *data;
-				size_t size;
-			}	ppm_image;
-
-
-			glReadPixels(0, 0, window.x, window.y, GL_RGB, GL_UNSIGNED_BYTE, data);
-
-			int fd = open("f.ppm", O_WRONLY | O_CREAT, 0644);
-			ppm_image img = (ppm_image){window.x, window.y, data, window.x * window.y * 3};
-
-			dprintf(fd, "P6\n# THIS IS A COMMENT\n%d %d\n%d\n", 
-					img.width, img.height, 0xFF);
-			write(fd, img.data, img.width * img.height * 3);
 		}
 		else
 			break ;
@@ -271,7 +255,6 @@ void		loop(GLFWwindow *win, t_program *program, GLuint vao)
 	glViewport(0, 0, width, height);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	//glEnable(GL_ARB_multisample);
 	glEnable(GL_MULTISAMPLE);
 	glEnable(GL_TEXTURE_2D);
 
