@@ -2,22 +2,22 @@
 
 ShaderRender is a program for shaderpixel rendering with hot-reload fragment shader, easy keyboard controls and usefull uniforms, inspeared from [https://www.shadertoy.com/](shadertoy.com)
 
-##Installation
-###Linux
-+ You will thoses packages `libtool` `autoconf` `cmake` `xorg-dev` `libglu1-mesa-dev` `libbsd-dev`
+## Installation
+### Linux
++ You will need to install thoses packages: `libtool` `autoconf` `cmake` `xorg-dev` `libglu1-mesa-dev` `libbsd-dev`
 + and just `make` the project
 
-###Mac OSX
+### Mac OSX
 + You will need libtool, autoconf and cmake packages
 + and just `make` the project
 
-###Windows
+### Windows
 + GL HF
 
-##Usage
+## Usage
 ./visualishader \<shader file\> [optional texture channels]
 
-##Uniforms
+## Uniforms
 name | description
 --- | ---
 iResolution | dynamic resolution of the window
@@ -30,7 +30,7 @@ iForward | a forward vector from the camera
 iFractalWindow | window coordinates for fractal calcul
 iChannel[0-7] | texture channels
 
-##Controls
+## Controls
 Positive | Negative | description
 --- | --- | ---
 `esc` | X | escape program
