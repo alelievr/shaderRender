@@ -64,7 +64,8 @@ bool		ShaderChannel::loadShader(const std::string & file, int mode)
 	//TODO: load shader in _program
 	_program = new ShaderProgram();
 	_program->loadFragmentFile(file);
-	_program->compileAndLink();
+	if (!_program->compileAndLink())
+		std::cout << "shader " << file << " failed to compile\n", exit(-1);
 
 	GLuint	fbo;
 	glGenFramebuffers(1, &fbo);
@@ -77,12 +78,12 @@ bool		ShaderChannel::loadShader(const std::string & file, int mode)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
+	GLenum DrawBuffers[1] = {GL_COLOR_ATTACHMENT0};
+	glDrawBuffers(1, DrawBuffers); // "1" is the size of DrawBuffers
+
 	//TODO: load mode link the image
 
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, renderedTexture, 0);
-
-	GLenum drawBuffers[1] = {GL_COLOR_ATTACHMENT0};
-	glDrawBuffers(1, drawBuffers);
 
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 	{

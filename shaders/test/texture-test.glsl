@@ -4,7 +4,8 @@ void		mainImage(vec2 fragCoord)
 {
 	float rate = fragCoord.x / iResolution.y;
 
-	fragColor = texture(iChannel0, fragCoord / 100);
+	fragColor = vec4(texture(iChannel0, fragCoord / 800).xyz, 1);
+	//fragColor = vec4(1, 0, 1, 1);
 
 /*	if (rate > 0 && rate < .1)
 		fragColor = texture(iChannel0, fragCoord / iResolution);

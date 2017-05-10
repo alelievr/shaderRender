@@ -11,8 +11,10 @@
 /* ************************************************************************** */
 
 #include "ShaderRender.hpp"
+#include <functional>
 
 vec2		framebuffer_size = {0, 0};
+vec2			window = {WIN_W, WIN_H};
 float		pausedTime = 0;
 
 ShaderRender::ShaderRender(void)
@@ -70,11 +72,12 @@ void		ShaderRender::updateUniforms(ShaderProgram *p)
 				break ;
 			case ShaderChannelType::CHANNEL_SOUND:
 				soundTexId = get_sound_texture(channel->getTextureId());
-				glActiveTexture(GL_TEXTURE1 + i);
+				glActiveTexture(GL_TEXTURE1 + j);
 				glBindTexture(GL_TEXTURE_2D, soundTexId);
 				p->updateUniform1("iChannel" + std::to_string(j++), soundTexId);
 				break ;
 			case ShaderChannelType::CHANNEL_PROGRAM:
+				std::cout << "bound render texture to id: " << channel->getTextureId() << " on channel: " << "iChannel" + std::to_string(j) << "\n";
 				glActiveTexture(GL_TEXTURE1 + j);
 				glBindTexture(GL_TEXTURE_2D, channel->getTextureId());
 				p->updateUniform1("iChannel" + std::to_string(j++), channel->getTextureId());
@@ -152,53 +155,52 @@ void		ShaderRender::render(GLFWwindow *win)
 	updateKeys();
 
 	//process render buffers if used:
-	for (int i = 0; i < MAX_CHANNEL_COUNT; i++)
-	{
-		auto channel = _program.getChannel(i);
-		if (channel->getType() == ShaderChannelType::CHANNEL_PROGRAM)
-		{
-			auto fboProgram = channel->getProgram();
-
-			glBindFramebuffer(GL_FRAMEBUFFER, fboProgram->getFramebufferId());
-
-		//	glViewport(0, 0, framebuffer_size.x, framebuffer_size.y);
-
-			glClearColor(0, 1, 0, 1);
-			glClear(GL_COLOR_BUFFER_BIT);
-
-			fboProgram->use();
-
-			glActiveTexture(GL_TEXTURE1);
-			glBindTexture(GL_TEXTURE_2D, 2);
-			fboProgram->updateUniform1("iChannel0", 2);
-			updateUniforms(fboProgram);
-
-			fboProgram->draw();
-
-			uint8_t *data = (uint8_t *)malloc((int)window.x * (int)window.y * 4);
-			typedef struct
+	foreachShaderChannels([&](ShaderProgram *prog, ShaderChannel *channel) {
+			if (channel->getType() == ShaderChannelType::CHANNEL_PROGRAM)
 			{
-				int width;
-				int height;
-				uint8_t *data;
-				size_t size;
-			}	ppm_image;
+				auto fboProgram = channel->getProgram();
 
-			glReadBuffer(GL_COLOR_ATTACHMENT0);
-			glReadPixels(0, 0, (int)window.x, (int)window.y, GL_RGB, GL_UNSIGNED_BYTE, data);
+				std::cout << "bound framebuffer: " << fboProgram->getFramebufferId() << std::endl;
+				glBindFramebuffer(GL_FRAMEBUFFER, fboProgram->getFramebufferId());
 
-			int fd = open("f.ppm", O_WRONLY | O_CREAT, 0644);
-			ppm_image img = (ppm_image){(int)window.x, (int)window.y, data, static_cast< size_t >((int)window.x * (int)window.y * 3)};
+				glViewport(0, 0, framebuffer_size.x, framebuffer_size.y);
 
-			dprintf(fd, "P6\n# THIS IS A COMMENT\n%d %d\n%d\n", 
-					img.width, img.height, 0xFF);
-			write(fd, img.data, img.width * img.height * 3);
+				glClearColor(0, 1, 0, 1);
+				glClear(GL_COLOR_BUFFER_BIT);
+
+				fboProgram->use();
+
+				updateUniforms(fboProgram);
+
+				fboProgram->draw();
+
+				glBindTexture(GL_TEXTURE_2D, 0);
+
+				uint8_t *data = (uint8_t *)malloc((int)framebuffer_size.x * (int)framebuffer_size.y * 4);
+				typedef struct
+				{
+					int width;
+					int height;
+					uint8_t *data;
+					size_t size;
+				}	ppm_image;
+
+				glReadBuffer(GL_COLOR_ATTACHMENT0);
+				glReadPixels(0, 0, (int)framebuffer_size.x, (int)framebuffer_size.y, GL_RGB, GL_UNSIGNED_BYTE, data);
+
+				int fd = open("f.ppm", O_WRONLY | O_CREAT, 0644);
+				ppm_image img = (ppm_image){(int)framebuffer_size.x, (int)framebuffer_size.y, data, static_cast< size_t >((int)window.x * (int)window.y * 3)};
+
+				dprintf(fd, "P6\n# THIS IS A COMMENT\n%d %d\n%d\n", 
+						img.width, img.height, 0xFF);
+				write(fd, img.data, img.width * img.height * 3);
+			}
 		}
-		else
-			break ;
-	}
+	);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	glViewport(0, 0, framebuffer_size.x, framebuffer_size.y);
 
 	glClearColor(1, 0, 0, 1);
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -209,13 +211,10 @@ void		ShaderRender::render(GLFWwindow *win)
 	_program.use();
 
 	updateUniforms(&_program);
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, 2);
-	_program.updateUniform1("iChannel1", 2);
-
-	glDisable(GL_DEPTH_TEST);
 
 	_program.draw();
+
+	glBindTexture(GL_TEXTURE_2D, 0);
 
 	if (glfwGetInputMode(win, GLFW_CURSOR) == GLFW_CURSOR_DISABLED)
 		glfwSetCursorPos(win, window.x / 2, window.y / 2);
@@ -258,7 +257,8 @@ void		ShaderRender::displayWindowFps(void)
 void		ShaderRender::attachShader(const std::string file)
 {
 	_program.loadFragmentFile(file);
-	_program.compileAndLink();
+	if (!_program.compileAndLink())
+		std::cout << "shader " << file << " failed to compile !\n";
 }
 
 void		ShaderRender::windowSizeCallback(int winX, int winY)
@@ -303,10 +303,35 @@ void		ShaderRender::clickCallback(int button, int action, int mods)
 		mouse.w = 0;
 }
 
+void		ShaderRender::foreachShaderChannels(std::function< void(ShaderProgram *, ShaderChannel *)> callback, ShaderProgram *currentShaderProgram)
+{
+	if (currentShaderProgram == NULL)
+		currentShaderProgram = &_program;
+
+	for (int i = 0; i < MAX_CHANNEL_COUNT; i++)
+	{
+		auto chan = currentShaderProgram->getChannel(i);
+		if (chan == NULL)
+			continue ;
+		callback(currentShaderProgram, chan);
+		if (chan->getType() == ShaderChannelType::CHANNEL_PROGRAM)
+			foreachShaderChannels(callback, chan->getProgram());
+	}
+}
+
 void		ShaderRender::framebufferSizeCallback(int width, int height)
 {
 	framebuffer_size.x = width;
 	framebuffer_size.y = height;
+
+	//resize all loaded framebuffers:
+	foreachShaderChannels([](ShaderProgram *prog, ShaderChannel *chan) {
+			if (chan->getType() == ShaderChannelType::CHANNEL_PROGRAM)
+			{
+				glTexImage2D(prog->getRenderId(), 0, GL_RGB, framebuffer_size.x, framebuffer_size.y, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+			}
+		}
+	);
 }
 
 void		ShaderRender::mousePositionCallback(GLFWwindow *win, double x, double y)

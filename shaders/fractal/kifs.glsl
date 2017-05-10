@@ -1,5 +1,5 @@
-#pragma iChannel0 textures/lava-rock-4k.jpg linear mipmap repeat //default values
-#pragma iChannel1 textures/lava-rock-4k.jpg
+#pragma iChannel0 textures/kifs0.png repeat //default values
+#pragma iChannel1 textures/kifs1.jpg repeat
 
 /*
 

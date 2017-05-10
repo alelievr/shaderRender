@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/05/07 21:28:59 by alelievr          #+#    #+#             */
-/*   Updated: 2017/05/08 02:30:13 by alelievr         ###   ########.fr       */
+/*   Updated: 2017/05/10 02:15:40 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,7 +35,6 @@ class ShaderRender
 		vec4			mouse = {0, 0, 0, 0};
 		vec2			scroll = {0, 0};
 		vec4			move = {0, 0, 0, 1};
-		vec2			window = {WIN_W, WIN_H};
 		vec3			forward = {0, 0, 1};
 #if DOUBLE_PRECISION
 		dvec4			fractalWindow = {-1, -1, 1, 1}; //xmin, ymin, xmax, ymax
@@ -57,6 +56,7 @@ class ShaderRender
 		void			updateKeys(void);
 		//void			checkFileChanged(t_program *progs);
 		void			displayWindowFps(void);
+		void			foreachShaderChannels(std::function< void(ShaderProgram *, ShaderChannel *)> callback, ShaderProgram *currentShaderProgram = NULL);
 
 	public:
 		ShaderRender(void);

@@ -6,21 +6,24 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/05/07 20:35:27 by alelievr          #+#    #+#             */
-/*   Updated: 2017/05/08 03:08:09 by alelievr         ###   ########.fr       */
+/*   Updated: 2017/05/10 03:49:31 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ShaderProgram.hpp"
+
+GLuint			_vbo = -1;
+GLuint			_vao = -1;
 
 
 ShaderProgram::ShaderProgram(void)
 {
 	this->_id = 0;
 	this->_framebufferId = 0;
-	this->_renderId = 0;
+	this->_renderId = -1;
 	this->_lastModified = 0;
-	this->_vbo = -1;
-	this->_vao = -1;
+//	this->_vbo = -1;
+//	this->_vao = -1;
 
 	updateRenderSurface(RenderSurface::FULL_WINDOW);
 }
@@ -30,7 +33,6 @@ ShaderProgram::~ShaderProgram(void) {}
 #define CHECK_ACTIVE_FLAG(x, y) if (strstr(piece, x)) mode |= y;
 const std::string		ShaderProgram::loadSourceFile(const std::string & filePath)
 {
-	int				chan = 0;
 	int				mode;
 	std::string		fileSource = "";
 	std::string		line;
@@ -44,6 +46,7 @@ const std::string		ShaderProgram::loadSourceFile(const std::string & filePath)
 			std::string channelFile = match[2];
 			int			channelIndex = std::stoi(match[1]);
 
+			std::cout << "line: [" << line << "]\n"; 
 			mode = 0;
 			for (size_t i = 2; i < match.size(); ++i) {
 				std::ssub_match sub_match = match[i];
@@ -85,14 +88,14 @@ bool		ShaderProgram::loadVertexFile(const std::string & file)
 
 bool		ShaderProgram::compileAndLink(void)
 {
-	struct	stat	st;
-
 	if (_fragmentFileSources.size() == 0)
 		return false;
 
 	GLuint		fragmentShaderId;
 	//TODO: multi-shader file management for fragments and vertex
 	const char	*srcs[] = {fragment_shader_text, _fragmentFileSources[0].source.c_str()};
+
+	std::cout << "compiling " << _fragmentFileSources[0].file << "\n";
 
 	fragmentShaderId = glCreateShader(GL_FRAGMENT_SHADER);
 	glShaderSource(fragmentShaderId, 2, srcs, NULL);
@@ -101,13 +104,9 @@ bool		ShaderProgram::compileAndLink(void)
 		return false;
 
 	GLuint		vertexShaderId;
-	static bool	render_shader = false;
 	const char	*vertex_main_src;
 
-	if (render_shader)
-		vertex_main_src = vertex_buffer_shader_text;
-	else
-		vertex_main_src = vertex_shader_text;
+	vertex_main_src = vertex_buffer_shader_text;
 	vertexShaderId = glCreateShader(GL_VERTEX_SHADER);
 	glShaderSource(vertexShaderId, 1, &vertex_main_src, NULL);
 	glCompileShader(vertexShaderId);
@@ -129,7 +128,8 @@ bool		ShaderProgram::compileAndLink(void)
 	//inizialize fragPosition
 	GLint       fragPos;
 
-	fragPos = glGetAttribLocation(_id, "fragPosition");
+	if ((fragPos = glGetAttribLocation(_id, "fragPosition")) < 0)
+		return false;
 	glEnableVertexAttribArray(fragPos);
 	glVertexAttribPointer(fragPos, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, (void*) 0);
 
@@ -157,6 +157,7 @@ void		ShaderProgram::loadUniformLocations(void)
 	_uniforms["iChannel7"] = glGetUniformLocation(_id, "iChannel7");
 }
 
+//TODO: delete numbers
 void		ShaderProgram::updateUniform1(const std::string & uniformName, int value) { glUniform1i(_uniforms[uniformName], value); }
 void		ShaderProgram::updateUniform1(const std::string & uniformName, int count, int *values) { glUniform1iv(_uniforms[uniformName], count, values); }
 void		ShaderProgram::updateUniform2(const std::string & uniformName, int value1, int value2) { glUniform2i(_uniforms[uniformName], value1, value2); }
@@ -177,11 +178,18 @@ void		ShaderProgram::updateUniform4(const std::string & uniformName, int count, 
 
 void		ShaderProgram::use(void)
 {
+	std::cout << "use " << _id << std::endl;
 	glUseProgram(_id);
 }
 
 void		ShaderProgram::draw(void)
 {
+	if (_renderId != -1)
+	{
+		GLenum buffers[] = {GL_COLOR_ATTACHMENT0};
+		glDrawBuffers(1, buffers);
+	}
+	std::cout << "drawing program: " << _id << " to " << _vao << "\n";
 	glBindVertexArray(_vao);
 	glDrawArrays(_renderMode, 0, _renderCount);
 }
@@ -290,19 +298,25 @@ void			ShaderProgram::updateRenderSurface(const float *points, GLenum renderMode
 
 void			ShaderProgram::updateVAO(void)
 {
-	if (_vbo != -1)
-		glDeleteBuffers(1, &_vbo);
-	glGenBuffers(1, &_vbo);
-	glBindBuffer(GL_ARRAY_BUFFER, _vbo);
-	//TODO: Vector3 management
-	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * _renderCount * 2, _renderVertices, GL_STATIC_DRAW);
+	static bool once = true;
 
-	if (_vao != -1)
-		glDeleteVertexArrays(1, &_vao);
-	glGenVertexArrays(1, &_vao);
-	glBindVertexArray(_vao);
-	glEnableVertexAttribArray(0);
-	glBindBuffer(GL_ARRAY_BUFFER, _vbo);
+	if (once)
+	{
+		if (_vbo != (GLuint)-1)
+			glDeleteBuffers(1, &_vbo);
+		glGenBuffers(1, &_vbo);
+		glBindBuffer(GL_ARRAY_BUFFER, _vbo);
+		//TODO: Vector3 management
+		glBufferData(GL_ARRAY_BUFFER, sizeof(float) * _renderCount * 2, _renderVertices, GL_STATIC_DRAW);
+
+		if (_vao != (GLuint)-1)
+			glDeleteVertexArrays(1, &_vao);
+		glGenVertexArrays(1, &_vao);
+		glBindVertexArray(_vao);
+		glEnableVertexAttribArray(0);
+		glBindBuffer(GL_ARRAY_BUFFER, _vbo);
+	}
+	once = false;
 }
 
 int				ShaderProgram::getProgramId(void) const { return (this->_id); }

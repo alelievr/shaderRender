@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/05/07 20:35:23 by alelievr          #+#    #+#             */
-/*   Updated: 2017/05/08 02:03:49 by alelievr         ###   ########.fr       */
+/*   Updated: 2017/05/10 03:48:44 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,11 +60,10 @@ class		ShaderProgram
 		long								_lastModified;
 		std::map< std::string, GLuint >		_uniforms;
 
-		GLuint								_vao;
-		GLuint								_vbo;
+//		GLuint								_vao;
+//		GLuint								_vbo;
 		GLenum								_renderMode;
 		const float							*_renderVertices;
-		GLuint								_renderVAO;
 		GLsizei								_renderCount;
 
 		const std::string					loadSourceFile(const std::string & file);
