@@ -6,11 +6,13 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/05/07 20:35:27 by alelievr          #+#    #+#             */
-/*   Updated: 2017/05/10 03:49:31 by alelievr         ###   ########.fr       */
+/*   Updated: 2017/05/21 19:53:32 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ShaderProgram.hpp"
+
+//#define DEBUG
 
 GLuint			_vbo = -1;
 GLuint			_vao = -1;
@@ -25,10 +27,14 @@ ShaderProgram::ShaderProgram(void)
 //	this->_vbo = -1;
 //	this->_vao = -1;
 
+	this->_channels = new ShaderChannel[MAX_CHANNEL_COUNT];
+
 	updateRenderSurface(RenderSurface::FULL_WINDOW);
 }
 
-ShaderProgram::~ShaderProgram(void) {}
+ShaderProgram::~ShaderProgram(void) {
+	delete [] this->_channels;
+}
 
 #define CHECK_ACTIVE_FLAG(x, y) if (strstr(piece, x)) mode |= y;
 const std::string		ShaderProgram::loadSourceFile(const std::string & filePath)
@@ -46,7 +52,6 @@ const std::string		ShaderProgram::loadSourceFile(const std::string & filePath)
 			std::string channelFile = match[2];
 			int			channelIndex = std::stoi(match[1]);
 
-			std::cout << "line: [" << line << "]\n"; 
 			mode = 0;
 			for (size_t i = 2; i < match.size(); ++i) {
 				std::ssub_match sub_match = match[i];
@@ -57,7 +62,6 @@ const std::string		ShaderProgram::loadSourceFile(const std::string & filePath)
 				CHECK_ACTIVE_FLAG("v-flip", CHAN_VFLIP);
 				CHECK_ACTIVE_FLAG("clamp", CHAN_CLAMP);
 			}
-			std::cout << "mode: " << mode << std::endl;
 			_channels[channelIndex].updateChannel(channelFile, mode);
 		}
 		else
@@ -158,7 +162,12 @@ void		ShaderProgram::loadUniformLocations(void)
 }
 
 //TODO: delete numbers
-void		ShaderProgram::updateUniform1(const std::string & uniformName, int value) { glUniform1i(_uniforms[uniformName], value); }
+void		ShaderProgram::updateUniform1(const std::string & uniformName, int value) {
+#ifdef DEBUG
+	std::cout << uniformName << " -> " << (int)_uniforms[uniformName] << std::endl;
+#endif
+   glUniform1i(_uniforms[uniformName], value);
+}
 void		ShaderProgram::updateUniform1(const std::string & uniformName, int count, int *values) { glUniform1iv(_uniforms[uniformName], count, values); }
 void		ShaderProgram::updateUniform2(const std::string & uniformName, int value1, int value2) { glUniform2i(_uniforms[uniformName], value1, value2); }
 void		ShaderProgram::updateUniform2(const std::string & uniformName, int count, int *values) { glUniform2iv(_uniforms[uniformName], count, values); }
@@ -178,7 +187,9 @@ void		ShaderProgram::updateUniform4(const std::string & uniformName, int count, 
 
 void		ShaderProgram::use(void)
 {
+#ifdef DEBUG
 	std::cout << "use " << _id << std::endl;
+#endif
 	glUseProgram(_id);
 }
 
@@ -189,7 +200,9 @@ void		ShaderProgram::draw(void)
 		GLenum buffers[] = {GL_COLOR_ATTACHMENT0};
 		glDrawBuffers(1, buffers);
 	}
+#ifdef DEBUG
 	std::cout << "drawing program: " << _id << " to " << _vao << "\n";
+#endif
 	glBindVertexArray(_vao);
 	glDrawArrays(_renderMode, 0, _renderCount);
 }
@@ -327,7 +340,9 @@ void			ShaderProgram::setFramebufferId(int tmp) { this->_framebufferId = tmp; }
 int				ShaderProgram::getRenderId(void) const { return (this->_renderId); }
 void			ShaderProgram::setRenderId(int tmp) { this->_renderId = tmp; }
 
-ShaderChannel	*ShaderProgram::getChannel(int index) { return (this->_channels + index); }
+ShaderChannel	*ShaderProgram::getChannel(int index) {
+	return (this->_channels + index);
+}
 
 std::ostream &	operator<<(std::ostream & o, ShaderProgram const & r)
 {

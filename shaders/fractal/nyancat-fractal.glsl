@@ -1,4 +1,5 @@
 #pragma iChannel0 textures/nyancat.png nearest
+#pragma iChannel1 textures/nyancat.png nearest
 // Created by inigo quilez - iq/2013
 // License Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License.
 

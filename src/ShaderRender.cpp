@@ -13,6 +13,8 @@
 #include "ShaderRender.hpp"
 #include <functional>
 
+//#define DEBUG
+
 vec2		framebuffer_size = {0, 0};
 vec2			window = {WIN_W, WIN_H};
 float		pausedTime = 0;
@@ -69,6 +71,9 @@ void		ShaderRender::updateUniforms(ShaderProgram *p)
 				glActiveTexture(GL_TEXTURE1 + j);
 				glBindTexture(GL_TEXTURE_2D, channel->getTextureId());
 				p->updateUniform1("iChannel" + std::to_string(j++), channel->getTextureId());
+#ifdef DEBUG
+				std::cout << "bound and activated texture: " << j << " -> " << channel->getTextureId() << std::endl;
+#endif
 				break ;
 			case ShaderChannelType::CHANNEL_SOUND:
 				soundTexId = get_sound_texture(channel->getTextureId());
@@ -77,7 +82,9 @@ void		ShaderRender::updateUniforms(ShaderProgram *p)
 				p->updateUniform1("iChannel" + std::to_string(j++), soundTexId);
 				break ;
 			case ShaderChannelType::CHANNEL_PROGRAM:
+#ifdef DEBUG
 				std::cout << "bound render texture to id: " << channel->getTextureId() << " on channel: " << "iChannel" + std::to_string(j) << "\n";
+#endif
 				glActiveTexture(GL_TEXTURE1 + j);
 				glBindTexture(GL_TEXTURE_2D, channel->getTextureId());
 				p->updateUniform1("iChannel" + std::to_string(j++), channel->getTextureId());
@@ -160,9 +167,12 @@ void		ShaderRender::render(GLFWwindow *win)
 			{
 				auto fboProgram = channel->getProgram();
 
+#ifdef DEBUG
 				std::cout << "bound framebuffer: " << fboProgram->getFramebufferId() << std::endl;
+#endif
 				glBindFramebuffer(GL_FRAMEBUFFER, fboProgram->getFramebufferId());
 
+				std::cout << "viewport: " << framebuffer_size.x << "/" << framebuffer_size.y << std::endl;
 				glViewport(0, 0, framebuffer_size.x, framebuffer_size.y);
 
 				glClearColor(0, 1, 0, 1);
@@ -259,6 +269,8 @@ void		ShaderRender::attachShader(const std::string file)
 	_program.loadFragmentFile(file);
 	if (!_program.compileAndLink())
 		std::cout << "shader " << file << " failed to compile !\n";
+	else
+		programLoaded = true;
 }
 
 void		ShaderRender::windowSizeCallback(int winX, int winY)
@@ -403,18 +415,11 @@ void		ShaderRender::keyCallback(GLFWwindow *window, int key, int scancode, int a
 ShaderChannel	*ShaderRender::getChannel(int chan)
 {
 	//TODO: chan max number
-	if (chan < 8 && programLoaded)
+	if (chan < MAX_CHANNEL_COUNT && programLoaded)
 	{
 		return _program.getChannel(chan);
 	}
 	return NULL;
 }
-
-//no need, channels can self-update
-/*void		ShaderRender::updateChannel(const std::string file, int index, int mode)
-{
-	//TODO
-	_program(program, chan, file, mode);
-}*/
 
 ShaderRender::~ShaderRender() {}

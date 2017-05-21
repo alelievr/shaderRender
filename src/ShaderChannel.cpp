@@ -61,7 +61,6 @@ bool		ShaderChannel::loadShader(const std::string & file, int mode)
 {
 	_type = ShaderChannelType::CHANNEL_PROGRAM;
 
-	//TODO: load shader in _program
 	_program = new ShaderProgram();
 	_program->loadFragmentFile(file);
 	if (!_program->compileAndLink())
@@ -74,6 +73,7 @@ bool		ShaderChannel::loadShader(const std::string & file, int mode)
 	GLuint renderedTexture;
 	glGenTextures(1, &renderedTexture);
 	glBindTexture(GL_TEXTURE_2D, renderedTexture);
+	std::cout << "created fbo with size: " << framebuffer_size.x << "/" << framebuffer_size.y << std::endl;
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, framebuffer_size.x, framebuffer_size.y, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -112,7 +112,9 @@ bool		ShaderChannel::loadSound(const std::string & file)
 
 bool		ShaderChannel::updateChannel(const std::string & file, int mode)
 {
-	_channelFile = file;
+	printf("this = %p\n", this);
+	_channelFile = const_cast< std::string & >(file);
+	_mode = mode;
 
 	const char *file_path = file.c_str();
 	if (checkFileExtention(file_path, IMAGE_EXT))
@@ -124,6 +126,28 @@ bool		ShaderChannel::updateChannel(const std::string & file, int mode)
 	return false;
 }
 
+void		ShaderChannel::updateChannelMode(bool active, int flag)
+{
+	if (active)
+		_mode |= 1 << flag;
+	else
+		_mode &= ~(1 << flag);
+
+	switch (_type)
+	{
+		case ShaderChannelType::CHANNEL_IMAGE:
+			loadImage(_channelFile.c_str(), _mode);
+			break ;
+		case ShaderChannelType::CHANNEL_SOUND:
+			loadSound(_channelFile.c_str());
+			break ;
+		case ShaderChannelType::CHANNEL_PROGRAM:
+			loadShader(_channelFile.c_str(), _mode);
+			break ;
+		default:
+			break;
+	}
+}
 
 ShaderChannel &	ShaderChannel::operator=(ShaderChannel const & src)
 {

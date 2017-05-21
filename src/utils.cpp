@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/09 12:36:31 by alelievr          #+#    #+#             */
-/*   Updated: 2017/05/05 02:53:40 by alelievr         ###   ########.fr       */
+/*   Updated: 2017/05/21 20:06:19 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,15 @@
 #include <string.h>
 #include <time.h>
 #include <sys/time.h>
+
+struct MatchPathSeparator
+{
+	bool operator()( char ch ) const
+	{
+		return ch == '/';
+	}
+};
+
 
 bool		checkFileExtention(const char *file, const char **exts)
 {
@@ -64,5 +73,13 @@ void		updateUniformLocation(t_program *prog)
 	prog->unis[15] = glGetUniformLocation(program, "iChannel5");
 	prog->unis[16] = glGetUniformLocation(program, "iChannel6");
 	prog->unis[17] = glGetUniformLocation(program, "iChannel7");
+}
+
+std::string	basename( std::string const & pathname )
+{
+	return std::string( 
+			std::find_if( pathname.rbegin(), pathname.rend(),
+				MatchPathSeparator() ).base(),
+			pathname.end() );
 }
 

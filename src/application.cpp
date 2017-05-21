@@ -123,13 +123,15 @@ class ShaderRenderApplication : public nanogui::Screen
 			framebuffer_size.x = fw;
 			framebuffer_size.y = fh;
 
-        	Window *mainGUI = new Window(this, "INFO");
+        	mainGUI = new Window(this, "INFO");
         	mainGUI->setPosition(Vector2i(15, 15));
         	mainGUI->setLayout(new GroupLayout());
 
         	fpsLabel = new Label(mainGUI, string("FPS: 0"), "sans-bold");
 
-			for (int i = 0; i < MAX_CHANNEL_COUNT; i++)
+			renderShader->attachShader(shaderFile);
+
+			for (int i = 0; i < 4; i++)
 			{
 				channelTitle[i] = new Label(mainGUI, "channel " + to_string(i));
 				//channelImages[i] = new ImageView(mainGUI, -1);
@@ -147,24 +149,32 @@ class ShaderRenderApplication : public nanogui::Screen
 							}, false);
 							if (!file.empty())
 							{
-								//TODO: reload the channel
-								/*c = renderShader->getChannel(i);
-								renderShader->updateChannel(c, file.c_str(), 0);
-								channelTexts[i]->setCaption(c->file_path);*/
+								c = renderShader->getChannel(i);
+								c->updateChannel(file, 0);
 							}
 						}
 					);
+
+					auto checkboxMipmap = new CheckBox(mainGUI, "!Mipmap",
+							[&](bool val) {
+								c = renderShader->getChannel(i);
+								c->updateChannelMode(val, CHAN_MIPMAP);
+							});
+
+					auto checkboxNearest = new CheckBox(mainGUI, "Nearest",
+							[&](bool val) {
+								c = renderShader->getChannel(i);
+								c->updateChannelMode(val, CHAN_MIPMAP);
+							});
 				}
 			}
 
-			updateChannelGUI(mainGUI);
-
-			renderShader->attachShader(shaderFile);
+			updateChannelGUI();
 
 			performLayout();
 		}
 
-		void			updateChannelGUI(nanogui::Window *mainGUI)
+		void			updateChannelGUI()
 		{
         	using namespace nanogui;
 
@@ -173,17 +183,18 @@ class ShaderRenderApplication : public nanogui::Screen
 				ShaderChannel *c = renderShader->getChannel(i);
 				if (c == NULL)
 					continue ;
+				string file = basename(c->getChannelFile());
 				switch (c->getType())
 				{
 					case ShaderChannelType::CHANNEL_IMAGE:
-						channelTexts[i]->setCaption(string("file: ") + c->getChannelFile());
+						channelTexts[i]->setCaption(string("file: ") + file);
 						//channelImages[i]->bindImage(c->id);
 						break ;
 					case ShaderChannelType::CHANNEL_SOUND:
-						channelTexts[i]->setCaption(string("file: ") + c->getChannelFile());
+						channelTexts[i]->setCaption(string("file: ") + file);
 						break ;
 					case ShaderChannelType::CHANNEL_PROGRAM:
-						channelTexts[i]->setCaption(string("file: ") + c->getChannelFile());
+						channelTexts[i]->setCaption(string("file: ") + file);
 						break ;
 					default:
 						break ;
@@ -197,6 +208,7 @@ class ShaderRenderApplication : public nanogui::Screen
     	virtual void	draw(NVGcontext *ctx)
 		{
         	Screen::draw(ctx);
+			updateChannelGUI();
     	}
 
 		virtual void	drawContents()
@@ -217,6 +229,7 @@ class ShaderRenderApplication : public nanogui::Screen
     	nanogui::ProgressBar	*mProgress;
 		ShaderRender			mShaderRender;
 		nanogui::Label			*fpsLabel;
+		nanogui::Window			*mainGUI;
 		//nanogui::ImageView		**channelImages;
 		nanogui::Label			**channelTexts;
 		nanogui::Label			**channelTitle;

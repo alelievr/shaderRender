@@ -16,6 +16,7 @@
 # include <stdio.h>
 # include <stdlib.h>
 # include <stdbool.h>
+# include <iostream>
 # define GL_GLEXT_PROTOTYPES
 # define GLFW_INCLUDE_GLCOREARB
 # include "GLFW/glfw3.h"
@@ -179,6 +180,7 @@ void			updateUniformLocation(t_program *p);
 float			getCurrentTime(void);
 void			loadChannel(t_program *prog, t_channel *channel, const char *file, int mode);
 bool			checkFileExtention(const char *filename, const char **exts);
+std::string		basename( std::string const & pathname );
 
 //SOUND LOAD
 void			fmod_init(void);

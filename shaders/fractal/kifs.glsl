@@ -1,5 +1,6 @@
 #pragma iChannel0 textures/kifs0.png repeat //default values
 #pragma iChannel1 textures/kifs1.jpg repeat
+#pragma iChannel2 textures/kifs1.jpg repeat
 
 /*
 

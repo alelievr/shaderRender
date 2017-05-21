@@ -23,6 +23,7 @@ class		ShaderChannel
 		ShaderChannelType	_type;
 		ShaderProgram *		_program;
 		int					_textureId;
+		int					_mode;
 
 		bool				loadImage(const std::string & file, int mode);
 		bool				loadShader(const std::string & file, int mode);
@@ -35,7 +36,8 @@ class		ShaderChannel
 
 		ShaderChannel &	operator=(ShaderChannel const & src);
 
-		bool	updateChannel(const std::string & file, int mode);
+		bool				updateChannel(const std::string & file, int mode);
+		void				updateChannelMode(bool active, int value);
 
 		std::string			getChannelFile(void) const;
 		
