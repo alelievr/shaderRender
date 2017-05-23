@@ -131,42 +131,150 @@ class ShaderRenderApplication : public nanogui::Screen
 
 			renderShader->attachShader(shaderFile);
 
-			for (int i = 0; i < 4; i++)
+			//sorry for that
+
+			channelTitle[0] = new Label(mainGUI, "channel " + to_string(0));
+			//channelImages[i] = new ImageView(mainGUI, -1);
+			channelTexts[0] = new Label(mainGUI, "unused");
+			ShaderChannel	*c = renderShader->getChannel(0);
+			printf("c1: %p\n", c);
+			if (c != NULL)
 			{
-				channelTitle[i] = new Label(mainGUI, "channel " + to_string(i));
-				//channelImages[i] = new ImageView(mainGUI, -1);
-				channelTexts[i] = new Label(mainGUI, "unused");
-				ShaderChannel	*c = renderShader->getChannel(i);
-				if (c != NULL)
-				{
-					//file button
-					auto b = new Button(mainGUI, "Open");
-					b->setCallback([&] {
-							string file = file_dialog({
-								{"png", "Portable Network Graphics"},
-								{"jpg", "Joint Photographic Experts Group"},
-								{"tga", "Truevision Targa"}
-							}, false);
-							if (!file.empty())
-							{
-								c = renderShader->getChannel(i);
-								c->updateChannel(file, 0);
-							}
+				//file button
+				auto b = new Button(mainGUI, "Open");
+				b->setCallback([&] {
+						string file = file_dialog({
+							{"png", "Portable Network Graphics"},
+							{"jpg", "Joint Photographic Experts Group"},
+							{"tga", "Truevision Targa"}
+						}, false);
+						if (!file.empty())
+						{
+							c = renderShader->getChannel(0);
+							c->updateChannel(file, 0);
 						}
-					);
+					}
+				);
 
-					auto checkboxMipmap = new CheckBox(mainGUI, "!Mipmap",
-							[&](bool val) {
-								c = renderShader->getChannel(i);
-								c->updateChannelMode(val, CHAN_MIPMAP);
-							});
+				auto checkboxMipmap = new CheckBox(mainGUI, "!Mipmap",
+						[&](bool val) {
+							c = renderShader->getChannel(0);
+							c->updateChannelMode(val, CHAN_MIPMAP);
+						});
 
-					auto checkboxNearest = new CheckBox(mainGUI, "Nearest",
-							[&](bool val) {
-								c = renderShader->getChannel(i);
-								c->updateChannelMode(val, CHAN_MIPMAP);
-							});
-				}
+				auto checkboxNearest = new CheckBox(mainGUI, "Nearest",
+						[&](bool val) {
+							c = renderShader->getChannel(0);
+							c->updateChannelMode(val, CHAN_MIPMAP);
+						});
+			}
+
+			channelTitle[1] = new Label(mainGUI, "channel " + to_string(1));
+			//channelImages[i] = new ImageView(mainGUI, -1);
+			channelTexts[1] = new Label(mainGUI, "unused");
+			c = renderShader->getChannel(1);
+			printf("c1: %p\n", c);
+			if (c != NULL)
+			{
+				//file button
+				auto b = new Button(mainGUI, "Open");
+				b->setCallback([&] {
+						string file = file_dialog({
+							{"png", "Portable Network Graphics"},
+							{"jpg", "Joint Photographic Experts Group"},
+							{"tga", "Truevision Targa"}
+						}, false);
+						if (!file.empty())
+						{
+							c = renderShader->getChannel(1);
+							c->updateChannel(file, 1);
+						}
+					}
+				);
+
+				auto checkboxMipmap = new CheckBox(mainGUI, "!Mipmap",
+						[&](bool val) {
+							c = renderShader->getChannel(1);
+							c->updateChannelMode(val, CHAN_MIPMAP);
+						});
+
+				auto checkboxNearest = new CheckBox(mainGUI, "Nearest",
+						[&](bool val) {
+							c = renderShader->getChannel(1);
+							c->updateChannelMode(val, CHAN_MIPMAP);
+						});
+			}
+
+			channelTitle[2] = new Label(mainGUI, "channel " + to_string(2));
+			//channelImages[i] = new ImageView(mainGUI, -1);
+			channelTexts[2] = new Label(mainGUI, "unused");
+			c = renderShader->getChannel(2);
+			printf("c1: %p\n", c);
+			if (c != NULL)
+			{
+				//file button
+				auto b = new Button(mainGUI, "Open");
+				b->setCallback([&] {
+						string file = file_dialog({
+							{"png", "Portable Network Graphics"},
+							{"jpg", "Joint Photographic Experts Group"},
+							{"tga", "Truevision Targa"}
+						}, false);
+						if (!file.empty())
+						{
+							c = renderShader->getChannel(2);
+							c->updateChannel(file, 2);
+						}
+					}
+				);
+
+				auto checkboxMipmap = new CheckBox(mainGUI, "!Mipmap",
+						[&](bool val) {
+							c = renderShader->getChannel(2);
+							c->updateChannelMode(val, CHAN_MIPMAP);
+						});
+
+				auto checkboxNearest = new CheckBox(mainGUI, "Nearest",
+						[&](bool val) {
+							c = renderShader->getChannel(2);
+							c->updateChannelMode(val, CHAN_MIPMAP);
+						});
+			}
+
+			channelTitle[3] = new Label(mainGUI, "channel " + to_string(3));
+			//channelImages[i] = new ImageView(mainGUI, -1);
+			channelTexts[3] = new Label(mainGUI, "unused");
+			c = renderShader->getChannel(3);
+			printf("c1: %p\n", c);
+			if (c != NULL)
+			{
+				//file button
+				auto b = new Button(mainGUI, "Open");
+				b->setCallback([&] {
+						string file = file_dialog({
+							{"png", "Portable Network Graphics"},
+							{"jpg", "Joint Photographic Experts Group"},
+							{"tga", "Truevision Targa"}
+						}, false);
+						if (!file.empty())
+						{
+							c = renderShader->getChannel(3);
+							c->updateChannel(file, 3);
+						}
+					}
+				);
+
+				auto checkboxMipmap = new CheckBox(mainGUI, "!Mipmap",
+						[&](bool val) {
+							c = renderShader->getChannel(3);
+							c->updateChannelMode(val, CHAN_MIPMAP);
+						});
+
+				auto checkboxNearest = new CheckBox(mainGUI, "Nearest",
+						[&](bool val) {
+							c = renderShader->getChannel(3);
+							c->updateChannelMode(val, CHAN_MIPMAP);
+						});
 			}
 
 			updateChannelGUI();
