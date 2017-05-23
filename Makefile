@@ -6,7 +6,7 @@
 #    By: alelievr <marvin@42.fr>                    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2014/07/15 15:13:38 by alelievr          #+#    #+#              #
-#    Updated: 2016/12/15 21:33:03 by root             ###   ########.fr        #
+#    Updated: 2017/05/23 02:46:01 by alelievr         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -38,13 +38,13 @@ CPPVERSION	=	c++11
 #Example $> make DEBUG=2 will set debuglevel to 2
 
 #	Includes
-INCDIRS		=	glfw/include inc SOIL2-clone/incs fmod/inc
+INCDIRS		=	glfw/include inc SOIL2/incs fmod/inc
 
 #	Libraries
-LIBDIRS		=	glfw/src/ SOIL2-clone
+LIBDIRS		=	glfw/src/ SOIL2
 LDLIBS		=	-lglfw3 -lSOIL2
 GLFWLIB		=	glfw/src/libglfw3.a
-SOILLIB		=	SOIL2-clone/libSOIL2.a
+SOILLIB		=	SOIL2/libSOIL2.a
 
 #	Output
 NAME		=	visualishader
@@ -178,7 +178,7 @@ endif
 all: $(GLFWLIB) $(SOILLIB) $(NAME)
 
 $(SOILLIB):
-	cd SOIL2-clone && make
+	cd SOIL2 && make
 
 $(GLFWLIB):
 	git submodule init
