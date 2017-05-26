@@ -4,6 +4,3 @@
 [submodule "SOIL2"]
 	path = SOIL2
 	url = https://github.com/alelievr/SOIL2
-[submodule "nanogui"]
-	path = nanogui
-	url = https://github.com/wjakob/nanogui
