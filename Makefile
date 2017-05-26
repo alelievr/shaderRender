@@ -6,7 +6,7 @@
 #    By: alelievr <marvin@42.fr>                    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2014/07/15 15:13:38 by alelievr          #+#    #+#              #
-#    Updated: 2017/05/23 03:09:55 by alelievr         ###   ########.fr        #
+#    Updated: 2017/05/26 03:57:02 by jpirsch          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -16,13 +16,14 @@
 
 #	Sources
 SRCDIR		=	src
-SRC			=	ShaderRender.cpp	\
-				ShaderProgram.cpp	\
-				ShaderChannel.cpp	\
-				fmod.cpp			\
-				wav.cpp			\
-				utils.cpp		\
-				application.cpp	\
+SRC			=	ShaderRender.cpp		\
+				ShaderProgram.cpp		\
+				ShaderChannel.cpp		\
+				ShaderApplication.cpp	\
+				fmod.cpp				\
+				wav.cpp					\
+				utils.cpp				\
+				main.cpp				\
 
 #	Objects
 OBJDIR		=	obj
@@ -38,11 +39,11 @@ CPPVERSION	=	c++14
 #Example $> make DEBUG=2 will set debuglevel to 2
 
 #	Includes
-INCDIRS		=	nanogui/ext/glfw/include inc SOIL2/incs fmod/inc nanogui/include nanogui/ext/eigen nanogui/ext/nanovg/src/
+INCDIRS		=	nanogui/ext/glfw/include inc SOIL2/incs fmod/inc nanogui/include nanogui/ext/eigen nanogui/ext/nanovg/src/ lua/5.1/src/ 
 
 #	Libraries
-LIBDIRS		=	nanogui
-LDLIBS		=	-lnanogui
+LIBDIRS		=	nanogui lua/5.1/src
+LDLIBS		=	-lnanogui -llua
 NANOGUILIB	=	nanogui/libnanogui.a
 SOILLIB		=	SOIL2/libSOIL2.so
 

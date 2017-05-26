@@ -163,6 +163,8 @@ void		ShaderRender::render(GLFWwindow *win)
 
 	//process render buffers if used:
 	foreachShaderChannels([&](ShaderProgram *prog, ShaderChannel *channel) {
+			(void)prog;
+
 			if (channel->getType() == ShaderChannelType::CHANNEL_PROGRAM)
 			{
 				auto fboProgram = channel->getProgram();
@@ -172,7 +174,6 @@ void		ShaderRender::render(GLFWwindow *win)
 #endif
 				glBindFramebuffer(GL_FRAMEBUFFER, fboProgram->getFramebufferId());
 
-				std::cout << "viewport: " << framebuffer_size.x << "/" << framebuffer_size.y << std::endl;
 				glViewport(0, 0, framebuffer_size.x, framebuffer_size.y);
 
 				glClearColor(0, 1, 0, 1);
@@ -264,13 +265,13 @@ void		ShaderRender::displayWindowFps(void)
 	}
 }
 
-void		ShaderRender::attachShader(const std::string file)
+bool		ShaderRender::attachShader(const std::string file)
 {
 	_program.loadFragmentFile(file);
 	if (!_program.compileAndLink())
-		std::cout << "shader " << file << " failed to compile !\n";
+		return std::cout << "shader " << file << " failed to compile !\n", false;
 	else
-		programLoaded = true;
+		return programLoaded = true, true;
 }
 
 void		ShaderRender::windowSizeCallback(int winX, int winY)
@@ -305,6 +306,7 @@ void		ShaderRender::scrollCallback(double xOffset, double yOffset)
 
 void		ShaderRender::clickCallback(int button, int action, int mods)
 {
+	(void)mods;
 	if (button == 0 && action == 1)
 		mouse.z = 1;
 	else if (button == 0)
@@ -367,7 +369,8 @@ void		ShaderRender::mousePositionCallback(GLFWwindow *win, double x, double y)
 
 void		ShaderRender::keyCallback(GLFWwindow *window, int key, int scancode, int action, int mods)
 {
-	struct timeval		t;
+	(void)scancode;
+	(void)mods;
 
 	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, GLFW_TRUE);

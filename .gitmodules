@@ -1,9 +1,6 @@
 [submodule "glfw"]
 	path = glfw
 	url = https://github.com/glfw/glfw
-[submodule "nanogui"]
-	path = nanogui
-	url = https://github.com/wjakob/nanogui
 [submodule "SOIL2"]
 	path = SOIL2
 	url = https://github.com/alelievr/SOIL2

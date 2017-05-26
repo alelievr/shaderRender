@@ -6,17 +6,13 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/05/07 20:35:27 by alelievr          #+#    #+#             */
-/*   Updated: 2017/05/21 19:53:32 by alelievr         ###   ########.fr       */
+/*   Updated: 2017/05/26 04:08:35 by jpirsch          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ShaderProgram.hpp"
 
 //#define DEBUG
-
-GLuint			_vbo = -1;
-GLuint			_vao = -1;
-
 
 ShaderProgram::ShaderProgram(void)
 {
