@@ -34,8 +34,8 @@
 # define unused __attribute__((unused))
 
 # define MAX_CHANNEL_COUNT	8
-# define WIN_W				480
-# define WIN_H				320
+# define WIN_W				1920
+# define WIN_H				1080
 # define SCALE				70
 //# define DOUBLE_PRECISION 1
 

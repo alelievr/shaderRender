@@ -27,6 +27,8 @@ ShaderRender::ShaderRender(void)
 	cursor_mode = 1;
 	lastPausedTime = 0;
 	programLoaded = false;
+
+	luaGL = new LuaGL();
 }
 
 void		ShaderRender::updateUniforms(ShaderProgram *p)
@@ -219,6 +221,7 @@ void		ShaderRender::render(GLFWwindow *win)
 	glEnable(GL_MULTISAMPLE);
 	glEnable(GL_TEXTURE_2D);
 
+	luaGL->load_run_script(luaGL->getL(), "lua/draw.lua");
 	_program.use();
 
 	updateUniforms(&_program);
@@ -425,4 +428,8 @@ ShaderChannel	*ShaderRender::getChannel(int chan)
 	return NULL;
 }
 
-ShaderRender::~ShaderRender() {}
+ShaderRender::~ShaderRender()
+{
+	lua_close(luaGL->getL());		// Cya, Lua
+	delete luaGL;
+}

@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/05/07 20:35:27 by alelievr          #+#    #+#             */
-/*   Updated: 2017/05/26 04:08:35 by jpirsch          ###   ########.fr       */
+/*   Updated: 2017/05/26 04:55:55 by jpirsch          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,8 +20,8 @@ ShaderProgram::ShaderProgram(void)
 	this->_framebufferId = 0;
 	this->_renderId = -1;
 	this->_lastModified = 0;
-//	this->_vbo = -1;
-//	this->_vao = -1;
+	this->_vbo = -1;
+	this->_vao = -1;
 
 	this->_channels = new ShaderChannel[MAX_CHANNEL_COUNT];
 
@@ -307,7 +307,7 @@ void			ShaderProgram::updateRenderSurface(const float *points, GLenum renderMode
 
 void			ShaderProgram::updateVAO(void)
 {
-	static bool once = true;
+	static bool		once = true;
 
 	if (once)
 	{

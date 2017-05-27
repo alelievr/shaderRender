@@ -6,7 +6,7 @@
 #    By: alelievr <marvin@42.fr>                    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2014/07/15 15:13:38 by alelievr          #+#    #+#              #
-#    Updated: 2017/05/26 03:57:02 by jpirsch          ###   ########.fr        #
+#    Updated: 2017/05/26 10:26:04 by jpirsch          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -20,6 +20,7 @@ SRC			=	ShaderRender.cpp		\
 				ShaderProgram.cpp		\
 				ShaderChannel.cpp		\
 				ShaderApplication.cpp	\
+				LuaGL.cpp				\
 				fmod.cpp				\
 				wav.cpp					\
 				utils.cpp				\
@@ -39,12 +40,12 @@ CPPVERSION	=	c++14
 #Example $> make DEBUG=2 will set debuglevel to 2
 
 #	Includes
-INCDIRS		=	nanogui/ext/glfw/include inc SOIL2/incs fmod/inc nanogui/include nanogui/ext/eigen nanogui/ext/nanovg/src/ lua/5.1/src/ 
+INCDIRS		=	inc SOIL2/incs glfw/include fmod/inc lua/5.1/src/ 
 
 #	Libraries
-LIBDIRS		=	nanogui lua/5.1/src
-LDLIBS		=	-lnanogui -llua
-NANOGUILIB	=	nanogui/libnanogui.a
+LIBDIRS		=	lua/5.1/src glfw/src/
+LDLIBS		=	-lglfw3 -llua
+GLFWLIB		=	glfw/src/libglfw3.a
 SOILLIB		=	SOIL2/libSOIL2.so
 
 #	Output
@@ -181,16 +182,15 @@ endif
 #################
 
 #	First target
-all: $(NANOGUILIB) $(SOILLIB) $(NAME)
+all: $(GLFWLIB) $(SOILLIB) $(NAME)
 
 $(SOILLIB):
 	cd SOIL2 && make dynamic
 
-$(NANOGUILIB):
+$(GLFWLIB):
 	git submodule init
 	git submodule update
-	patch -i nanoGUIPollEventPatch.patch nanogui/src/common.cpp
-	cd nanogui && git submodule init && git submodule update && cmake -DNANOGUI_BUILD_EXAMPLE=OFF -DNANOGUI_BUILD_PYTHON=OFF -DNANOGUI_BUILD_SHARED=OFF . && make
+	cd glfw && cmake . && make
 
 #	Linking
 $(NAME): $(OBJ)

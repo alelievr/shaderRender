@@ -1,4 +1,5 @@
 #include "ShaderApplication.hpp"
+#include "LuaGL.hpp"
 
 static ShaderRender		*renderShader;
 
@@ -70,35 +71,7 @@ ShaderApplication::ShaderApplication(void)
 	glfwGetFramebufferSize(window, &fw, &fh);
 	framebuffer_size.x = fw;
 	framebuffer_size.y = fh;
-
-	//Lua initializations
-	L = luaL_newstate();    // All Lua contexts
-	luaL_openlibs(L);       // Load Lua libraries
-
-	load_run_script(L, "lua/init_loop.lua");
-	lua_getfield(L, LUA_GLOBALSINDEX, "init_oo");
-	lua_call(L, 0, 0);
 }
-
-int	ShaderApplication::load_run_script(lua_State *L, char *script)
-{
-	int	status, result;
-
-	status = luaL_loadfile(L, script);
-	if (status)
-	{
-		fprintf(stderr, "Couldn't load file: %s\n", lua_tostring(L, -1));
-		exit(1);
-	}
-	result = lua_pcall(L, 0, LUA_MULTRET, 0); // Lua run script
-	if (result)
-	{
-		fprintf(stderr, "Failed to run script: %s\n", lua_tostring(L, -1));
-		exit(1);
-	}
-	return (0);
-}
-
 
 bool	ShaderApplication::LoadShader(const std::string & shaderFile)
 {
@@ -114,8 +87,6 @@ void	ShaderApplication::RenderLoop(void)
 		glfwPollEvents();
 	}
 	glfwTerminate();
-
-	lua_close(L);               // Cya, Lua
 }
 
 ShaderApplication::~ShaderApplication()

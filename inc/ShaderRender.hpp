@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/05/07 21:28:59 by alelievr          #+#    #+#             */
-/*   Updated: 2017/05/26 03:54:39 by jpirsch          ###   ########.fr       */
+/*   Updated: 2017/05/26 15:33:25 by jpirsch          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,6 +26,7 @@
 
 #include "ShaderProgram.hpp"
 #include "ShaderChannel.hpp"
+#include "LuaGL.hpp"
 
 //#define UNIFORM_DEBUG 1
 
@@ -45,6 +46,7 @@ class ShaderRender
 		int				input_pause = 0;
 
 		ShaderProgram	_program;
+		LuaGL			*luaGL;
 
 		vec2			angleAmount;
 		int				cursor_mode;
