@@ -215,7 +215,7 @@ void		ShaderRender::render(GLFWwindow *win)
 
 	glViewport(0, 0, framebuffer_size.x, framebuffer_size.y);
 
-	glClearColor(1, 0, 0, 1);
+	glClearColor(.75, 0, 1, 1);
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	glEnable(GL_MULTISAMPLE);

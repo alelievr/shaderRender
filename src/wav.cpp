@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2016/07/30 16:57:22 by alelievr          #+#    #+#             */
-/*   Updated: 2017/05/05 03:35:43 by alelievr         ###   ########.fr       */
+/*   Updated: 2017/06/01 22:38:35 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,7 @@ char		*getRawFrameData(int id)
 
 	if (bit_per_frame == 0)
 		return NULL;
-	int		r = read(sounds[id].fd, buff, bit_per_frame *
+	read(sounds[id].fd, buff, bit_per_frame *
 			sounds[id].riff.bit_per_sample / 8 * sounds[id].riff.num_channels);
 	return buff;
 }

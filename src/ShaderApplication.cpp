@@ -8,6 +8,7 @@ ShaderApplication::ShaderApplication(void)
 	glfwSetErrorCallback(
 		[](int code, const char *description)
 		{
+			(void)code;
 			std::cout << "GLFW error: " << description << std::endl;
 			exit(-1);
 		}

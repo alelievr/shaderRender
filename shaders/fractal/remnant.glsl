@@ -10,14 +10,12 @@ const vec3 sunColour = vec3(1.0, .95, .8);
 
 
 #define SCALE 2.8
-#define MINRAD2 .25
+#define MINRAD2 (sin(iGlobalTime / 4) + 1) / 2
 float minRad2 = clamp(MINRAD2, 1.0e-9, 1.0);
 vec4 scale = vec4(SCALE, SCALE, SCALE, abs(SCALE)) / minRad2;
 float absScalem1 = abs(SCALE - 1.0);
 float AbsScaleRaisedTo1mIters = pow(abs(SCALE), float(1-10));
-vec3 surfaceColour1 = vec3(.8, .0, 0.);
-vec3 surfaceColour2 = vec3(.4, .4, 0.5);
-vec3 surfaceColour3 = vec3(.5, 0.3, 0.00);
+float fixedRadius2 = 1;
 vec3 fogCol = vec3(0.4, 0.4, 0.4);
 float gTime;
 
@@ -37,52 +35,30 @@ float Noise( in vec3 x )
 //----------------------------------------------------------------------------------------
 float Map(vec3 pos) 
 {
-	//return (length(pos)-4.0);
+//	float s = 4;
+//	pos = (fract(pos / s) * 2 - 1) * s;
 
 	vec4 p = vec4(pos,1);
-	vec4 p0 = p;  // p.w is the distance estimate
+	vec4 p0 = vec4(p.xyz, 1);  // p.w is the distance estimate
 
-	for (int i = 0; i < 9; i++)
+	for (int i = 0; i < 8; i++)
 	{
-		p.xyz = clamp(p.xyz, -1.0, 1.0) * 2.0 - p.xyz;
+		//box folding
+		p.xyz = clamp(p.xyz, -1, 1) * 2.0 - p.xyz;
 
-		// sphere folding: if (r2 < minRad2) p /= minRad2; else if (r2 < 1.0) p /= r2;
 		float r2 = dot(p.xyz, p.xyz);
-		p *= clamp(max(minRad2/r2, minRad2), 0.0, 1.0);
+		// sphere folding:
+		/*if (r2 < minRad2)
+			p /= minRad2;
+		else if (r2 < fixedRadius2)
+			p /= r2;*/
+		p *= clamp(max(minRad2 / r2, minRad2), 0.0, 1.0);
 
 		// scale, translate
-		p = p*scale + p0;
+		p = p * scale + p0;
 	}
 	return ((length(p.xyz) - absScalem1) / p.w - AbsScaleRaisedTo1mIters);
 }
-
-//----------------------------------------------------------------------------------------
-vec3 Colour(vec3 pos, float sphereR) 
-{
-	//scale.z = 0.0;
-	vec3 p = pos;
-	vec3 p0 = p;
-	float trap = 1.0;
-    
-	for (int i = 0; i < 6; i++)
-	{
-        
-		p.xyz = clamp(p.xyz, -1.0, 1.0) * 2.0 - p.xyz;
-		float r2 = dot(p.xyz, p.xyz);
-		p *= clamp(max(minRad2/r2, minRad2), 0.0, 1.0);
-
-		p = p*scale.xyz + p0.xyz;
-		trap = min(trap, r2);
-	}
-	// |c.x|: log final distance (fractional iteration count)
-	// |c.y|: spherical orbit trap at (0,0,0)
-	vec2 c = clamp(vec2( 0.3333*log(dot(p,p))-1.0, sqrt(trap) ), 0.0, 1.0);
-
-    float t = mod(length(pos) - gTime*150., 16.0);
-    surfaceColour1 = mix( surfaceColour1, vec3(.4, 3.0, 5.), pow(smoothstep(0.0, .3, t) * smoothstep(0.6, .3, t), 10.0));
-	return mix(mix(surfaceColour1, surfaceColour2, c.y), surfaceColour3, c.x);
-}
-
 
 //----------------------------------------------------------------------------------------
 vec3 GetNormal(vec3 pos, float distance)
@@ -102,25 +78,8 @@ float GetSky(vec3 pos)
 	float t = Noise(pos);
     t += Noise(pos * 2.1) * .5;
     t += Noise(pos * 4.3) * .25;
-    t += Noise(pos * 7.9) * .125;
+    t += Noise(pos * 7.9) * .15;
 	return t;
-}
-
-//----------------------------------------------------------------------------------------
-float BinarySubdivision(in vec3 rO, in vec3 rD, vec2 t)
-{
-    for (int i = 0; i < 4; i++)
-    {
-     	float halfwayT = (t.y + t.x ) * .5;
-		Map(rO + halfwayT*rD) < .001 ? t.x = halfwayT : t.y = halfwayT;
-    }
-		
-//	Map(rO + halfwayT*rD) < .001 ?  t.x = halfwayT : t.y = halfwayT;
-//	halfwayT = (t.y + t.x ) * .5;
-//	Map(rO + halfwayT*rD) < .001 ?  t.x = halfwayT : t.y = halfwayT;
-///	halfwayT = (t.y + t.x ) * .5;
-//	Map(rO + halfwayT*rD) < .001 ?  t.x = halfwayT : t.y = halfwayT;
-	return (t.y + t.x) * .5;;
 }
 
 //----------------------------------------------------------------------------------------
@@ -132,14 +91,14 @@ vec2 Scene(in vec3 rO, in vec3 rD, in vec2 fragCoord)
     bool hit = false;
     float glow = 0.0;
     vec2 dist;
-	for( int j=0; j < 70; j++ )
+	for( int j=0; j < 100; j++ )
 	{
-		if (t > 12.0) break;
+		if (t > 42) break ;
         p = rO + t*rD;
        
 		float h = Map(p);
         
-		if( h <0.001)
+		if( h <0.002)
 		{
             dist = vec2(t, oldT);
             hit = true;
@@ -148,14 +107,12 @@ vec2 Scene(in vec3 rO, in vec3 rD, in vec2 fragCoord)
         else
         {
         	glow += clamp(.05-h, 0.0, .4);
-        	t +=  h + t*0.001;
+        	t += h + t * 0.001;
 	        oldT = t;
         }
  	}
     if (!hit)
-        t = 1000.0;
-    else
-        t = BinarySubdivision(rO, rD, dist);
+        t = 10000.0;
     return vec2(t, clamp(glow*.25, 0.0, 1.0));
 
 }
@@ -170,7 +127,7 @@ float Hash(vec2 p)
 vec3 PostEffects(vec3 rgb, vec2 xy)
 {
 	// Gamma first...
-	rgb = pow(rgb, vec3(0.47));
+	rgb = pow(rgb, vec3(0.37));
 
 	// Then...
 	#define CONTRAST 1.4
@@ -202,19 +159,6 @@ float Shadow( in vec3 ro, in vec3 rd)
 }
 
 //----------------------------------------------------------------------------------------
-mat3 RotationMatrix(vec3 axis, float angle)
-{
-    axis = normalize(axis);
-    float s = sin(angle);
-    float c = cos(angle);
-    float oc = 1.0 - c;
-    
-    return mat3(oc * axis.x * axis.x + c,           oc * axis.x * axis.y - axis.z * s,  oc * axis.z * axis.x + axis.y * s,
-                oc * axis.x * axis.y + axis.z * s,  oc * axis.y * axis.y + c,           oc * axis.y * axis.z - axis.x * s,
-                oc * axis.z * axis.x - axis.y * s,  oc * axis.y * axis.z + axis.x * s,  oc * axis.z * axis.z + c);
-}
-
-//----------------------------------------------------------------------------------------
 vec3 LightSource(vec3 spotLight, vec3 dir, float dis)
 {
     float g = 0.0;
@@ -226,24 +170,34 @@ vec3 LightSource(vec3 spotLight, vec3 dir, float dis)
     return vec3(1.0) * g;
 }
 
-//----------------------------------------------------------------------------------------
-vec3 CameraPath( float t )
+//---------------------------------------------------------------------------------------
+
+vec2 hash( vec2 x )  // replace this by something better
 {
-    vec3 p = vec3(-.81 + 3. * sin(2.14*t),.05+2.5 * sin(.942*t+1.3),.05 + 3.5 * cos(3.594*t) );
-	return p;
-} 
-    
+	const vec2 k = vec2( 0.3183099, 0.3678794 );
+	x = x*k + k.yx;
+	return -1.0 + 2.0*fract( 16.0 * k*fract( x.x*x.y*(x.x+x.y)) );
+}
+
+float noise( in vec2 p )
+{
+	vec2 i = floor( p );
+	vec2 f = fract( p );
+
+	vec2 u = f*f*(3.0-2.0*f);
+
+	return mix( mix( dot( hash( i + vec2(0.0,0.0) ), f - vec2(0.0,0.0) ), 
+	        	dot( hash( i + vec2(1.0,0.0) ), f - vec2(1.0,0.0) ), u.x),
+	        mix( dot( hash( i + vec2(0.0,1.0) ), f - vec2(0.0,1.0) ), 
+	        	dot( hash( i + vec2(1.0,1.0) ), f - vec2(1.0,1.0) ), u.x), u.y);
+}
+
 //----------------------------------------------------------------------------------------
 void mainImage( in vec2 fragCoord )
 {
 	float m = 0;
 	gTime = (iGlobalTime+m)*.01 + 15.00;
     vec2 xy = fragCoord.xy / iResolution.xy;
-	
-	
-	#ifdef STEREO
-	float isRed = mod(fragCoord.x + mod(fragCoord.y, 2.0),2.0);
-	#endif
 
 	vec2    uv = (fragCoord / iResolution) * 2 - 1;
 	vec3    cameraDir = iForward;
@@ -256,59 +210,50 @@ void mainImage( in vec2 fragCoord )
 	vec3    forw = normalize(iForward);
 	vec3    right = normalize(cross(forw, vec3(0, 1, 0)));
 	vec3    up = normalize(cross(right, forw));
-	vec3    rd = normalize(uv.x * right + uv.y * up + fov * forw);
+	vec3    dir = normalize(uv.x * right + uv.y * up + fov * forw);
 
-	vec3 cameraPos	= iMoveAmount.xyz;
-    vec3 camTar		= cameraDir;
+	vec3 ro = iMoveAmount.xyz / 2;
 
-	float roll = 3.0*gTime;
-	vec3 cw = normalize(camTar-cameraPos);
-
-	vec3 cp = vec3(sin(roll), cos(roll),0.0);
-	vec3 cu = normalize(cross(cw,cp));
-
-	vec3 cv = normalize(cross(cu,cw));
-    cw = RotationMatrix(cv, sin(-gTime*20.0)*.7) * cw;
-	vec3 dir = normalize(uv.x*cu + uv.y*cv + 1.3*cw);
-	mat3 camMat = mat3(cu, cv, cw);
-
-	#ifdef STEREO
-	cameraPos += .008*cu*isRed; // move camera to the right
-	#endif
-
-    vec3 spotLight = CameraPath(gTime + .03) + vec3(sin(gTime*18.4), cos(gTime*17.98), sin(gTime * 22.53))*.2;
+    vec3 spotLight = ro;
 	vec3 col = vec3(0.0);
     vec3 sky = vec3(0.03, .04, .05) * GetSky(dir);
-	vec2 ret = Scene(cameraPos, dir,fragCoord);
+	vec2 ret = Scene(ro, dir, fragCoord);
     
-    if (ret.x < 900.0)
+    if (ret.x < 1000.0)
     {
-		vec3 p = cameraPos + ret.x*dir; 
+    	col = vec3(1, 1, 1);
+		vec3 p = ro + ret.x*dir; 
 		vec3 nor = GetNormal(p, ret.x*ret.x*.002+.0005);
-        
+
        	vec3 spot = spotLight - p;
-		float atten = length(spot);
+		float atten = min(10, exp(length(spot) / 1.5));
 
         spot /= atten;
-        
+
         float shaSpot = Shadow(p, spot);
         float shaSun = Shadow(p, sunDir);
-        
-       	float bri = max(dot(spot, nor), 0.0) / pow(atten, 1.5) * .15;
+
+       	float bri = max(dot(spot, nor), 0.0) / pow(atten, 1.5) * 1.5;
         float briSun = max(dot(sunDir, nor), 0.0) * .3;
-        
-       col = Colour(p, ret.x);
-       col = (col * bri * shaSpot) + (col * briSun* shaSun);
-        
-       vec3 ref = reflect(dir, nor);
-       col += pow(max(dot(spot,  ref), 0.0), 10.0) * 2.0 * shaSpot * bri;
-       col += pow(max(dot(sunDir, ref), 0.0), 10.0) * 2.0 * shaSun  * bri;
+
+       	vec2 t1 = vec2(iGlobalTime / 4, 0);
+       	vec2 t2 = vec2(10, iGlobalTime / 8);
+       	vec2 t3 = vec2(10, iGlobalTime / 16 + 10);
+       	float n1 = noise(p.xy / 2 + t1) * 2;
+       	float n2 = noise(p.yz / 4 + t2 + 10) * 2;
+       	float n3 = noise(p.xz / 3 + t3 + 100) * 2;
+       	vec3 addColor = normalize(vec3(n1 + n2, n2 + n3, n3 + n1)) / 1.8;
+       	col = addColor;
+       	col = (col * bri * shaSpot) * 10;
+
+       	vec3 ref = reflect(dir, nor);
+       	col += pow(max(dot(spot,  ref), 0.0), 10.0) * 2.0 * shaSpot * bri;
+       	col += pow(max(dot(sunDir, ref), 0.0), 10.0) * 2.0 * shaSun  * bri;
+    	col += vec3(pow(abs(ret.y), 2.)) * vec3(.1, .15, .25);
+ 	 
+		col = PostEffects(col, xy);	
     }
-    col += vec3(pow(abs(ret.y), 2.)) * vec3(.1, .15, .25);
-    col = mix(sky, col, min(exp(-ret.x+1.5), 1.0));
- 
-	col = PostEffects(col, xy);	
-    col += LightSource(spotLight-cameraPos, dir, ret.x);
+//	col += LightSource(spotLight-ro, dir, ret.x);
 	
 	#ifdef STEREO	
 	col *= vec3( isRed, 1.0-isRed, 1.0-isRed );	

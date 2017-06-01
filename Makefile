@@ -6,7 +6,7 @@
 #    By: alelievr <marvin@42.fr>                    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2014/07/15 15:13:38 by alelievr          #+#    #+#              #
-#    Updated: 2017/05/26 10:26:04 by jpirsch          ###   ########.fr        #
+#    Updated: 2017/06/01 22:52:16 by alelievr         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -25,6 +25,7 @@ SRC			=	ShaderRender.cpp		\
 				wav.cpp					\
 				utils.cpp				\
 				main.cpp				\
+				NetworkServer.cpp		\
 
 #	Objects
 OBJDIR		=	obj
@@ -44,7 +45,7 @@ INCDIRS		=	inc SOIL2/incs glfw/include fmod/inc lua/5.1/src/
 
 #	Libraries
 LIBDIRS		=	lua/5.1/src glfw/src/
-LDLIBS		=	-lglfw3 -llua
+LDLIBS		=	-lglfw3 -llua fmod/lib/libfmod.so -rpath /Users/alelievr/c/shaderRender/fmod/lib
 GLFWLIB		=	glfw/src/libglfw3.a
 SOILLIB		=	SOIL2/libSOIL2.so
 
@@ -103,6 +104,7 @@ ifeq "$(OS)" "Linux"
 endif
 ifeq "$(OS)" "Darwin"
 	FRAMEWORK	= OpenGL AppKit IOKit CoreVideo
+	OSX_SHARED_LIBRARY_PATH_CORRECTION = install_name_tool -change @rpath/libfmod.dylib /Users/alelievr/c/shaderRender/fmod/lib/libfmod.so $(NAME)
 endif
 
 #################
@@ -198,6 +200,7 @@ $(NAME): $(OBJ)
 		make -j 4 -C libft))
 	@$(call color_exec,$(CLINK_T),$(CLINK),"Link of $(NAME):",\
 		$(LINKER) $(WERROR) $(CFLAGS) $(LDFLAGS) $(OPTFLAGS) $(DEBUGFLAGS) $(LINKDEBUG) $(VFRAME) -o $@ $^ $(LDLIBS)  $(SOILLIB))
+	@$(OSX_SHARED_LIBRARY_PATH_CORRECTION)
 
 $(OBJDIR)/%.o: %.cpp $(INCFILES)
 	@mkdir -p $(OBJDIR)

@@ -6,7 +6,7 @@
 /*   By: jpirsch <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/05/26 05:35:14 by jpirsch           #+#    #+#             */
-/*   Updated: 2017/05/26 15:38:14 by jpirsch          ###   ########.fr       */
+/*   Updated: 2017/06/01 22:31:09 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -71,7 +71,7 @@ LuaGL::LuaGL(void)
 //	load_run_script(L, "lua/draw.lua");
 }
 
-int	LuaGL::load_run_script(lua_State *L, char *script)
+int	LuaGL::load_run_script(lua_State *L, const char *script)
 {
 	int	status, result;
 
@@ -92,6 +92,7 @@ int	LuaGL::load_run_script(lua_State *L, char *script)
 
 int	LuaGL::func(lua_State *L)
 {
+	(void)L;
 	printf("yolo i binded a function :)\n");
 	return (0);
 }

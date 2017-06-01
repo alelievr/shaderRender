@@ -59,6 +59,7 @@ bool		ShaderChannel::loadImage(const std::string & file, int mode)
 
 bool		ShaderChannel::loadShader(const std::string & file, int mode)
 {
+	(void)mode;
 	_type = ShaderChannelType::CHANNEL_PROGRAM;
 
 	_program = new ShaderProgram();
@@ -101,6 +102,7 @@ bool		ShaderChannel::loadShader(const std::string & file, int mode)
 
 bool		ShaderChannel::loadSound(const std::string & file)
 {
+	(void)file;
 	if (_textureId)
 		glDeleteTextures(1, (GLuint *)&_textureId);
 

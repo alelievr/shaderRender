@@ -6,7 +6,7 @@
 /*   By: jpirsch <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/05/26 05:39:09 by jpirsch           #+#    #+#             */
-/*   Updated: 2017/05/26 15:37:45 by jpirsch          ###   ########.fr       */
+/*   Updated: 2017/06/01 22:31:29 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,7 @@ class	LuaGL
 
 		lua_State	*getL(void);
 
-		int			load_run_script(lua_State *L, char *script);
+		int			load_run_script(lua_State *L, const char *script);
 
 	private:
 		lua_State	*L;
