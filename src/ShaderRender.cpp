@@ -13,7 +13,7 @@
 #include "ShaderRender.hpp"
 #include <functional>
 
-//#define DEBUG
+#define DEBUG
 
 vec2		framebuffer_size = {0, 0};
 vec2			window = {WIN_W, WIN_H};
@@ -211,7 +211,7 @@ void		ShaderRender::render(GLFWwindow *win)
 		}
 	);
 
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	glViewport(0, 0, framebuffer_size.x, framebuffer_size.y);
 

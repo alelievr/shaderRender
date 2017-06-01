@@ -6,13 +6,13 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/05/07 20:35:27 by alelievr          #+#    #+#             */
-/*   Updated: 2017/06/01 22:54:18 by alelievr         ###   ########.fr       */
+/*   Updated: 2017/06/02 00:08:16 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ShaderProgram.hpp"
 
-//#define DEBUG
+#define DEBUG
 
 ShaderProgram::ShaderProgram(void)
 {
@@ -160,7 +160,7 @@ void		ShaderProgram::loadUniformLocations(void)
 //TODO: delete numbers
 void		ShaderProgram::updateUniform1(const std::string & uniformName, int value) {
 #ifdef DEBUG
-	std::cout << uniformName << " -> " << (int)_uniforms[uniformName] << std::endl;
+	std::cout << "update uniform1i: " << uniformName << " -> " << (int)_uniforms[uniformName] << std::endl;
 #endif
    glUniform1i(_uniforms[uniformName], value);
 }
