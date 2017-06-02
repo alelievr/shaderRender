@@ -3,8 +3,10 @@
 
 static ShaderRender		*renderShader;
 
-ShaderApplication::ShaderApplication(void)
+ShaderApplication::ShaderApplication(bool server)
 {
+	(void)server;
+
 	glfwSetErrorCallback(
 		[](int code, const char *description)
 		{

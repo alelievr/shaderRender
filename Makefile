@@ -6,7 +6,7 @@
 #    By: alelievr <marvin@42.fr>                    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2014/07/15 15:13:38 by alelievr          #+#    #+#              #
-#    Updated: 2017/06/01 22:52:16 by alelievr         ###   ########.fr        #
+#    Updated: 2017/06/02 18:46:28 by alelievr         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -25,7 +25,7 @@ SRC			=	ShaderRender.cpp		\
 				wav.cpp					\
 				utils.cpp				\
 				main.cpp				\
-				NetworkServer.cpp		\
+				NetworkManager.cpp		\
 
 #	Objects
 OBJDIR		=	obj
@@ -59,7 +59,7 @@ CPROTECTION	=	-z execstack -fno-stack-protector
 
 DEBUGFLAGS1	=	-ggdb
 DEBUGFLAGS2	=	-fsanitize=address -fno-omit-frame-pointer -fno-optimize-sibling-calls -fsanitize-memory-track-origins=2
-OPTFLAGS1	=	-funroll-loops -O2
+OPTFLAGS1	=	-funroll-loops -O0 #FIXME !!! project does not work with optimization flags !
 OPTFLAGS2	=	-pipe -funroll-loops -Ofast
 
 #	Framework

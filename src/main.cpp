@@ -1,6 +1,19 @@
 #include <iostream>
 #include <string>
+#include <thread>
+#include <getopt.h>
 #include "ShaderApplication.hpp"
+#include "NetworkManager.hpp"
+
+static bool		networkMustQuit = false;
+static bool		server = false;
+static char *	shader = NULL;
+
+static struct option longopts[] = {
+    { "server",     no_argument,            NULL,           1},
+    { "shader",     required_argument,      NULL,           's'},
+    { NULL,         0,                      NULL,           0}
+};
 
 static void	usage(char *prog) __attribute__((noreturn));
 static void	usage(char *prog)
@@ -9,15 +22,55 @@ static void	usage(char *prog)
 	exit(0);
 }
 
-int		main(int ac, char ** av)
+static void options(int *ac, char ***av)
 {
-	ShaderApplication	app;
+	int bflag, ch;
 
-	if (ac != 2)
-		usage(av[0]);
+    bflag = 0;
+    while ((ch = getopt_long(*ac, *av, "s:", longopts, NULL)) != -1)
+        switch (ch) {
+            case 1:
+                server = true;
+                break;
+			case 's':
+				shader = optarg;
+				break ;
+            default:
+                usage(*av[0]);
+     	}
+    *ac -= optind;
+    *av += optind;
+}
 
-	if (app.LoadShader(av[1]))
-		app.RenderLoop();
+static void NetworkThread(bool server, ShaderApplication *app)
+{
+	NetworkManager		nm(server);
+
+	(void)app;
+	//TODO: set all network app callback with app;
+
+	nm.ConnectCluster(E1);
+	while (networkMustQuit)
+		if (nm.Update() == ERROR)
+			break ;
+	nm.CloseAllConnections();
+}
+
+int		main(int ac, char **av)
+{
+	options(&ac, &av);
+
+	ShaderApplication	app(server);
+	std::thread			networkThread(NetworkThread, server, &app);
+
+	//TODO: remove this, only for testing
+	if (shader != NULL)
+		app.LoadShader(shader);
+
+	app.RenderLoop();
+
+	networkMustQuit = true;
+	networkThread.join();
 
 	return 0;
 }

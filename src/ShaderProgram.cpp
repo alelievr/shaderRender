@@ -6,13 +6,13 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/05/07 20:35:27 by alelievr          #+#    #+#             */
-/*   Updated: 2017/06/02 00:08:16 by alelievr         ###   ########.fr       */
+/*   Updated: 2017/06/02 18:44:55 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ShaderProgram.hpp"
 
-#define DEBUG
+//#define DEBUG
 
 ShaderProgram::ShaderProgram(void)
 {

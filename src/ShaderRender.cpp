@@ -13,10 +13,10 @@
 #include "ShaderRender.hpp"
 #include <functional>
 
-#define DEBUG
+//#define DEBUG
 
 vec2		framebuffer_size = {0, 0};
-vec2			window = {WIN_W, WIN_H};
+vec2		window = {WIN_W, WIN_H};
 float		pausedTime = 0;
 
 ShaderRender::ShaderRender(void)
@@ -24,7 +24,7 @@ ShaderRender::ShaderRender(void)
 	fmod_init();
 
 	angleAmount = vec2{0, 0};
-	cursor_mode = 1;
+	cursor_mode = 0;
 	lastPausedTime = 0;
 	programLoaded = false;
 
@@ -160,6 +160,9 @@ void		ShaderRender::updateKeys(void)
 void		ShaderRender::render(GLFWwindow *win)
 {
 //	checkFileChanged(program);
+
+	if (!programLoaded)
+		return ;
 
 	updateKeys();
 
