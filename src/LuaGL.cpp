@@ -6,72 +6,59 @@
 /*   By: jpirsch <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/05/26 05:35:14 by jpirsch           #+#    #+#             */
-/*   Updated: 2017/06/01 22:31:09 by alelievr         ###   ########.fr       */
+/*   Updated: 2017/06/03 02:32:06 by jpirsch          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "LuaGL.hpp"
 
-
-/*static const luaL_Reg lgl[] =
+static const luaL_Reg Functions[] =
 {
-	{"func", my_func},
+	{"get_prog", get_prog},
+	{"use_prog", use_prog},
 	{NULL, NULL}
-};*/
+};
 
-LuaGL::LuaGL(void)
+ShaderRender  *getSR(ShaderRender *shadren)
 {
+	static ShaderRender *sr;
+
+	if (shadren == NULL)
+		return (sr);
+	else if (shadren)
+		sr = shadren;
+	return (NULL);
+}
+
+lua_State	*getL(lua_State *l)
+{
+	static lua_State	*L;
+
+	if (l == NULL)
+		return (L);
+	else if (l)
+		L = l;
+	return (NULL);
+}
+
+int	init_LuaGL(ShaderRender *sr)
+{
+	lua_State	*L;
+
+	getSR(sr);
 	L = luaL_newstate();    // All Lua contexts
-        // Register C functions to Lua
-        static const luaL_Reg Functions[] = {
-/*            {"create_program",			gol_create_program},
-            {"delete_program",          gol_delete_program},
-            {"use_program",				gol_use_program},
-            
-            {"get_uniform_location",	gol_get_uniform_location},
-            {"set_uniform_float",		gol_set_uniform_float},
-            {"set_uniform_int",			gol_set_uniform_int},
-            {"set_uniform_vec4",		gol_set_uniform_vec4},
-            {"set_uniform_mat4",		gol_set_uniform_mat4},
-            {"get_attribute_location",	gol_get_attribute_location},
-            
-            {"clear",					gol_clear},
-            {"clearColor",				gol_clearColor},
-            {"set_line_width",			gol_set_line_width},
-            {"draw_line_strip",			gol_draw_line_strip},
-            {"draw_line_loop",			gol_draw_line_loop},
-            
-            {"create_element",			gol_create_element},
-            {"delete_element",			gol_delete_element},
-            
-            {"draw_element",			gol_draw_element},
-            
-            {"get_size_tex2d",			gol_get_size_tex2d},
-            {"bind_tex2d",				gol_bind_tex2d},
-            {"delete_tex2d",			gol_delete_tex2d},
-            
-            {"create_fbo",				gol_create_fbo},
-            {"delete_fbo",				gol_delete_fbo},
-            {"bind_fbo",				gol_bind_fbo},
-            {"get_fbo_tex2d",			gol_get_fbo_tex2d},*/
-            {"func",			func},
-            
-            {NULL, NULL}  // sentinel
-        };
-    
-    // Into the "gol" table (acts like a namespace)
+	getL(L);
+	
+    // Into the lua "gol" table
 	luaL_register(L, "gol", Functions);
-    //    luaL_newlib(L, Functions);
-	//	lua_setglobal(L, "gol");
 	luaL_openlibs(L);       // Load Lua libraries
 
 	load_run_script(L, "lua/init_loop.lua");
 	lua_getfield(L, LUA_GLOBALSINDEX, "init_oo");
 	lua_call(L, 0, 0);
-//	load_run_script(L, "lua/draw.lua");
 }
 
-int	LuaGL::load_run_script(lua_State *L, const char *script)
+int	load_run_script(lua_State *L, char *script)
 {
 	int	status, result;
 
@@ -90,16 +77,20 @@ int	LuaGL::load_run_script(lua_State *L, const char *script)
 	return (0);
 }
 
-int	LuaGL::func(lua_State *L)
+int	get_prog(lua_State *L)
 {
-	(void)L;
-	printf("yolo i binded a function :)\n");
+	ShaderProgram	*prog;
+
+	prog = getSR(NULL)->getProgram();
+	lua_pushinteger(L, lua_Integer(prog));
+	return (1);
+}
+
+int	use_prog(lua_State *L)
+{
+	ShaderProgram	*prog;
+
+	prog = (ShaderProgram*)(luaL_checkinteger(L, 1));
+	prog->use();
 	return (0);
 }
-
-lua_State	*LuaGL::getL(void)
-{
-	return (L);
-}
-
-LuaGL::~LuaGL(void) {}

@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/05/07 21:28:59 by alelievr          #+#    #+#             */
-/*   Updated: 2017/05/26 15:33:25 by jpirsch          ###   ########.fr       */
+/*   Updated: 2017/06/03 02:39:11 by jpirsch          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,7 +46,6 @@ class ShaderRender
 		int				input_pause = 0;
 
 		ShaderProgram	_program;
-		LuaGL			*luaGL;
 
 		vec2			angleAmount;
 		int				cursor_mode;
@@ -79,5 +78,6 @@ class ShaderRender
 		void				keyCallback(GLFWwindow *window, int key, int scancode, int action, int mods);
 
 		ShaderChannel		*getChannel(int channel);
+		ShaderProgram		*getProgram(void);
 		//void				updateChannel(const std::string file, int idnex, int mode);
 };

@@ -11,6 +11,7 @@
 /* ************************************************************************** */
 
 #include "ShaderRender.hpp"
+#include "LuaGL.hpp"
 #include <functional>
 
 //#define DEBUG
@@ -28,7 +29,7 @@ ShaderRender::ShaderRender(void)
 	lastPausedTime = 0;
 	programLoaded = false;
 
-	luaGL = new LuaGL();
+	init_LuaGL(this);
 }
 
 void		ShaderRender::updateUniforms(ShaderProgram *p)
@@ -224,8 +225,8 @@ void		ShaderRender::render(GLFWwindow *win)
 	glEnable(GL_MULTISAMPLE);
 	glEnable(GL_TEXTURE_2D);
 
-	luaGL->load_run_script(luaGL->getL(), "lua/draw.lua");
-	_program.use();
+	load_run_script(getL(NULL), "lua/draw.lua");
+	//_program.use();
 
 	updateUniforms(&_program);
 
@@ -431,8 +432,12 @@ ShaderChannel	*ShaderRender::getChannel(int chan)
 	return NULL;
 }
 
+ShaderProgram	*ShaderRender::getProgram(void)
+{
+	return (&_program);
+}
+
 ShaderRender::~ShaderRender()
 {
-	lua_close(luaGL->getL());		// Cya, Lua
-	delete luaGL;
+	lua_close(getL(NULL));		// Cya, Lua
 }

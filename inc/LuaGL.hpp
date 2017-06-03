@@ -6,7 +6,7 @@
 /*   By: jpirsch <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/05/26 05:39:09 by jpirsch           #+#    #+#             */
-/*   Updated: 2017/06/01 22:31:29 by alelievr         ###   ########.fr       */
+/*   Updated: 2017/06/03 02:29:56 by jpirsch          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,21 +18,17 @@
 #ifndef LUAGL
 # define LUAGL
 
-class	LuaGL
-{
-	public:
-		LuaGL(void);
-		~LuaGL(void);
+class ShaderRender;
 
-		lua_State	*getL(void);
+ShaderRender	*getSR(ShaderRender *shadren);
+lua_State		*getL(lua_State *L);
+int				init_LuaGL(ShaderRender* ShadRen);
+int				load_run_script(lua_State *L, char *script);
+int				get_prog(lua_State *L);
+int				use_prog(lua_State *L);
 
-		int			load_run_script(lua_State *L, const char *script);
+//	std::vector< std::function< int<lua_State *> > >	funcs;
+//void			add_func(lua_func LuaGL::*(luaState *) func);
 
-	private:
-		lua_State	*L;
-		int			status;
-
-		static int	func(lua_State *L);
-};
 
 #endif
