@@ -6,7 +6,7 @@
 #    By: alelievr <marvin@42.fr>                    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2014/07/15 15:13:38 by alelievr          #+#    #+#              #
-#    Updated: 2017/06/02 18:46:28 by alelievr         ###   ########.fr        #
+#    Updated: 2017/06/06 20:02:51 by alelievr         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -26,6 +26,7 @@ SRC			=	ShaderRender.cpp		\
 				utils.cpp				\
 				main.cpp				\
 				NetworkManager.cpp		\
+				Timer.cpp				\
 
 #	Objects
 OBJDIR		=	obj
@@ -58,7 +59,7 @@ CFLAGS		=	-Wall -Wextra
 CPROTECTION	=	-z execstack -fno-stack-protector
 
 DEBUGFLAGS1	=	-ggdb
-DEBUGFLAGS2	=	-fsanitize=address -fno-omit-frame-pointer -fno-optimize-sibling-calls -fsanitize-memory-track-origins=2
+DEBUGFLAGS2	=	-fsanitize=address -fno-omit-frame-pointer -fno-optimize-sibling-calls 
 OPTFLAGS1	=	-funroll-loops -O0 #FIXME !!! project does not work with optimization flags !
 OPTFLAGS2	=	-pipe -funroll-loops -Ofast
 
@@ -145,7 +146,7 @@ endif
 ifneq ($(filter 2,$(strip $(DEBUGLEVEL)) ${DEBUG}),)
 	OPTLEVEL = 0
 	OPTI = 0
-	DEBUGFLAGS += $(DEBUGFLAGS1)
+	DEBUGFLAGS += $(DEBUGFLAGS1) $(DEBUGFLAGS2)
 	LINKDEBUG += $(DEBUGFLAGS1) $(DEBUGFLAGS2)
 	export ASAN_OPTIONS=check_initialization_order=1
 endif

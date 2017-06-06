@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/05/07 20:35:27 by alelievr          #+#    #+#             */
-/*   Updated: 2017/06/02 18:44:55 by alelievr         ###   ########.fr       */
+/*   Updated: 2017/06/06 20:18:25 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,6 +22,7 @@ ShaderProgram::ShaderProgram(void)
 	this->_lastModified = 0;
 	this->_vbo = -1;
 	this->_vao = -1;
+	this->_loaded = false;
 
 	this->_channels = new ShaderChannel[MAX_CHANNEL_COUNT];
 
@@ -133,6 +134,8 @@ bool		ShaderProgram::compileAndLink(void)
 	glEnableVertexAttribArray(fragPos);
 	glVertexAttribPointer(fragPos, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, (void*) 0);
 
+	_loaded = true;
+
 	return true;
 }
 
@@ -205,6 +208,12 @@ void		ShaderProgram::draw(void)
 
 void		ShaderProgram::deleteProgram(void)
 {
+	printf("loaded: %i\n", _loaded);
+
+	if (!_loaded)
+		return ;
+
+	_loaded = false;
 	glUseProgram(0);
 	glDeleteProgram(_id);
 	_fragmentFileSources.clear();

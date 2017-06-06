@@ -29,7 +29,7 @@ ShaderRender::ShaderRender(void)
 	lastPausedTime = 0;
 	programLoaded = false;
 
-	init_LuaGL(this);
+	//init_LuaGL(this);
 }
 
 void		ShaderRender::updateUniforms(ShaderProgram *p)
@@ -225,7 +225,7 @@ void		ShaderRender::render(GLFWwindow *win)
 	glEnable(GL_MULTISAMPLE);
 	glEnable(GL_TEXTURE_2D);
 
-	load_run_script(getL(NULL), "lua/draw.lua");
+	//load_run_script(getL(NULL), "lua/draw.lua");
 	//_program.use();
 
 	updateUniforms(&_program);
@@ -274,6 +274,7 @@ void		ShaderRender::displayWindowFps(void)
 
 bool		ShaderRender::attachShader(const std::string file)
 {
+	_program.deleteProgram();
 	_program.loadFragmentFile(file);
 	if (!_program.compileAndLink())
 		return std::cout << "shader " << file << " failed to compile !\n", false;
@@ -439,5 +440,5 @@ ShaderProgram	*ShaderRender::getProgram(void)
 
 ShaderRender::~ShaderRender()
 {
-	lua_close(getL(NULL));		// Cya, Lua
+//	lua_close(getL(NULL));		// Cya, Lua
 }

@@ -4,6 +4,7 @@
 #include <getopt.h>
 #include "ShaderApplication.hpp"
 #include "NetworkManager.hpp"
+#include "Timer.hpp"
 
 static bool		networkMustQuit = false;
 static bool		server = false;
@@ -46,14 +47,34 @@ static void NetworkThread(bool server, ShaderApplication *app)
 {
 	NetworkManager		nm(server);
 
-	(void)app;
-	//TODO: set all network app callback with app;
+	if (!server)
+	{
+		printf("here\n");
+		nm.SetShaderSwitchCallback(
+			[app](Timeval *timing, const std::string & shaderName)
+			{
+				app->LoadShader(shaderName);
+				Timer::Timeout(timing,
+					[app](void)
+					{
+						app->SwapShaderRender();
+					}
+				);
+			}
+		);
 
-	nm.ConnectCluster(E1);
-	while (networkMustQuit)
-		if (nm.Update() == ERROR)
-			break ;
-	nm.CloseAllConnections();
+		while (networkMustQuit)
+			if (nm.Update() == ERROR)
+				break ;
+	}
+	else
+	{
+		nm.ConnectCluster(E1);
+		while (networkMustQuit)
+			if (nm.Update() == ERROR)
+				break ;
+		nm.CloseAllConnections();
+	}
 }
 
 int		main(int ac, char **av)
@@ -65,7 +86,10 @@ int		main(int ac, char **av)
 
 	//TODO: remove this, only for testing
 	if (shader != NULL)
+	{
 		app.LoadShader(shader);
+		app.SwapShaderRender();
+	}
 
 	app.RenderLoop();
 

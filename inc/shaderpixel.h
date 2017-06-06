@@ -39,6 +39,8 @@
 # define SCALE				70
 //# define DOUBLE_PRECISION 1
 
+typedef struct timeval			Timeval;
+
 typedef struct s_vec2
 {
 	float x;

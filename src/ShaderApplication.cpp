@@ -31,8 +31,9 @@ ShaderApplication::ShaderApplication(bool server)
 	glfwSwapInterval(1);
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
-	mShaderRender = new ShaderRender();
-	renderShader = mShaderRender;
+	currentShaderRender = new ShaderRender();
+	bufferedShaderRender = new ShaderRender();
+	renderShader = currentShaderRender;
 
 	glfwSetFramebufferSizeCallback(window,
 		[](GLFWwindow *, int width, int height) {
@@ -78,14 +79,23 @@ ShaderApplication::ShaderApplication(bool server)
 
 bool	ShaderApplication::LoadShader(const std::string & shaderFile)
 {
-	return renderShader->attachShader(shaderFile);
+	return bufferedShaderRender->attachShader(shaderFile);
+}
+
+void	ShaderApplication::SwapShaderRender(void)
+{
+	ShaderRender	*tmp = bufferedShaderRender;
+
+	bufferedShaderRender = currentShaderRender;
+	currentShaderRender = tmp;
+	renderShader = currentShaderRender;
 }
 
 void	ShaderApplication::RenderLoop(void)
 {
 	while (!glfwWindowShouldClose(window))
 	{
-		mShaderRender->render(window);
+		currentShaderRender->render(window);
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
@@ -94,5 +104,5 @@ void	ShaderApplication::RenderLoop(void)
 
 ShaderApplication::~ShaderApplication()
 {
-	delete mShaderRender;
+	delete currentShaderRender;
 }

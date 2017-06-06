@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/06/02 17:40:05 by alelievr          #+#    #+#             */
-/*   Updated: 2017/06/02 18:50:17 by alelievr         ###   ########.fr       */
+/*   Updated: 2017/06/06 20:14:41 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,7 @@
 #include <sys/socket.h>
 #include <stdio.h>
 #include <arpa/inet.h>
+#include <functional>
 
 NetworkManager::NetworkManager(bool server)
 {
@@ -33,6 +34,10 @@ NetworkManager::NetworkManager(bool server)
 		if (bind(_fd, reinterpret_cast< struct sockaddr* >(&sin), sizeof(sin)) == -1)
 			perror("bind"), exit(-1);
 		std::cout << "server started !" << std::endl;
+	}
+	else
+	{
+		//TODO: open client port, bind it, and listent for the server poke
 	}
 }
 
@@ -138,6 +143,12 @@ int		NetworkManager::SwitchShaderOnGroup(int groupId, const std::string & shader
 	(void)groupId;
 	(void)shaderName;
 	return SUCCESS;
+}
+
+//Client callbacks:
+void	NetworkManager::SetShaderSwitchCallback(std::function< void (Timeval *timing, const std::string & shaderName) > callback)
+{
+	_shaderSwitchCallback = callback;
 }
 
 //Utils

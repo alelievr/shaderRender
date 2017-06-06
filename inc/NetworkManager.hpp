@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/06/02 17:39:53 by alelievr          #+#    #+#             */
-/*   Updated: 2017/06/02 17:44:32 by alelievr         ###   ########.fr       */
+/*   Updated: 2017/06/06 20:14:04 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,7 @@
 # include <string>
 # include <list>
 # include <queue>
+# include "shaderpixel.h"
 
 # define CLIENT_PORT			5446
 # define SERVER_PORT			5447
@@ -32,6 +33,9 @@
 # define E1						1
 # define E2						2
 # define E3						3
+
+typedef std::function< void (Timeval *timing, const std::string & shaderName) >	ShaderSwitchCallback;
+typedef std::function< void (Timeval *timing, const std::string & shaderName) > ShaderUniformCallback;
 
 enum 		NetworkStatus
 {
@@ -62,7 +66,7 @@ class		NetworkManager
 			int				cluster;
 			int				fd;
 			int				satus;
-			struct timeval	averageTimeDelta;
+			Timeval	averageTimeDelta;
 
 			Client(int row, int seat, int cluster, int fd)
 			{
@@ -73,10 +77,16 @@ class		NetworkManager
 			}
 		};
 
+		/*	Packet struct which handle all possible packets:
+ 		 *		Query client status
+ 		 *		Update client current program uniform
+ 		 *		Switch client program
+ 		 * */
+
 		struct			Packet
 		{
 			int				type;
-			struct timeval	timing; //time to wait to execute datas
+			Timeval	timing; //time to wait to execute datas
 			union
 			{
 				struct //query client status
@@ -131,6 +141,9 @@ class		NetworkManager
 		bool					_isServer;
 		int						_fd;
 
+		ShaderSwitchCallback	_shaderSwitchCallback = NULL;
+		ShaderUniformCallback	_shaderUniformCallback = NULL;
+
 		int						_SendPacketToAllClients(const Packet & packet);
 		int						_SendPacketToGroup(const int groupId, const Packet & packet);
 
@@ -145,6 +158,11 @@ class		NetworkManager
 		int		CloseAllConnections(void);
 		void	GetSyncOffsets(void);
 		int		Update(void);
+
+		//Client callbacks:
+		void			SetShaderSwitchCallback(ShaderSwitchCallback callback);
+		void			SetShaderUniformCallback(ShaderUniformCallback callback);
+		
 
 		static int		RunShaderOnGroup(int groupId, const std::string & shaderName);
 		static int		UpdateUniformOnGroup(int group, const std::string uniformName, ...);

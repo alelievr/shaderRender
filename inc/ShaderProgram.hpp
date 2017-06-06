@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/05/07 20:35:23 by alelievr          #+#    #+#             */
-/*   Updated: 2017/05/26 04:08:40 by jpirsch          ###   ########.fr       */
+/*   Updated: 2017/06/06 19:16:51 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,6 +59,7 @@ class		ShaderProgram
 		ShaderChannel						*_channels;
 		long								_lastModified;
 		std::map< std::string, GLuint >		_uniforms;
+		bool								_loaded;
 
 		GLuint								_vao;
 		GLuint								_vbo;
@@ -89,23 +90,23 @@ class		ShaderProgram
 		void	updateRenderSurface(const RenderSurface & surface);
 		void	updateRenderSurface(const float *points, GLenum renderMode, int count);
 
-		void		updateUniform1(const std::string & uniformName, int value);
-		void		updateUniform1(const std::string & uniformName, int count, int *values);
-		void		updateUniform2(const std::string & uniformName, int value1, int value2);
-		void		updateUniform2(const std::string & uniformName, int count, int *values);
-		void		updateUniform3(const std::string & uniformName, int value1, int value2, int value3);
-		void		updateUniform3(const std::string & uniformName, int count, int *values);
-		void		updateUniform4(const std::string & uniformName, int value1, int value2, int value3, int value4);
-		void		updateUniform4(const std::string & uniformName, int count, int *values);
+		void	updateUniform1(const std::string & uniformName, int value);
+		void	updateUniform1(const std::string & uniformName, int count, int *values);
+		void	updateUniform2(const std::string & uniformName, int value1, int value2);
+		void	updateUniform2(const std::string & uniformName, int count, int *values);
+		void	updateUniform3(const std::string & uniformName, int value1, int value2, int value3);
+		void	updateUniform3(const std::string & uniformName, int count, int *values);
+		void	updateUniform4(const std::string & uniformName, int value1, int value2, int value3, int value4);
+		void	updateUniform4(const std::string & uniformName, int count, int *values);
 
-		void		updateUniform1(const std::string & uniformName, float value);
-		void		updateUniform1(const std::string & uniformName, int count, float *values);
-		void		updateUniform2(const std::string & uniformName, float value1, float value2);
-		void		updateUniform2(const std::string & uniformName, int count, float *values);
-		void		updateUniform3(const std::string & uniformName, float value1, float value2, float value3);
-		void		updateUniform3(const std::string & uniformName, int count, float *values);
-		void		updateUniform4(const std::string & uniformName, float value1, float value2, float value3, float value4);
-		void		updateUniform4(const std::string & uniformName, int count, float *values);
+		void	updateUniform1(const std::string & uniformName, float value);
+		void	updateUniform1(const std::string & uniformName, int count, float *values);
+		void	updateUniform2(const std::string & uniformName, float value1, float value2);
+		void	updateUniform2(const std::string & uniformName, int count, float *values);
+		void	updateUniform3(const std::string & uniformName, float value1, float value2, float value3);
+		void	updateUniform3(const std::string & uniformName, int count, float *values);
+		void	updateUniform4(const std::string & uniformName, float value1, float value2, float value3, float value4);
+		void	updateUniform4(const std::string & uniformName, int count, float *values);
 
 		int		getProgramId(void) const;
 
