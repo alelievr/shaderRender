@@ -49,7 +49,6 @@ static void NetworkThread(bool server, ShaderApplication *app)
 
 	if (!server)
 	{
-		printf("here\n");
 		nm.SetShaderSwitchCallback(
 			[app](Timeval *timing, const std::string & shaderName)
 			{
@@ -63,15 +62,15 @@ static void NetworkThread(bool server, ShaderApplication *app)
 			}
 		);
 
-		while (networkMustQuit)
-			if (nm.Update() == ERROR)
+		while (!networkMustQuit)
+			if (nm.Update() == NetworkStatus::Error)
 				break ;
 	}
 	else
 	{
 		nm.ConnectCluster(E1);
-		while (networkMustQuit)
-			if (nm.Update() == ERROR)
+		while (!networkMustQuit)
+			if (nm.Update() == NetworkStatus::Error)
 				break ;
 		nm.CloseAllConnections();
 	}
