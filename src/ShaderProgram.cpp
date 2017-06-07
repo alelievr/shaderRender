@@ -6,13 +6,16 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/05/07 20:35:27 by alelievr          #+#    #+#             */
-/*   Updated: 2017/06/06 21:50:46 by alelievr         ###   ########.fr       */
+/*   Updated: 2017/06/07 13:32:19 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ShaderProgram.hpp"
 
 //#define DEBUG
+
+//FIXME: remove this to support multi-vao
+GLint		vao = -1;
 
 ShaderProgram::ShaderProgram(void)
 {
@@ -331,7 +334,9 @@ void			ShaderProgram::updateVAO(void)
 		glBindVertexArray(_vao);
 		glEnableVertexAttribArray(0);
 		glBindBuffer(GL_ARRAY_BUFFER, _vbo);
+		vao = _vao;
 	}
+	_vao = vao;
 	once = false;
 }
 
