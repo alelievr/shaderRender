@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/06/02 17:39:53 by alelievr          #+#    #+#             */
-/*   Updated: 2017/06/09 04:24:46 by alelievr         ###   ########.fr       */
+/*   Updated: 2017/06/08 19:20:34 by root             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,6 +22,7 @@
 # include <sys/socket.h>
 # include <stdio.h>
 # include <arpa/inet.h>
+# include <functional>
 # include "shaderpixel.h"
 
 # define CLIENT_PORT			5446
