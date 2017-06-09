@@ -1,34 +1,39 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   ShaderApplication.hpp                              :+:      :+:    :+:   */
+/*   Element.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: jpirsch <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2017/05/26 03:37:10 by jpirsch           #+#    #+#             */
-/*   Updated: 2017/06/09 05:21:51 by jpirsch          ###   ########.fr       */
+/*   Created: 2017/06/04 06:42:17 by jpirsch           #+#    #+#             */
+/*   Updated: 2017/06/09 04:12:32 by jpirsch          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef SHADER_APPLICATION
-# define SHADER_APPLICATION
-# include "shaderpixel.h"
-# include "ShaderRender.hpp"
+#ifndef ELEMENT
+# define ELEMENT
+# include <shaderpixel.h>
 
-class ShaderApplication
+typedef struct
+{
+	vec3	pos;
+	vec2	uv;
+}		vertices;
+
+class Element
 {
 	public:
-		ShaderApplication(bool server = false);
-		virtual ~ShaderApplication(void);
+		Element(ushort *ind, int ind_nb, vec3 *pos, int pos_nb, vec2  *uv,
+				int uv_nb);
+		void	draw(GLuint vert_loc, GLuint uv_loc);
+		virtual ~Element(void);
 
-		bool	LoadShader(const std::string & shaderFile);
-		void	SwapShaderRender(void);
-		void	RenderLoop(void);
+//		bool	LoadShader(const std::string & shaderFile);
 
 	private:
-		ShaderRender		*currentShaderRender;
-		ShaderRender		*bufferedShaderRender;
-		GLFWwindow			*window;
+		GLuint		_ind_nb;
+		GLuint		_ind_id;
+		GLuint		_vert_id;
 };
 
 #endif

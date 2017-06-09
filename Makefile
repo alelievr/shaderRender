@@ -6,7 +6,7 @@
 #    By: alelievr <marvin@42.fr>                    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2014/07/15 15:13:38 by alelievr          #+#    #+#              #
-#    Updated: 2017/06/07 13:31:33 by alelievr         ###   ########.fr        #
+#    Updated: 2017/06/09 05:21:38 by jpirsch          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -20,6 +20,8 @@ SRC			=	ShaderRender.cpp		\
 				ShaderProgram.cpp		\
 				ShaderChannel.cpp		\
 				ShaderApplication.cpp	\
+				Element.cpp				\
+				lua_utils.cpp			\
 				LuaGL.cpp				\
 				fmod.cpp				\
 				wav.cpp					\
@@ -46,7 +48,7 @@ INCDIRS		=	inc SOIL2/incs glfw/include fmod/inc lua/5.1/src/
 
 #	Libraries
 LIBDIRS		=	lua/5.1/src glfw/src/
-LDLIBS		=	-lglfw3 -llua fmod/lib/libfmod.so -rpath /Users/alelievr/c/shaderRender/fmod/lib
+LDLIBS		=	-lglfw3 -llua fmod/lib/libfmod.so -rpath ./fmod/lib
 GLFWLIB		=	glfw/src/libglfw3.a
 SOILLIB		=	SOIL2/libSOIL2.so
 
@@ -105,7 +107,7 @@ ifeq "$(OS)" "Linux"
 endif
 ifeq "$(OS)" "Darwin"
 	FRAMEWORK	= OpenGL AppKit IOKit CoreVideo
-	OSX_SHARED_LIBRARY_PATH_CORRECTION = install_name_tool -change @rpath/libfmod.dylib /Users/alelievr/c/shaderRender/fmod/lib/libfmod.so $(NAME)
+	OSX_SHARED_LIBRARY_PATH_CORRECTION = install_name_tool -change @rpath/libfmod.dylib ./fmod/lib/libfmod.so $(NAME)
 endif
 
 #################

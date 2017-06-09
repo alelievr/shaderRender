@@ -6,7 +6,7 @@
 /*   By: jpirsch <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/05/26 05:35:14 by jpirsch           #+#    #+#             */
-/*   Updated: 2017/06/03 02:32:06 by jpirsch          ###   ########.fr       */
+/*   Updated: 2017/06/09 04:10:39 by jpirsch          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,9 @@ static const luaL_Reg Functions[] =
 {
 	{"get_prog", get_prog},
 	{"use_prog", use_prog},
+	{"create_element", create_element},
+	{"draw_element", draw_element},
+	{"delete_element", delete_element},
 	{NULL, NULL}
 };
 
@@ -92,5 +95,40 @@ int	use_prog(lua_State *L)
 
 	prog = (ShaderProgram*)(luaL_checkinteger(L, 1));
 	prog->use();
+	return (0);
+}
+
+int	create_element(lua_State *L)
+{
+    size_t ind_nb; // indices
+    unsigned short* ind = pop_ushort( L, 1, &ind_nb );
+    
+    size_t pos_nb; // positions
+    vec3* pos = pop_vec3( L, 2, &pos_nb );
+    
+    size_t uv_nb; // texture coordinates
+    vec2* uv = pop_vec2( L, 3, &uv_nb );
+    
+	Element	*elem = new Element(ind, ind_nb, pos, pos_nb, uv, uv_nb);
+	lua_pushinteger(L, lua_Integer(elem));
+	return (1);
+}
+
+int	draw_element(lua_State *L)
+{
+	Element *elem = (Element*)(luaL_checkinteger(L, 1));
+	GLuint vert_loc = (GLuint)(luaL_checkinteger(L, 2));
+	GLuint uv_loc = (GLuint)(luaL_checkinteger(L, 3));
+	
+	elem->draw(vert_loc, uv_loc);
+	return (0);
+}
+
+int				delete_element(lua_State *L)
+{
+	Element	*elem;
+
+	elem = (Element*)(luaL_checkinteger(L, 1));
+	delete elem;
 	return (0);
 }
