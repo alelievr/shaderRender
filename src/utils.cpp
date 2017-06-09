@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/09 12:36:31 by alelievr          #+#    #+#             */
-/*   Updated: 2017/05/21 20:06:19 by alelievr         ###   ########.fr       */
+/*   Updated: 2017/06/08 19:20:09 by root             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,7 @@
 #include <string.h>
 #include <time.h>
 #include <sys/time.h>
+#include <algorithm>
 
 struct MatchPathSeparator
 {

@@ -1,4 +1,8 @@
+*.so
+*.a
 *.o
+lua/5.1/src/lua
+lua/5.1/src/luac
 obj/
 visualishader
 *~
