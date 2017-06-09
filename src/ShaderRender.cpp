@@ -225,8 +225,8 @@ void		ShaderRender::render(GLFWwindow *win)
 	glEnable(GL_MULTISAMPLE);
 	glEnable(GL_TEXTURE_2D);
 
-	load_run_script(getL(NULL), "lua/draw.lua");
-	//_program.use();
+//	load_run_script(getL(NULL), "lua/draw.lua");
+	_program.use();
 
 	updateUniforms(&_program);
 
