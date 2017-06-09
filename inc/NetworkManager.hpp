@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/06/02 17:39:53 by alelievr          #+#    #+#             */
-/*   Updated: 2017/06/07 01:45:42 by alelievr         ###   ########.fr       */
+/*   Updated: 2017/06/09 04:24:46 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,8 +43,8 @@
 
 # define IP_LENGHT				sizeof("127.127.127.127")
 
-typedef std::function< void (Timeval *timing, const std::string & shaderName) >	ShaderSwitchCallback;
-typedef std::function< void (Timeval *timing, const std::string & shaderName) > ShaderUniformCallback;
+typedef std::function< void (const Timeval *timing, const std::string & shaderName) >	ShaderSwitchCallback;
+typedef std::function< void (const Timeval *timing, const std::string & shaderName) > ShaderUniformCallback;
 
 enum class	NetworkStatus
 {
@@ -73,6 +73,7 @@ class		NetworkManager
 		enum class		PacketType
 		{
 			Status,
+			ShaderSwitch,
 			UniformUpdate,
 		};
 
@@ -190,6 +191,7 @@ class		NetworkManager
 		void					_InitPacketHeader(Packet *p, const Client & client, const PacketType type) const;
 		Packet					_CreatePokeStatusPacket(void) const;
 		Packet					_CreatePokeStatusResponsePacket(const Client & client, const Packet & oldPacket) const;
+		Packet					_CreateShaderSwitchPacket(const int groupId, Timeval *tv, const std::string & shaderName);
 
 	public:
 		NetworkManager(bool server = false);
@@ -208,11 +210,11 @@ class		NetworkManager
 		void			SetShaderUniformCallback(ShaderUniformCallback callback);
 		
 
-		static NetworkStatus	RunShaderOnGroup(int groupId, const std::string & shaderName);
-		static NetworkStatus	UpdateUniformOnGroup(int group, const std::string uniformName, ...);
-		static NetworkStatus	SwitchShaderOnGroup(int groupId, const std::string & shaderName);
-		static int				CreateNewGroup(void);
-		static NetworkStatus	AddIMacToGroup(int row, int seat, int floor = 1);
+		NetworkStatus	RunShaderOnGroup(const int groupId, const std::string & shaderName);
+		NetworkStatus	UpdateUniformOnGroup(const int group, const std::string uniformName, ...);
+		NetworkStatus	SwitchShaderOnGroup(const int groupId, const std::string & shaderName);
+		int				CreateNewGroup(void);
+		NetworkStatus	AddIMacToGroup(const int groupId, const int row, const int seat, const int floor = 1);
 
 		bool	IsServer(void) const;
 };

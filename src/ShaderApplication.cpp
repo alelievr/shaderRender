@@ -79,7 +79,7 @@ ShaderApplication::ShaderApplication(bool server)
 
 bool	ShaderApplication::LoadShader(const std::string & shaderFile)
 {
-	return bufferedShaderRender->attachShader(shaderFile);
+	bufferedShaderRender->attachShader(shaderFile);
 }
 
 void	ShaderApplication::SwapShaderRender(void)
@@ -105,4 +105,5 @@ void	ShaderApplication::RenderLoop(void)
 ShaderApplication::~ShaderApplication()
 {
 	delete currentShaderRender;
+	delete bufferedShaderRender;
 }

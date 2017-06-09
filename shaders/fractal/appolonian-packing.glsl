@@ -23,7 +23,7 @@ vec2 circleInverse(vec2 pos, vec2 circlePos, float circleR){
 	return ((pos - circlePos) * circleR * circleR)/(length(pos - circlePos) * length(pos - circlePos) ) + circlePos;
 }
 
-const int ITERATIONS = 14;
+const int ITERATIONS = 13;
 float IIS(vec2 pos){
     float loopNum = 0.;
 	bool cont = false;

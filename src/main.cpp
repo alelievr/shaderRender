@@ -49,13 +49,16 @@ static void NetworkThread(bool server, ShaderApplication *app)
 
 	if (!server)
 	{
+			printf("app: %p\n", app);
 		nm.SetShaderSwitchCallback(
-			[app](Timeval *timing, const std::string & shaderName)
+			[app](const Timeval *timing, const std::string & shaderName)
 			{
-				app->LoadShader(shaderName);
+				std::cout << "loading shader !\n";
+			//	app->LoadShader(shaderName);
 				Timer::Timeout(timing,
-					[app](void)
+					[app, shaderName](void)
 					{
+						std::cout << "switch shader requested with shader: " << shaderName << std::endl;
 						app->SwapShaderRender();
 					}
 				);
@@ -69,6 +72,8 @@ static void NetworkThread(bool server, ShaderApplication *app)
 	else
 	{
 		nm.ConnectCluster(E1);
+
+		nm.RunShaderOnGroup(0, "shaders/fractal/mandel-simple.glsl");
 		while (!networkMustQuit)
 			if (nm.Update() == NetworkStatus::Error)
 				break ;

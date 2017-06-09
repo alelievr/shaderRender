@@ -16,7 +16,7 @@ class		Timer
 
 		Timer &	operator=(Timer const & src);
 
-		static void	Timeout(Timeval *timeout, std::function< void(void) > callback);
+		static void	Timeout(const Timeval *timeout, std::function< void(void) > callback);
 };
 
 std::ostream &	operator<<(std::ostream & o, Timer const & r);

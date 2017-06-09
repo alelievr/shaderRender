@@ -19,9 +19,9 @@ Timer::~Timer(void)
 	std::cout << "Destructor of Timer called" << std::endl;
 }
 
-void	Timer::Timeout(Timeval *timeout, std::function< void(void) > callback)
+void	Timer::Timeout(const Timeval *timeout, std::function< void(void) > callback)
 {
-	std::thread		th(
+	new std::thread(
 		[callback, timeout](void)
 		{
 			Timeval		now;
