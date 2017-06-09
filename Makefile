@@ -28,6 +28,7 @@ SRC			=	ShaderRender.cpp		\
 				utils.cpp				\
 				main.cpp				\
 				NetworkManager.cpp		\
+				Timer.cpp				\
 
 #	Objects
 OBJDIR		=	obj

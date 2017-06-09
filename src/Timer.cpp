@@ -1,18 +1,9 @@
 #include "Timer.hpp"
-#include <thread>
 #include <unistd.h>
 #include <sys/time.h>
 
-Timer::Timer(void)
-{
-	std::cout << "Default constructor of Timer called" << std::endl;
-}
-
-Timer::Timer(Timer const & src)
-{
-	*this = src;
-	std::cout << "Copy constructor called" << std::endl;
-}
+std::map< int, std::thread * >	Timer::_runningThreads;
+int								Timer::_localThreadIndex;
 
 Timer::~Timer(void)
 {
@@ -21,9 +12,10 @@ Timer::~Timer(void)
 
 void	Timer::Timeout(const Timeval *timeout, std::function< void(void) > callback)
 {
-	new std::thread(
+	_runningThreads[_localThreadIndex] = new std::thread(
 		[callback, timeout](void)
 		{
+			int			threadIndex = _localThreadIndex;
 			Timeval		now;
 			gettimeofday(&now, NULL);
 			long		secDiff = (timeout->tv_sec - now.tv_sec) * 1000 * 1000;
@@ -32,23 +24,8 @@ void	Timer::Timeout(const Timeval *timeout, std::function< void(void) > callback
 			if (total > 0)
 				usleep(total);
 			callback();
+			_runningThreads.erase(threadIndex);
 		}
 	);
-}
-
-
-Timer &	Timer::operator=(Timer const & src)
-{
-	std::cout << "Assignment operator called" << std::endl;
-
-	if (this != &src) {
-	}
-	return (*this);
-}
-
-std::ostream &	operator<<(std::ostream & o, Timer const & r)
-{
-	o << "tostring of the class" << std::endl;
-	(void)r;
-	return (o);
+	_localThreadIndex++;
 }

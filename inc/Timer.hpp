@@ -2,19 +2,22 @@
 # define TIMER_HPP
 # include <iostream>
 # include <string>
+# include <map>
+# include <thread>
 # include "shaderpixel.h"
 
 class		Timer
 {
 	private:
-
+		static std::map< int, std::thread * >	_runningThreads;
+		static int								_localThreadIndex;
 
 	public:
-		Timer();
-		Timer(const Timer&);
+		Timer(void) = delete;
+		Timer(const Timer&) = delete;
 		virtual ~Timer(void);
 
-		Timer &	operator=(Timer const & src);
+		Timer &	operator=(Timer const & src) = delete;
 
 		static void	Timeout(const Timeval *timeout, std::function< void(void) > callback);
 };
