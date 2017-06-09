@@ -6,7 +6,7 @@
 /*   By: jpirsch <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/05/26 03:37:10 by jpirsch           #+#    #+#             */
-/*   Updated: 2017/06/07 10:29:42 by jpirsch          ###   ########.fr       */
+/*   Updated: 2017/06/09 05:38:44 by jpirsch          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,10 +22,12 @@ class ShaderApplication
 		virtual ~ShaderApplication(void);
 
 		bool	LoadShader(const std::string & shaderFile);
+		void	SwapShaderRender(void);
 		void	RenderLoop(void);
 
 	private:
-		ShaderRender		*mShaderRender;
+		ShaderRender		*currentShaderRender;
+		ShaderRender		*bufferedShaderRender;
 		GLFWwindow			*window;
 };
 

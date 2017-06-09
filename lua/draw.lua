@@ -17,6 +17,7 @@ if prog then
 	}
 	local indexes = {0, 1, 2, 1, 3, 2}
 	local elem = gol.create_element(indexes, positions, texCoords)
+	gol.draw_element(elem, 2, 0)
 	gol.delete_element(elem)
 end
 
