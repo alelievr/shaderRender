@@ -5,8 +5,8 @@
 #                                                     +:+ +:+         +:+      #
 #    By: alelievr <marvin@42.fr>                    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
-#    Created: 2014/07/15 15:13:38 by alelievr          #+#    #+#              #
-#    Updated: 2017/06/09 04:55:16 by alelievr         ###   ########.fr        #
+#    Created  2014/07/15 15:13:38 by alelievr          #+#    #+#              #
+#    Updated  2017/06/09 04:55:16 by alelievr         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -20,13 +20,14 @@ SRC			=	ShaderRender.cpp		\
 				ShaderProgram.cpp		\
 				ShaderChannel.cpp		\
 				ShaderApplication.cpp	\
+				Element.cpp				\
+				lua_utils.cpp			\
 				LuaGL.cpp				\
 				fmod.cpp				\
 				wav.cpp					\
 				utils.cpp				\
 				main.cpp				\
 				NetworkManager.cpp		\
-				Timer.cpp				\
 
 #	Objects
 OBJDIR		=	obj
@@ -46,7 +47,11 @@ INCDIRS		=	inc SOIL2/incs glfw/include fmod/inc lua/5.1/src/
 
 #	Libraries
 LIBDIRS		=	lua/5.1/src glfw/src/
+<<<<<<< HEAD
 LDLIBS		=	-lglfw3 -llua fmod/lib/libfmod.so -rpath $(shell pwd)/fmod/lib
+=======
+LDLIBS		=	-lglfw3 -llua fmod/lib/libfmod.so -rpath ./fmod/lib
+>>>>>>> 0132df94be4151a3ad5b257f31dfb3b949f0ca1e
 GLFWLIB		=	glfw/src/libglfw3.a
 SOILLIB		=	SOIL2/libSOIL2.so
 
@@ -59,8 +64,8 @@ CFLAGS		=	-Wall -Wextra
 CPROTECTION	=	-z execstack -fno-stack-protector
 
 DEBUGFLAGS1	=	-ggdb
-DEBUGFLAGS2	=	-fsanitize=address -fno-omit-frame-pointer -fno-optimize-sibling-calls 
-OPTFLAGS1	=	-funroll-loops -O2
+DEBUGFLAGS2	=	-fsanitize=address -fno-omit-frame-pointer -fno-optimize-sibling-calls -fsanitize-memory-track-origins=2
+OPTFLAGS1	=	-funroll-loops -O0 #FIXME !!! project does not work with optimization flags !
 OPTFLAGS2	=	-pipe -funroll-loops -Ofast
 
 #	Framework
@@ -146,7 +151,7 @@ endif
 ifneq ($(filter 2,$(strip $(DEBUGLEVEL)) ${DEBUG}),)
 	OPTLEVEL = 0
 	OPTI = 0
-	DEBUGFLAGS += $(DEBUGFLAGS1) $(DEBUGFLAGS2)
+	DEBUGFLAGS += $(DEBUGFLAGS1)
 	LINKDEBUG += $(DEBUGFLAGS1) $(DEBUGFLAGS2)
 	export ASAN_OPTIONS=check_initialization_order=1
 endif
