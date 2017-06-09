@@ -112,7 +112,7 @@ ifeq "$(OS)" "Darwin"
 	FRAMEWORK	= OpenGL AppKit IOKit CoreVideo
 	OSX_SHARED_LIBRARY_PATH_CORRECTION = install_name_tool -change @rpath/libfmod.dylib $(shell pwd)/fmod/lib/libfmod.so $(NAME)
 	LDLIBS		+= fmod/lib/libfmod.so
-	LUAMAKEOS	= macos
+	LUAMAKEOS	= macosx
 endif
 
 #################
@@ -195,18 +195,18 @@ endif
 all: $(GLFWLIB) $(SOILLIB) $(LUALIB) $(NAME)
 
 $(LUALIB):
-	git submodule init
-	git submodule update
+	@git submodule init
+	@git submodule update
 	cd lua/5.1/src && make $(LUAMAKEOS)
 
 $(SOILLIB):
-	git submodule init
-	git submodule update
+	@git submodule init
+	@git submodule update
 	cd SOIL2 && make dynamic
 
 $(GLFWLIB):
-	git submodule init
-	git submodule update
+	@git submodule init
+	@git submodule update
 	cd glfw && cmake . && make
 
 #	Linking
