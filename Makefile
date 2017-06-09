@@ -47,11 +47,7 @@ INCDIRS		=	inc SOIL2/incs glfw/include fmod/inc lua/5.1/src/
 
 #	Libraries
 LIBDIRS		=	lua/5.1/src glfw/src/
-<<<<<<< HEAD
 LDLIBS		=	-lglfw3 -llua fmod/lib/libfmod.so -rpath $(shell pwd)/fmod/lib
-=======
-LDLIBS		=	-lglfw3 -llua fmod/lib/libfmod.so -rpath ./fmod/lib
->>>>>>> 0132df94be4151a3ad5b257f31dfb3b949f0ca1e
 GLFWLIB		=	glfw/src/libglfw3.a
 SOILLIB		=	SOIL2/libSOIL2.so
 
