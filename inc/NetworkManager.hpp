@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/06/02 17:39:53 by alelievr          #+#    #+#             */
-/*   Updated: 2017/06/08 19:20:34 by root             ###   ########.fr       */
+/*   Updated: 2017/06/10 02:16:47 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,8 +44,9 @@
 
 # define IP_LENGHT				sizeof("127.127.127.127")
 
-typedef std::function< void (const Timeval *timing, const std::string & shaderName) >	ShaderSwitchCallback;
-typedef std::function< void (const Timeval *timing, const std::string & shaderName) > ShaderUniformCallback;
+typedef std::function< void (const Timeval *timing, const int programIndex) >			ShaderFocusCallback;
+typedef std::function< void (const Timeval *timing, const std::string & shaderName) >	ShaderUniformCallback;
+typedef std::function< void (const std::string & shaderName, const bool last) >			ShaderLoadCallback;
 
 enum class	NetworkStatus
 {
@@ -68,13 +69,14 @@ class		NetworkManager
 			Disconnected,				//the client is disconnected
 			WaitingForCommand,			//nothing is running, client wait for command
 			ShaderIsRunning,			//a shader is running
-			WaitingForShaderSwitch,		//a shader is running and the client is waiting to switch the shader at the specified time
+			WaitingForShaderFocus,		//a shader is running and the client is waiting to switch the shader at the specified time
 		};
 
 		enum class		PacketType
 		{
 			Status,
-			ShaderSwitch,
+			ShaderFocus,
+			ShaderLoad,
 			UniformUpdate,
 		};
 
@@ -139,7 +141,7 @@ class		NetworkManager
 				};
 				struct //update cient uniform
 				{
-					int		programIndex;
+					int		subProgramIndex;
 					char	uniformName[MAX_UNIFORM_LENGTH];
 					int		uniformType;
 					union
@@ -150,9 +152,14 @@ class		NetworkManager
 						float	uniformFloats[MAX_UNIFORM_DATAS];
 					};
 				};
-				struct //switch client 
+				struct //Load shader
 				{
 					char	shaderName[MAX_SHADER_NAME];
+					bool	lastShader;
+				};
+				struct //Shader focus
+				{
+					GLuint	programIndex;
 				};
 			};
 		};
@@ -176,11 +183,12 @@ class		NetworkManager
 		fd_set					_serverFdSet;
 		static int				_localGroupId;
 
-		ShaderSwitchCallback	_shaderSwitchCallback = NULL;
+		ShaderFocusCallback		_shaderFocusCallback = NULL;
 		ShaderUniformCallback	_shaderUniformCallback = NULL;
+		ShaderLoadCallback		_shaderLoadCallback = NULL;
 
 		NetworkStatus			_SendPacketToAllClients(const Packet & packet) const;
-		NetworkStatus			_SendPacketToGroup(const int groupId, const Packet & packet);
+		NetworkStatus			_SendPacketToGroup(const int groupId, const Packet & packet) const;
 		NetworkStatus			_SendPacketToServer(const Packet & packet) const;
 
 		void					_ServerSocketEvent(void);
@@ -192,7 +200,8 @@ class		NetworkManager
 		void					_InitPacketHeader(Packet *p, const Client & client, const PacketType type) const;
 		Packet					_CreatePokeStatusPacket(void) const;
 		Packet					_CreatePokeStatusResponsePacket(const Client & client, const Packet & oldPacket) const;
-		Packet					_CreateShaderSwitchPacket(const int groupId, Timeval *tv, const std::string & shaderName);
+		Packet					_CreateShaderFocusPacket(const int groupId, const Timeval *tv, const int programIndex) const;
+		Packet					_CreateShaderLoadPacket(const int groupId, const std::string & shaderName, bool last) const;
 
 	public:
 		NetworkManager(bool server = false);
@@ -207,13 +216,13 @@ class		NetworkManager
 		NetworkStatus		Update(void);
 
 		//Client callbacks:
-		void			SetShaderSwitchCallback(ShaderSwitchCallback callback);
+		void			SetShaderFocusCallback(ShaderFocusCallback callback);
 		void			SetShaderUniformCallback(ShaderUniformCallback callback);
-		
+		void			SetShaderLoadCallback(ShaderLoadCallback callback);
 
-		NetworkStatus	RunShaderOnGroup(const int groupId, const std::string & shaderName);
-		NetworkStatus	UpdateUniformOnGroup(const int group, const std::string uniformName, ...);
-		NetworkStatus	SwitchShaderOnGroup(const int groupId, const std::string & shaderName);
+		NetworkStatus	FocusShaderOnGroup(const Timeval *timeout, const int groupId, const int programIndex) const;
+		NetworkStatus	UpdateUniformOnGroup(const Timeval *timeout, const int group, const std::string uniformName, ...) const;
+		NetworkStatus	LoadShaderOnGroup(const int groupId, const std::string & shaderName, bool last = false) const;
 		int				CreateNewGroup(void);
 		NetworkStatus	AddIMacToGroup(const int groupId, const int row, const int seat, const int floor = 1);
 

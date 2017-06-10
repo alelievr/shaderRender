@@ -29,3 +29,38 @@ void	Timer::Timeout(const Timeval *timeout, std::function< void(void) > callback
 	);
 	_localThreadIndex++;
 }
+
+Timeval		*Timer::TimeoutInSeconds(const int nSecs)
+{
+	static Timeval	t;
+
+	gettimeofday(&t, NULL);
+	t.tv_sec += nSecs;
+	return &t;
+}
+
+Timeval		*Timer::TimeoutInMilliSeconds(const long nMillis)
+{
+	static Timeval	t;
+
+	gettimeofday(&t, NULL);
+	t.tv_usec += nMillis * 1000;
+	return &t;
+}
+
+Timeval		*Timer::TimeoutInMicroSeconds(const long nMicro)
+{
+	static Timeval	t;
+
+	gettimeofday(&t, NULL);
+	t.tv_usec += nMicro;
+	return &t;
+}
+
+Timeval		*Timer::Now(void)
+{
+	static Timeval	t;
+
+	gettimeofday(&t, NULL);
+	return &t;
+}

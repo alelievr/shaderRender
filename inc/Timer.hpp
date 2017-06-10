@@ -19,7 +19,11 @@ class		Timer
 
 		Timer &	operator=(Timer const & src) = delete;
 
-		static void	Timeout(const Timeval *timeout, std::function< void(void) > callback);
+		static void			Timeout(const Timeval *timeout, std::function< void(void) > callback);
+		static Timeval		*TimeoutInSeconds(const int nSecs);
+		static Timeval		*TimeoutInMilliSeconds(const long nMillis);
+		static Timeval		*TimeoutInMicroSeconds(const long nMicro);
+		static Timeval		*Now(void);
 };
 
 std::ostream &	operator<<(std::ostream & o, Timer const & r);

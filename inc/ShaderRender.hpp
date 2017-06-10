@@ -6,13 +6,14 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/05/07 21:28:59 by alelievr          #+#    #+#             */
-/*   Updated: 2017/06/03 02:39:11 by jpirsch          ###   ########.fr       */
+/*   Updated: 2017/06/10 02:30:00 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 # pragma once
 
 # include "shaderpixel.h"
+# include <vector>
 # include <stdio.h>
 # include <stdlib.h>
 # include <sys/time.h>
@@ -45,7 +46,8 @@ class ShaderRender
 		int				keys = 0;
 		int				input_pause = 0;
 
-		ShaderProgram	_program;
+		std::vector< ShaderProgram * >	_programs;
+		std::vector< std::size_t >		_currentRenderedPrograms;
 
 		vec2			angleAmount;
 		int				cursor_mode;
@@ -55,7 +57,6 @@ class ShaderRender
 		void			updateUniforms(ShaderProgram *p);
 		vec3			vec3Cross(vec3 v1, vec3 v2);
 		void			updateKeys(void);
-		//void			checkFileChanged(t_program *progs);
 		void			displayWindowFps(void);
 		void			foreachShaderChannels(std::function< void(ShaderProgram *, ShaderChannel *)> callback, ShaderProgram *currentShaderProgram = NULL);
 
@@ -68,6 +69,10 @@ class ShaderRender
 
 		void				render(GLFWwindow *win);
 		bool				attachShader(const std::string file);
+		void				SetCurrentRenderedShader(const size_t programIndex);
+		void				AddCurrentRenderedShader(const size_t programIndex);
+		void				DeleteCurrentRenderedShader(const size_t programIndex);
+		void				ClearCurrentRenderedShader(void);
 		void				initShaderRenders(ShaderRender rs);
 
 		void				windowSizeCallback(int winX, int winY);
@@ -77,7 +82,6 @@ class ShaderRender
 		void				mousePositionCallback(GLFWwindow *win, double x, double y);
 		void				keyCallback(GLFWwindow *window, int key, int scancode, int action, int mods);
 
-		ShaderChannel		*getChannel(int channel);
-		ShaderProgram		*getProgram(void);
-		//void				updateChannel(const std::string file, int idnex, int mode);
+		ShaderChannel		*getChannel(const int programIndex, const int channel) const;
+		ShaderProgram		*getProgram(const int programIndex) const;
 };

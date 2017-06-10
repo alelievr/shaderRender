@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/06/02 17:40:05 by alelievr          #+#    #+#             */
-/*   Updated: 2017/06/09 04:25:31 by alelievr         ###   ########.fr       */
+/*   Updated: 2017/06/10 02:17:29 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -143,7 +143,7 @@ NetworkStatus		NetworkManager::_SendPacketToAllClients(const Packet & packet) co
 	return (error) ? NetworkStatus::Error : NetworkStatus::Success;
 }
 
-NetworkStatus		NetworkManager::_SendPacketToGroup(const int groupId, const Packet & packet)
+NetworkStatus		NetworkManager::_SendPacketToGroup(const int groupId, const Packet & packet) const
 {
 	struct sockaddr_in		connection;
 	bool					error = false;
@@ -152,7 +152,8 @@ NetworkStatus		NetworkManager::_SendPacketToGroup(const int groupId, const Packe
 	connection.sin_family = AF_INET;
 	connection.sin_port = htons(CLIENT_PORT);
 
-	for (const Client & c : _clients[groupId])
+	const auto clientGroupList = _clients.find(groupId)->second;
+	for (const Client & c : clientGroupList)
 	{
 		connection.sin_addr.s_addr = c.ip;
 		if (sendto(_clientSocket, &packet, sizeof(packet), 0, reinterpret_cast< struct sockaddr * >(&connection), sizeof(connection)) < 0)
@@ -225,16 +226,26 @@ NetworkManager::Packet	NetworkManager::_CreatePokeStatusResponsePacket(const Cli
 	return p;
 }
 
-NetworkManager::Packet	NetworkManager::_CreateShaderSwitchPacket(const int groupId, Timeval *tv, const std::string & shaderName)
+NetworkManager::Packet	NetworkManager::_CreateShaderFocusPacket(const int groupId, const Timeval *tv, const int programIndex) const
 {
 	Packet	p;
 
-	p.type = PacketType::ShaderSwitch;
+	p.type = PacketType::ShaderFocus;
 	p.groupId = groupId;
 	p.timing = *tv;
-	strncpy(p.shaderName, shaderName.c_str(), MAX_SHADER_NAME - 1);
-	p.shaderName[MAX_SHADER_NAME - 1] = 0;
+	p.programIndex = programIndex;
 
+	return p;
+}
+
+NetworkManager::Packet	NetworkManager::_CreateShaderLoadPacket(const int groupId, const std::string & shaderName, bool last) const
+{
+	Packet	p;
+
+	p.type = PacketType::ShaderLoad;
+	p.groupId = groupId;
+	p.lastShader = last;
+	strncpy(p.shaderName, shaderName.c_str(), MAX_SHADER_NAME - 1);
 	return p;
 }
 
@@ -282,9 +293,13 @@ void				NetworkManager::_ClientSocketEvent(const struct sockaddr_in & connection
 			break ;
 		case PacketType::UniformUpdate:
 			break ;
-		case PacketType::ShaderSwitch:
-			if (_shaderSwitchCallback != NULL)
-				_shaderSwitchCallback(&packet.timing, std::string(packet.shaderName));
+		case PacketType::ShaderFocus:
+			if (_shaderFocusCallback != NULL)
+				_shaderFocusCallback(&packet.timing, packet.programIndex);
+			break ;
+		case PacketType::ShaderLoad:
+			if (_shaderLoadCallback != NULL)
+				_shaderLoadCallback(std::string(packet.shaderName), packet.lastShader);
 			break ;
 		default:
 			break ;
@@ -374,36 +389,38 @@ NetworkStatus		NetworkManager::AddIMacToGroup(const int groupId, const int row, 
 	return NetworkStatus::Success;
 }
 
-NetworkStatus		NetworkManager::RunShaderOnGroup(const int groupId, const std::string & shaderName)
+NetworkStatus		NetworkManager::FocusShaderOnGroup(const Timeval *timeout, const int groupId, const int programIndex) const
 {
-	return SwitchShaderOnGroup(groupId, shaderName);
+	return _SendPacketToGroup(groupId, _CreateShaderFocusPacket(groupId, timeout, programIndex));
 }
 
-NetworkStatus		NetworkManager::UpdateUniformOnGroup(const int groupId, const std::string uniformName, ...)
+NetworkStatus		NetworkManager::UpdateUniformOnGroup(const Timeval *timeout, const int groupId, const std::string uniformName, ...) const
 {
+	(void)timeout;
 	(void)groupId;
 	(void)uniformName;
 	return NetworkStatus::Success;
 }
 
-NetworkStatus		NetworkManager::SwitchShaderOnGroup(const int groupId, const std::string & shaderName)
+NetworkStatus		NetworkManager::LoadShaderOnGroup(const int groupId, const std::string & shaderName, bool last) const
 {
-	Timeval		timeout;
-	gettimeofday(&timeout, NULL);
-	timeout.tv_sec += 3;
-	_SendPacketToGroup(groupId, _CreateShaderSwitchPacket(groupId, &timeout, shaderName));
-	return NetworkStatus::Success;
+	return _SendPacketToGroup(groupId, _CreateShaderLoadPacket(groupId, shaderName, last));
 }
 
 //Client callbacks:
-void	NetworkManager::SetShaderSwitchCallback(ShaderSwitchCallback callback)
+void	NetworkManager::SetShaderFocusCallback(ShaderFocusCallback callback)
 {
-	_shaderSwitchCallback = callback;
+	_shaderFocusCallback = callback;
 }
 
 void	NetworkManager::SetShaderUniformCallback(ShaderUniformCallback callback)
 {
 	_shaderUniformCallback = callback;
+}
+
+void	NetworkManager::SetShaderLoadCallback(ShaderLoadCallback callback)
+{
+	_shaderLoadCallback = callback;
 }
 
 //Utils

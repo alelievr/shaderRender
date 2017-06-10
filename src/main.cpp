@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include <thread>
+#include <list>
 #include <getopt.h>
 #include "ShaderApplication.hpp"
 #include "NetworkManager.hpp"
@@ -8,12 +9,13 @@
 
 static bool		networkMustQuit = false;
 static bool		server = false;
-static char *	shader = NULL;
+static bool		serverSentAllShadersToLoad;
+static std::list< const std::string >	shadersToLoad;
 
 static struct option longopts[] = {
-    { "server",     no_argument,            NULL,           1},
-    { "shader",     required_argument,      NULL,           's'},
-    { NULL,         0,                      NULL,           0}
+	{ "server",     no_argument,            NULL,           1},
+//	{ "shader",     required_argument,      NULL,           's'},
+	{ NULL,         0,                      NULL,           0}
 };
 
 static void	usage(char *prog) __attribute__((noreturn));
@@ -28,14 +30,11 @@ static void options(int *ac, char ***av)
 	int bflag, ch;
 
     bflag = 0;
-    while ((ch = getopt_long(*ac, *av, "s:", longopts, NULL)) != -1)
+    while ((ch = getopt_long(*ac, *av, "", longopts, NULL)) != -1)
         switch (ch) {
             case 1:
                 server = true;
                 break;
-			case 's':
-				shader = optarg;
-				break ;
             default:
                 usage(*av[0]);
      	}
@@ -49,19 +48,25 @@ static void NetworkThread(bool server, ShaderApplication *app)
 
 	if (!server)
 	{
-			printf("app: %p\n", app);
-		nm.SetShaderSwitchCallback(
-			[app](const Timeval *timing, const std::string & shaderName)
+		nm.SetShaderFocusCallback(
+			[app](const Timeval *timing, const int programIndex)
 			{
-				std::cout << "loading shader !\n";
-			//	app->LoadShader(shaderName);
 				Timer::Timeout(timing,
-					[app, shaderName](void)
+					[app, programIndex](void)
 					{
-						std::cout << "switch shader requested with shader: " << shaderName << std::endl;
-						app->SwapShaderRender();
+						app->FocusShader(programIndex);
 					}
 				);
+			}
+		);
+
+		nm.SetShaderLoadCallback(
+			[](const std::string & shaderName, const bool last)
+			{
+				shadersToLoad.push_back(shaderName);
+			
+				if (last)
+					serverSentAllShadersToLoad = true;
 			}
 		);
 
@@ -73,7 +78,12 @@ static void NetworkThread(bool server, ShaderApplication *app)
 	{
 		nm.ConnectCluster(E1);
 
-		nm.RunShaderOnGroup(0, "shaders/fractal/mandel-simple.glsl");
+		nm.LoadShaderOnGroup(0, "shaders/fractal/kifs.glsl");
+		nm.LoadShaderOnGroup(0, "shaders/fractal/mandelbrot-orbit.glsl", true);
+
+		nm.FocusShaderOnGroup(Timer::Now(), 0, 0);
+		nm.FocusShaderOnGroup(Timer::TimeoutInSeconds(10), 0, 1);
+
 		while (!networkMustQuit)
 			if (nm.Update() == NetworkStatus::Error)
 				break ;
@@ -88,12 +98,11 @@ int		main(int ac, char **av)
 	ShaderApplication	app(server);
 	std::thread			networkThread(NetworkThread, server, &app);
 
-	//TODO: remove this, only for testing
-	if (shader != NULL)
-	{
-		app.LoadShader(shader);
-		app.SwapShaderRender();
-	}
+	while (!serverSentAllShadersToLoad)
+		usleep(16000);
+
+	for (const std::string & shaderName : shadersToLoad)
+		app.LoadShader(shaderName);
 
 	app.RenderLoop();
 
