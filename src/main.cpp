@@ -10,6 +10,7 @@
 static bool		networkMustQuit = false;
 static bool		server = false;
 static bool		serverSentAllShadersToLoad;
+static ShaderApplication *app = NULL;
 static std::list< const std::string >	shadersToLoad;
 
 static struct option longopts[] = {
@@ -42,18 +43,24 @@ static void options(int *ac, char ***av)
     *av += optind;
 }
 
-static void NetworkThread(bool server, ShaderApplication *app)
+static void NetworkThread(bool server)
 {
 	NetworkManager		nm(server);
 
 	if (!server)
 	{
 		nm.SetShaderFocusCallback(
-			[app](const Timeval *timing, const int programIndex)
+			[](const Timeval *timing, const int programIndex)
 			{
+				if (app == NULL)
+				{
+					std::cout << "Can't focus a shader, shaderApplication not initialized" << std::endl;
+					return ;
+				}
 				Timer::Timeout(timing,
-					[app, programIndex](void)
+					[programIndex](void)
 					{
+						std::cout << "focusing shader: " << programIndex << std::endl;
 						app->FocusShader(programIndex);
 					}
 				);
@@ -76,13 +83,17 @@ static void NetworkThread(bool server, ShaderApplication *app)
 	}
 	else
 	{
-		nm.ConnectCluster(E1);
+		nm.ConnectCluster(E3);
 
 		nm.LoadShaderOnGroup(0, "shaders/fractal/kifs.glsl");
 		nm.LoadShaderOnGroup(0, "shaders/fractal/mandelbrot-orbit.glsl", true);
 
-		nm.FocusShaderOnGroup(Timer::Now(), 0, 0);
-		nm.FocusShaderOnGroup(Timer::TimeoutInSeconds(10), 0, 1);
+		int		group = nm.CreateNewGroup();
+
+		nm.MoveIMacToGroup(group, 9, 4, 3);
+
+		nm.FocusShaderOnGroup(Timer::Now(), group, 0);
+		nm.FocusShaderOnGroup(Timer::TimeoutInSeconds(10), group, 1);
 
 		while (!networkMustQuit)
 			if (nm.Update() == NetworkStatus::Error)
@@ -95,19 +106,22 @@ int		main(int ac, char **av)
 {
 	options(&ac, &av);
 
-	ShaderApplication	app(server);
-	std::thread			networkThread(NetworkThread, server, &app);
+	std::thread			networkThread(NetworkThread, server);
 
 	while (!serverSentAllShadersToLoad)
 		usleep(16000);
 
-	for (const std::string & shaderName : shadersToLoad)
-		app.LoadShader(shaderName);
+	app = new ShaderApplication(server);
 
-	app.RenderLoop();
+	for (const std::string & shaderName : shadersToLoad)
+		app->LoadShader(shaderName);
+
+	app->RenderLoop();
 
 	networkMustQuit = true;
 	networkThread.join();
+
+	delete app;
 
 	return 0;
 }

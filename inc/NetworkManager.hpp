@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/06/02 17:39:53 by alelievr          #+#    #+#             */
-/*   Updated: 2017/06/10 02:16:47 by alelievr         ###   ########.fr       */
+/*   Updated: 2017/06/11 01:01:07 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,6 +57,7 @@ enum class	NetworkStatus
 	AnotherCommandIsRunning,		// obvious
 	NotConnectedToServer,			// obvious
 	MissingClients,					// the command was not executed on all selected clients
+	OutOfBound,					//out of bounds, mostly for groupIds
 };
 
 class		NetworkManager
@@ -95,7 +96,7 @@ class		NetworkManager
 			int				row;
 			int				cluster;
 			int				groupId;
-			ClientStatus	satus;
+			ClientStatus	status;
 			unsigned int	ip;
 			Timeval			averageTimeDelta;
 
@@ -107,10 +108,26 @@ class		NetworkManager
 				this->row = row;
 				this->cluster = cluster;
 				this->groupId = 0;
-				satus = ClientStatus::Unknown;
+				status = ClientStatus::Unknown;
 				inet_aton(cip, &connection.sin_addr);
 				ip = connection.sin_addr.s_addr;
 			}
+
+			Client & 	operator=(const Client & oth)
+			{
+				if (this != &oth)
+				{
+					this->seat = oth.seat;
+					this->cluster = oth.cluster;
+					this->groupId = oth.groupId;
+					this->status = oth.status;
+					this->ip = oth.ip;
+					this->averageTimeDelta = oth.averageTimeDelta;
+				}
+				return *this;
+			}
+
+			Client() {}
 		};
 
 		/*	Packet struct which handle all possible packets:
@@ -224,11 +241,12 @@ class		NetworkManager
 		NetworkStatus	UpdateUniformOnGroup(const Timeval *timeout, const int group, const std::string uniformName, ...) const;
 		NetworkStatus	LoadShaderOnGroup(const int groupId, const std::string & shaderName, bool last = false) const;
 		int				CreateNewGroup(void);
-		NetworkStatus	AddIMacToGroup(const int groupId, const int row, const int seat, const int floor = 1);
+		NetworkStatus	MoveIMacToGroup(const int groupId, const int row, const int seat, const int floor = 1);
 
 		bool	IsServer(void) const;
 };
 
 std::ostream &	operator<<(std::ostream & o, NetworkManager const & r);
+std::ostream &	operator<<(std::ostream & o, NetworkManager::Client const & r);
 
 #endif

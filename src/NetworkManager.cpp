@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/06/02 17:40:05 by alelievr          #+#    #+#             */
-/*   Updated: 2017/06/10 02:17:29 by alelievr         ###   ########.fr       */
+/*   Updated: 2017/06/11 00:59:37 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,23 @@
 #include <vector>
 #include <locale>
 #include <sys/time.h>
+
+#define DEBUG		1
+
+#ifdef DEBUG
+# if DEBUG >= 1
+#  undef DEBUG
+#  define DEBUG(...) printf(__VA_ARGS__)
+# endif
+# if DEBUG >= 2
+#  define DEBUG2(...) {puts("\033[38;5;42m");printf(__VA_ARGS__);puts("\033[0m")}
+# else
+#  define DEBUG2(...)
+# endif
+#else
+# define DEBUG2(...)
+# define DEBUG(...)
+#endif
 
 int	NetworkManager::_localGroupId = 1;
 
@@ -152,9 +169,16 @@ NetworkStatus		NetworkManager::_SendPacketToGroup(const int groupId, const Packe
 	connection.sin_family = AF_INET;
 	connection.sin_port = htons(CLIENT_PORT);
 
-	const auto clientGroupList = _clients.find(groupId)->second;
+	const auto clientGroupKP = _clients.find(groupId);
+	if (clientGroupKP == _clients.end())
+	{
+		DEBUG("groupId out of bouds !\n");
+		return NetworkStatus::OutOfBound;
+	}
+	const auto clientGroupList = clientGroupKP->second;
 	for (const Client & c : clientGroupList)
 	{
+		DEBUG2("sending packet to: %s\n", inet_ntoa(connection.sin_addr));
 		connection.sin_addr.s_addr = c.ip;
 		if (sendto(_clientSocket, &packet, sizeof(packet), 0, reinterpret_cast< struct sockaddr * >(&connection), sizeof(connection)) < 0)
 
@@ -377,16 +401,49 @@ NetworkStatus		NetworkManager::Update(void)
 
 int		NetworkManager::CreateNewGroup(void)
 {
+	_clients[_localGroupId] = std::list< Client >();
 	return _localGroupId++;
 }
 
-NetworkStatus		NetworkManager::AddIMacToGroup(const int groupId, const int row, const int seat, const int floor)
+NetworkStatus		NetworkManager::MoveIMacToGroup(const int groupId, const int row, const int seat, const int cluster)
 {
-	(void)groupId;
-	(void)row;
-	(void)seat;
-	(void)floor;
-	return NetworkStatus::Success;
+	std::map< int, std::list< Client > >::iterator	group;
+	int												nRemoved = 0;
+	Client											moved;
+
+	if ((group = _clients.find(groupId)) != _clients.end())
+	{
+		for (auto clientKP : _clients)
+			clientKP.second.remove_if(
+				[&](const Client & c) mutable
+				{
+					if (c.row == row && c.seat == seat && c.cluster == cluster)
+					{
+						moved = c;
+						nRemoved++;
+						return true;
+					}
+					return false;
+				}
+			);
+	}
+	else
+	{
+		DEBUG("out of bounds of groupId in MoveImacToGroup !\n");
+		return NetworkStatus::OutOfBound;
+	}
+
+	if (nRemoved == 1)
+	{
+		_clients[groupId].push_back(moved);
+		std::cout << "moved imac " << moved << " to group " << groupId << std::endl;
+		return NetworkStatus::Success;
+	}
+	else
+	{
+		DEBUG("client not found in cluster !\n");
+		return NetworkStatus::Error;
+	}
 }
 
 NetworkStatus		NetworkManager::FocusShaderOnGroup(const Timeval *timeout, const int groupId, const int programIndex) const
@@ -432,4 +489,9 @@ std::ostream &	operator<<(std::ostream & o, NetworkManager const & r)
 	o << "tostring of the class" << std::endl;
 	(void)r;
 	return (o);
+}
+
+std::ostream &	operator<<(std::ostream & o, NetworkManager::Client const & r)
+{
+	return o << "e" << r.cluster << "r" << r.row << "p" << r.seat;
 }
