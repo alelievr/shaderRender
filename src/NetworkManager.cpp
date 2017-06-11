@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/06/02 17:40:05 by alelievr          #+#    #+#             */
-/*   Updated: 2017/06/11 04:31:08 by alelievr         ###   ########.fr       */
+/*   Updated: 2017/06/11 20:22:24 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -161,6 +161,11 @@ bool				NetworkManager::_ImacExists(const int row, const int seat) const
 	return true;
 }
 
+void				NetworkManager::_FindClient(const int groupId, const int ip, std::function< void(Client &) > callback)
+{
+
+}
+
 NetworkStatus		NetworkManager::_SendPacketToAllClients(const Packet & packet) const
 {
 	struct sockaddr_in		connection;
@@ -178,17 +183,20 @@ NetworkStatus		NetworkManager::_SendPacketToAllClients(const Packet & packet) co
 			if (sendto(_clientSocket, &packet, sizeof(packet), 0, reinterpret_cast< struct sockaddr * >(&connection), sizeof(connection)) < 0)
 			{
 				error = true;
-				DEBUG("[To all] sendto: %s\n", strerror(errno));
+				DEBUG("[To all] sendto: %s at ip %s\n", strerror(errno), inet_ntoa(connection.sin_addr));
 			}
 		}
 	}
 	return (error) ? NetworkStatus::MissingClients : NetworkStatus::Success;
 }
 
-NetworkStatus		NetworkManager::_SendPacketToGroup(const int groupId, const Packet & packet) const
+NetworkStatus		NetworkManager::_SendPacketToGroup(const int groupId, Packet packet, const SyncOffset & sync) const
 {
 	struct sockaddr_in		connection;
 	bool					error = false;
+	Timeval					defaultTiming(packet.timing);
+	Timeval					additionalTiming;
+	int						i = 0;
 
 	bzero(&connection, sizeof(connection));
 	connection.sin_family = AF_INET;
@@ -202,8 +210,17 @@ NetworkStatus		NetworkManager::_SendPacketToGroup(const int groupId, const Packe
 	}
 	const auto clientGroupList = clientGroupKP->second;
 	DEBUG("sending %zu packets to Imacs in group %i\n", clientGroupList.size(), groupId);
+
+	//TODO: check the sync order and reverse it if needed + custom + random
+
 	for (const Client & c : clientGroupList)
 	{
+		if (sync.type == SyncOffsetType::Linear)
+		{
+			packet.timing = defaultTiming + additionalTiming;
+			additionalTiming += sync.linearDelay;
+		}
+
 		connection.sin_addr.s_addr = c.ip;
 		DEBUG2("sending packet to: %s\n", inet_ntoa(connection.sin_addr));
 		if (sendto(_clientSocket, &packet, sizeof(packet), 0, reinterpret_cast< struct sockaddr * >(&connection), sizeof(connection)) < 0)
@@ -211,6 +228,7 @@ NetworkStatus		NetworkManager::_SendPacketToGroup(const int groupId, const Packe
 			error = true;
 			DEBUG("[To group] sendto: %s For ip: %s\n", strerror(errno), inet_ntoa(connection.sin_addr));
 		}
+		i++;
 	}
 	return (error) ? NetworkStatus::MissingClients : NetworkStatus::Success;
 }
@@ -238,7 +256,7 @@ NetworkStatus		NetworkManager::_SendPacketToServer(const Packet & packet) const
 	return (error) ? NetworkStatus::Error : NetworkStatus::Success;
 }
 
-void	NetworkManager::_InitPacketHeader(Packet *p, const Client & client, const PacketType type) const
+void						NetworkManager::_InitPacketHeader(Packet *p, const Client & client, const PacketType type) const
 {
 	bzero(p, sizeof(Packet));
 
@@ -247,7 +265,7 @@ void	NetworkManager::_InitPacketHeader(Packet *p, const Client & client, const P
 	p->ip = client.ip;
 }
 
-NetworkManager::Packet	NetworkManager::_CreatePokeStatusPacket(void) const
+NetworkManager::Packet		NetworkManager::_CreatePokeStatusPacket(void) const
 {
 	if (!_isServer)
 		std::cout << "Attempted to create poke packet in client mode !\n", exit(-1);
@@ -259,7 +277,7 @@ NetworkManager::Packet	NetworkManager::_CreatePokeStatusPacket(void) const
 	return p;
 }
 
-NetworkManager::Packet	NetworkManager::_CreatePokeStatusResponsePacket(const Client & client, const Packet & oldPacket) const
+NetworkManager::Packet		NetworkManager::_CreatePokeStatusResponsePacket(const Client & client, const Packet & oldPacket) const
 {
 	if (_isServer)
 		std::cout << "Attempted to create poke response packet in server mode !\n", exit(-1);
@@ -279,7 +297,7 @@ NetworkManager::Packet	NetworkManager::_CreatePokeStatusResponsePacket(const Cli
 	return p;
 }
 
-NetworkManager::Packet	NetworkManager::_CreateShaderFocusPacket(const int groupId, const Timeval *tv, const int programIndex) const
+NetworkManager::Packet		NetworkManager::_CreateShaderFocusPacket(const int groupId, const Timeval *tv, const int programIndex) const
 {
 	Packet	p;
 
@@ -291,7 +309,7 @@ NetworkManager::Packet	NetworkManager::_CreateShaderFocusPacket(const int groupI
 	return p;
 }
 
-NetworkManager::Packet	NetworkManager::_CreateShaderLoadPacket(const int groupId, const std::string & shaderName, bool last) const
+NetworkManager::Packet		NetworkManager::_CreateShaderLoadPacket(const int groupId, const std::string & shaderName, bool last) const
 {
 	Packet	p;
 
@@ -304,12 +322,15 @@ NetworkManager::Packet	NetworkManager::_CreateShaderLoadPacket(const int groupId
 
 //public functions
 
-NetworkStatus		NetworkManager::ConnectCluster(int clusterNumber)
+NetworkStatus				NetworkManager::ConnectCluster(int clusterNumber)
 {
 	if (!_isServer)
 		return (std::cout << "not in server mode !" << std::endl, NetworkStatus::ServerReservedCommand);
 	if (clusterNumber <= 0 || clusterNumber > 3)
 		return (std::cout << "bad cluster number !" << std::endl, NetworkStatus::Error);
+
+	_clients.clear();
+
 	for (int r = 1; r <= CLUSTER_MAX_ROWS; r++)
 		for (int s = 1; s <= CLUSTER_MAX_ROW_SEATS; s++)
 		{
@@ -334,12 +355,14 @@ NetworkStatus		NetworkManager::CloseAllConnections(void)
 	return NetworkStatus::Success;
 }
 
-void				NetworkManager::GetSyncOffsets(void)
+void						NetworkManager::GetSyncOffsets(void)
 {
 }
 
-void				NetworkManager::_ClientSocketEvent(const struct sockaddr_in & connection, const Packet & packet)
+void						NetworkManager::_ClientSocketEvent(const struct sockaddr_in & connection, const Packet & packet)
 {
+	Timeval		packetTiming = packet.timing;
+
 	switch (packet.type)
 	{
 		case PacketType::Status:
@@ -352,7 +375,7 @@ void				NetworkManager::_ClientSocketEvent(const struct sockaddr_in & connection
 		case PacketType::ShaderFocus:
 			DEBUG("received focus program %i, timeout: %s\n", packet.programIndex, Timer::ReadableTime(packet.timing));
 			if (_shaderFocusCallback != NULL)
-				_shaderFocusCallback(&packet.timing, packet.programIndex);
+				_shaderFocusCallback(&packetTiming, packet.programIndex);
 			break ;
 		case PacketType::ShaderLoad:
 			if (_shaderLoadCallback != NULL)
@@ -364,7 +387,7 @@ void				NetworkManager::_ClientSocketEvent(const struct sockaddr_in & connection
 	std::cout << "client received message !\n";
 }
 
-void				NetworkManager::_ServerSocketEvent(void)
+void						NetworkManager::_ServerSocketEvent(void)
 {
 	Packet					packet;
 	struct sockaddr_in      connection;
@@ -383,6 +406,14 @@ void				NetworkManager::_ServerSocketEvent(void)
 				case PacketType::Status:
 					std::cout << "server received status message from iMac e" << packet.cluster << "r" << packet.row << "p" << packet.seat << std::endl;
 					gettimeofday(&now, NULL);
+
+					//update the client status:
+					_FindClient(packet.groupId, packet.ip, 
+						[](Client & c)
+						{
+						
+						}
+					);
 
 					break ;
 				case PacketType::UniformUpdate:
@@ -406,13 +437,6 @@ NetworkStatus		NetworkManager::Update(void)
 	fd_set				eventSet;
 
 	bzero(&timeout, sizeof(timeout));
-	while (_messageQueue.size() != 0)
-	{
-		Message m = _messageQueue.front();
-		_messageQueue.pop();
-
-		_SendPacketToGroup(m.groupId, m.packet);
-	}
 
 	eventSet = _serverFdSet;
 	if (select(FD_SETSIZE, &eventSet, NULL, NULL, &timeout) < 0)
@@ -482,9 +506,9 @@ NetworkStatus		NetworkManager::MoveIMacToGroup(const int groupId, const int row,
 	}
 }
 
-NetworkStatus		NetworkManager::FocusShaderOnGroup(const Timeval *timeout, const int groupId, const int programIndex) const
+NetworkStatus		NetworkManager::FocusShaderOnGroup(const Timeval *timeout, const int groupId, const int programIndex, const SyncOffset & syncOffset) const
 {
-	return _SendPacketToGroup(groupId, _CreateShaderFocusPacket(groupId, timeout, programIndex));
+	return _SendPacketToGroup(groupId, _CreateShaderFocusPacket(groupId, timeout, programIndex), syncOffset);
 }
 
 NetworkStatus		NetworkManager::UpdateUniformOnGroup(const Timeval *timeout, const int groupId, const std::string uniformName, ...) const
@@ -497,7 +521,7 @@ NetworkStatus		NetworkManager::UpdateUniformOnGroup(const Timeval *timeout, cons
 
 NetworkStatus		NetworkManager::LoadShaderOnGroup(const int groupId, const std::string & shaderName, bool last) const
 {
-	return _SendPacketToGroup(groupId, _CreateShaderLoadPacket(groupId, shaderName, last));
+	return _SendPacketToGroup(groupId, _CreateShaderLoadPacket(groupId, shaderName, last), SyncOffset::CreateNoneSyncOffset());
 }
 
 //Client callbacks:

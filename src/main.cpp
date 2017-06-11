@@ -1,11 +1,16 @@
+#include "ShaderApplication.hpp"
+#include "NetworkManager.hpp"
+#include "Timer.hpp"
+#include "SyncOffset.hpp"
+#include "Timeval.hpp"
 #include <iostream>
 #include <string>
 #include <thread>
 #include <list>
 #include <getopt.h>
-#include "ShaderApplication.hpp"
-#include "NetworkManager.hpp"
-#include "Timer.hpp"
+
+#define CLUSTER_SCAN_INTERVAL	5 //secs
+#define CLUSTER					E3
 
 static bool		networkMustQuit = false;
 static bool		server = false;
@@ -83,7 +88,14 @@ static void NetworkThread(bool server, ShaderApplication *app)
 	}
 	else
 	{
-		nm.ConnectCluster(E3);
+		Timer::Interval(
+			[&]()
+			{
+				nm.ConnectCluster(CLUSTER);
+			},
+			CLUSTER_SCAN_INTERVAL * 1000,
+			1 //function will block until first scan is complete
+		);
 
 		nm.LoadShaderOnGroup(0, "shaders/fractal/kifs.glsl");
 		nm.LoadShaderOnGroup(0, "shaders/fractal/mandelbrot-orbit.glsl", true);
@@ -94,8 +106,8 @@ static void NetworkThread(bool server, ShaderApplication *app)
 		//nm.MoveIMacToGroup(group, 9, 4, 3);
 
 		std::cout << "focus shader 0 send !" << std::endl;
-		nm.FocusShaderOnGroup(Timer::Now(), group, 0);
-		nm.FocusShaderOnGroup(Timer::TimeoutInSeconds(10), group, 1);
+		nm.FocusShaderOnGroup(Timer::Now(), group, 0, SyncOffset::CreateLinearSyncOffset(1, 0));
+		nm.FocusShaderOnGroup(Timer::TimeoutInSeconds(10), group, 1, SyncOffset::CreateNoneSyncOffset());
 
 		while (!networkMustQuit)
 			if (nm.Update() == NetworkStatus::Error)

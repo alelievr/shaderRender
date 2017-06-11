@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/06/02 17:39:53 by alelievr          #+#    #+#             */
-/*   Updated: 2017/06/11 04:22:21 by alelievr         ###   ########.fr       */
+/*   Updated: 2017/06/11 20:21:22 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,6 +24,8 @@
 # include <arpa/inet.h>
 # include <functional>
 # include "shaderpixel.h"
+# include "SyncOffset.hpp"
+# include "Timeval.hpp"
 
 # define CLIENT_PORT			5446
 # define SERVER_PORT			5447
@@ -47,6 +49,7 @@
 typedef std::function< void (const Timeval *timing, const int programIndex) >			ShaderFocusCallback;
 typedef std::function< void (const Timeval *timing, const std::string & shaderName) >	ShaderUniformCallback;
 typedef std::function< void (const std::string & shaderName, const bool last) >			ShaderLoadCallback;
+typedef std::function< Timeval & (const int seat, const int row, const int index) >		CustomSyncOffsetCallback;
 
 enum class	NetworkStatus
 {
@@ -142,12 +145,14 @@ class		NetworkManager
  		 *		Switch client program
  		 * */
 
+		typedef struct timeval		NetworkTimeval;
+
 		struct			Packet
 		{
 			PacketType		type;
 			int				groupId;
 			int				ip;
-			Timeval			timing; //time to wait to execute datas
+			NetworkTimeval	timing; //time to wait to execute datas
 			union
 			{
 				struct //query client status
@@ -156,7 +161,7 @@ class		NetworkManager
 					int				seat;
 					int				row;
 					int				cluster;
-					Timeval			clientTime;
+					NetworkTimeval	clientTime;
 				};
 				struct //String packet (for errors/warning/debug)
 				{
@@ -187,16 +192,7 @@ class		NetworkManager
 			};
 		};
 
-		struct			Message
-		{
-			const int		groupId;
-			const Packet	packet;
-
-			Message(int gId, const Packet p) : groupId(gId), packet(p) {}
-		};
-
 		std::map< int, std::list< Client > > _clients;
-		std::queue< Message >	_messageQueue;
 		bool					_isServer;
 		int						_serverSocket;
 		int						_clientSocket;
@@ -211,7 +207,7 @@ class		NetworkManager
 		ShaderLoadCallback		_shaderLoadCallback = NULL;
 
 		NetworkStatus			_SendPacketToAllClients(const Packet & packet) const;
-		NetworkStatus			_SendPacketToGroup(const int groupId, const Packet & packet) const;
+		NetworkStatus			_SendPacketToGroup(const int groupId, Packet packet, const SyncOffset & sync) const;
 		NetworkStatus			_SendPacketToServer(const Packet & packet) const;
 
 		void					_ServerSocketEvent(void);
@@ -219,6 +215,7 @@ class		NetworkManager
 
 		void					_FillLocalInfos(void);
 		bool					_ImacExists(const int row, const int seat) const;
+		void					_FindClient(const int groupId, const int ip, std::function< void(Client &) > callback);
 
 		//Create packet functions:
 		void					_InitPacketHeader(Packet *p, const Client & client, const PacketType type) const;
@@ -244,7 +241,7 @@ class		NetworkManager
 		void			SetShaderUniformCallback(ShaderUniformCallback callback);
 		void			SetShaderLoadCallback(ShaderLoadCallback callback);
 
-		NetworkStatus	FocusShaderOnGroup(const Timeval *timeout, const int groupId, const int programIndex) const;
+		NetworkStatus	FocusShaderOnGroup(const Timeval *timeout, const int groupId, const int programIndex, const SyncOffset & syncOffset) const;
 		NetworkStatus	UpdateUniformOnGroup(const Timeval *timeout, const int group, const std::string uniformName, ...) const;
 		NetworkStatus	LoadShaderOnGroup(const int groupId, const std::string & shaderName, bool last = false) const;
 		int				CreateNewGroup(void);
