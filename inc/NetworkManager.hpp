@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/06/02 17:39:53 by alelievr          #+#    #+#             */
-/*   Updated: 2017/06/11 20:21:22 by alelievr         ###   ########.fr       */
+/*   Updated: 2017/06/11 20:32:22 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -215,7 +215,7 @@ class		NetworkManager
 
 		void					_FillLocalInfos(void);
 		bool					_ImacExists(const int row, const int seat) const;
-		void					_FindClient(const int groupId, const int ip, std::function< void(Client &) > callback);
+		NetworkStatus			_FindClient(const int groupId, const size_t ip, std::function< void(Client &) > callback);
 
 		//Create packet functions:
 		void					_InitPacketHeader(Packet *p, const Client & client, const PacketType type) const;

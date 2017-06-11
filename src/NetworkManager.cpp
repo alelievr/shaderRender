@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/06/02 17:40:05 by alelievr          #+#    #+#             */
-/*   Updated: 2017/06/11 20:22:24 by alelievr         ###   ########.fr       */
+/*   Updated: 2017/06/11 20:48:51 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -161,9 +161,20 @@ bool				NetworkManager::_ImacExists(const int row, const int seat) const
 	return true;
 }
 
-void				NetworkManager::_FindClient(const int groupId, const int ip, std::function< void(Client &) > callback)
+NetworkStatus		NetworkManager::_FindClient(const int groupId, const size_t ip, std::function< void(Client &) > callback)
 {
+	bool		found = false;
 
+	if (groupId < 0 || _clients.find(groupId) == _clients.end())
+		return DEBUG("Findclient failed, groupId out of bounds: %i\n", groupId), NetworkStatus::OutOfBound;
+
+	auto & clientList = _clients[groupId];
+	for (auto & c : clientList)
+		if (c.ip == ip)
+			found = true, callback(c);
+	if (!found)
+		DEBUG("Client %zu not found in group: %i\n", ip, groupId);
+	return (found) ? NetworkStatus::Success : NetworkStatus::Error;
 }
 
 NetworkStatus		NetworkManager::_SendPacketToAllClients(const Packet & packet) const
@@ -250,6 +261,7 @@ NetworkStatus		NetworkManager::_SendPacketToServer(const Packet & packet) const
 	if (inet_aton(_serverIp, &connection.sin_addr) == 0)
 		perror("inet_aton");
 
+	DEBUG("sending packet to server(%s) on port %i\n", inet_ntoa(connection.sin_addr), SERVER_PORT);
 	if (sendto(_clientSocket, &packet, sizeof(packet), 0, reinterpret_cast< struct sockaddr * >(&connection), sizeof(connection)) < 0)
 
 		error = true, perror("[To server] sendto");
@@ -363,12 +375,14 @@ void						NetworkManager::_ClientSocketEvent(const struct sockaddr_in & connecti
 {
 	Timeval		packetTiming = packet.timing;
 
+	std::cout << "client received message !\n";
 	switch (packet.type)
 	{
 		case PacketType::Status:
 			_connectedToServer = true;
 			strcpy(_serverIp, inet_ntoa(connection.sin_addr));
 			_SendPacketToServer(_CreatePokeStatusResponsePacket(*_me, packet));
+			printf("responding to status\n");
 			break ;
 		case PacketType::UniformUpdate:
 			break ;
@@ -384,7 +398,6 @@ void						NetworkManager::_ClientSocketEvent(const struct sockaddr_in & connecti
 		default:
 			break ;
 	}
-	std::cout << "client received message !\n";
 }
 
 void						NetworkManager::_ServerSocketEvent(void)
@@ -404,14 +417,14 @@ void						NetworkManager::_ServerSocketEvent(void)
 			switch (packet.type)
 			{
 				case PacketType::Status:
-					std::cout << "server received status message from iMac e" << packet.cluster << "r" << packet.row << "p" << packet.seat << std::endl;
+					std::cout << "server received status message from iMac e" << packet.cluster << "r" << packet.row << "p" << packet.seat << ", status: " << (int)packet.status << std::endl;
 					gettimeofday(&now, NULL);
 
 					//update the client status:
 					_FindClient(packet.groupId, packet.ip, 
-						[](Client & c)
+						[&](Client & c)
 						{
-						
+							c.status = packet.status;
 						}
 					);
 

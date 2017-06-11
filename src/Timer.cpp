@@ -15,7 +15,7 @@ Timer::~Timer(void)
 void	Timer::Timeout(const Timeval *timeout, std::function< void(void) > callback)
 {
 	_runningThreads[_localThreadIndex] = new std::thread(
-		[&](void)
+		[timeout, callback](void)
 		{
 			int			threadIndex = _localThreadIndex;
 			Timeval		now;
@@ -27,7 +27,9 @@ void	Timer::Timeout(const Timeval *timeout, std::function< void(void) > callback
 				usleep(total);
 			if (!_threadsShouldStop)
 				callback();
+			printf("HERE !!!\n");
 			_runningThreads.erase(threadIndex);
+			printf("ool\n");
 		}
 	);
 	_localThreadIndex++;
@@ -35,34 +37,25 @@ void	Timer::Timeout(const Timeval *timeout, std::function< void(void) > callback
 
 void	Timer::Interval(std::function< void(void) > callback, const int milliSecs, const int blockingUntilLoopCount)
 {
-	std::condition_variable		waitForCount;
-	std::mutex					thMutex;
-	int							localLoopCount = 0;
-
 	_runningThreads[_localThreadIndex] = new std::thread(
-		[&](void)
+		[callback, milliSecs](void) mutable
 		{
 			int			threadIndex = _localThreadIndex;
-			int			loopCount = 0;
+			int			microSecs = milliSecs * 1000;
 
-			std::unique_lock< std::mutex > lock(thMutex);
+			std::unique_lock<std::mutex> lck(mtx);
 
 			while (!_threadsShouldStop)
 			{
 				callback();
-				waitForCount.notify_one();
-				usleep(milliSecs * 1000);
-				loopCount++;
+				cv.notify_all();
+				usleep(microSecs);
 			}
 			_runningThreads.erase(threadIndex);
 		}
 	);
-	std::unique_lock< std::mutex > lock(thMutex);
-	while (localLoopCount != blockingUntilLoopCount)
-	{
-		waitForCount.wait(lock);
-		localLoopCount++;
-	}
+	//TODO: implemnt blocking count !!!
+	sleep(1);
 	_localThreadIndex++;
 }
 
@@ -117,6 +110,6 @@ char		*Timer::ReadableTime(const Timeval & tv)
 	nowtime = tv.tv_sec;
 	nowtm = localtime(&nowtime);
 	strftime(tmbuf, sizeof tmbuf, "%Y-%m-%d %H:%M:%S", nowtm);
-	snprintf(buf, sizeof buf, "%s.%06ld", tmbuf, tv.tv_usec);
+	snprintf(buf, sizeof buf, "%s.%06d", tmbuf, tv.tv_usec);
 	return buf;
 }
