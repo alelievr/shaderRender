@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/06/02 17:39:53 by alelievr          #+#    #+#             */
-/*   Updated: 2017/06/11 01:01:07 by alelievr         ###   ########.fr       */
+/*   Updated: 2017/06/11 02:29:38 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -119,6 +119,7 @@ class		NetworkManager
 				{
 					this->seat = oth.seat;
 					this->cluster = oth.cluster;
+					this->row = oth.row;
 					this->groupId = oth.groupId;
 					this->status = oth.status;
 					this->ip = oth.ip;
@@ -128,6 +129,11 @@ class		NetworkManager
 			}
 
 			Client() {}
+
+			friend std::ostream &	operator<<(std::ostream & o, NetworkManager::Client const & r)
+			{
+				return o << "e" << r.cluster << "r" << r.row << "p" << r.seat;
+			}
 		};
 
 		/*	Packet struct which handle all possible packets:
@@ -212,6 +218,7 @@ class		NetworkManager
 		void                	_ClientSocketEvent(const struct sockaddr_in & connection, const Packet & packet);
 
 		void					_FillLocalInfos(void);
+		bool					_ImacExists(const int row, const int seat) const;
 
 		//Create packet functions:
 		void					_InitPacketHeader(Packet *p, const Client & client, const PacketType type) const;
@@ -247,6 +254,5 @@ class		NetworkManager
 };
 
 std::ostream &	operator<<(std::ostream & o, NetworkManager const & r);
-std::ostream &	operator<<(std::ostream & o, NetworkManager::Client const & r);
 
 #endif

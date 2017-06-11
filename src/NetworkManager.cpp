@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/06/02 17:40:05 by alelievr          #+#    #+#             */
-/*   Updated: 2017/06/11 00:59:37 by alelievr         ###   ########.fr       */
+/*   Updated: 2017/06/11 02:33:55 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,18 +23,22 @@
 #define DEBUG		1
 
 #ifdef DEBUG
-# if DEBUG >= 1
+# if DEBUG == 1
 #  undef DEBUG
 #  define DEBUG(...) printf(__VA_ARGS__)
-# endif
-# if DEBUG >= 2
-#  define DEBUG2(...) {puts("\033[38;5;42m");printf(__VA_ARGS__);puts("\033[0m")}
-# else
 #  define DEBUG2(...)
+# elif DEBUG == 2
+#  undef DEBUG
+#  define DEBUG(...) printf(__VA_ARGS__)
+#  define DEBUG2(...) {printf("\033[38;5;42m");printf(__VA_ARGS__);printf("\033[0m");}
+# else
+#  define DEBUG2(...) (void)0
+#  undef DEBUG
+#  define DEBUG(...) (void)0
 # endif
-#else
-# define DEBUG2(...)
-# define DEBUG(...)
+#else // DEBUG
+# define DEBUG2(...) (void)0
+# define DEBUG(...) (void)0
 #endif
 
 int	NetworkManager::_localGroupId = 1;
@@ -139,6 +143,23 @@ void	NetworkManager::_FillLocalInfos(void)
 	_me = new Client(row, seat, cluster, ip);
 }
 
+bool				NetworkManager::_ImacExists(const int row, const int seat) const
+{
+	static const struct { int row; int seat; } inexistantPositions[] = {
+		{1, 15}, {1, 16}, {1, 17}, {1, 18}, {1, 19}, {1, 20}, {1, 23},
+		{3, 22}, {3, 23},
+		{6, 21}, {6, 22}, {6, 23},
+		{8, 22}, {8, 23},
+		{9, 21}, {9, 22}, {9, 23},
+		{13, 15}, {13, 16}, {13, 17}, {13, 18}, {13, 19}, {13, 20}, {13, 23},
+	};
+
+	for (const auto & pos : inexistantPositions)
+		if (row == pos.row && seat == pos.seat)
+			return false;
+	return true;
+}
+
 NetworkStatus		NetworkManager::_SendPacketToAllClients(const Packet & packet) const
 {
 	struct sockaddr_in		connection;
@@ -154,10 +175,13 @@ NetworkStatus		NetworkManager::_SendPacketToAllClients(const Packet & packet) co
 		{
 			connection.sin_addr.s_addr = c.ip;
 			if (sendto(_clientSocket, &packet, sizeof(packet), 0, reinterpret_cast< struct sockaddr * >(&connection), sizeof(connection)) < 0)
+			{
 				error = true;
+				DEBUG("[To all] sendto: %s\n", strerror(errno));
+			}
 		}
 	}
-	return (error) ? NetworkStatus::Error : NetworkStatus::Success;
+	return (error) ? NetworkStatus::MissingClients : NetworkStatus::Success;
 }
 
 NetworkStatus		NetworkManager::_SendPacketToGroup(const int groupId, const Packet & packet) const
@@ -176,15 +200,18 @@ NetworkStatus		NetworkManager::_SendPacketToGroup(const int groupId, const Packe
 		return NetworkStatus::OutOfBound;
 	}
 	const auto clientGroupList = clientGroupKP->second;
+	DEBUG("sending %zu packets to Imacs in group %i\n", clientGroupList.size(), groupId);
 	for (const Client & c : clientGroupList)
 	{
-		DEBUG2("sending packet to: %s\n", inet_ntoa(connection.sin_addr));
 		connection.sin_addr.s_addr = c.ip;
+		DEBUG2("sending packet to: %s\n", inet_ntoa(connection.sin_addr));
 		if (sendto(_clientSocket, &packet, sizeof(packet), 0, reinterpret_cast< struct sockaddr * >(&connection), sizeof(connection)) < 0)
-
-			error = true, perror("[To group] sendto"), std::cout << "For ip: " << inet_ntoa(connection.sin_addr) << std::endl;
+		{
+			error = true;
+			DEBUG("[To group] sendto: %s For ip: %s\n", strerror(errno), inet_ntoa(connection.sin_addr));
+		}
 	}
-	return (error) ? NetworkStatus::Error : NetworkStatus::Success;
+	return (error) ? NetworkStatus::MissingClients : NetworkStatus::Success;
 }
 
 NetworkStatus		NetworkManager::_SendPacketToServer(const Packet & packet) const
@@ -281,9 +308,12 @@ NetworkStatus		NetworkManager::ConnectCluster(int clusterNumber)
 		return (std::cout << "not in server mode !" << std::endl, NetworkStatus::ServerReservedCommand);
 	if (clusterNumber <= 0 || clusterNumber > 3)
 		return (std::cout << "bad cluster number !" << std::endl, NetworkStatus::Error);
-	for (int r = 1; r < CLUSTER_MAX_ROWS; r++)
-		for (int s = 1; s < CLUSTER_MAX_ROW_SEATS; s++)
+	for (int r = 1; r <= CLUSTER_MAX_ROWS; r++)
+		for (int s = 1; s <= CLUSTER_MAX_ROW_SEATS; s++)
 		{
+			if (!_ImacExists(r, s))
+				continue ;
+
 			std::string	ip = "10.1" + std::to_string(clusterNumber) + "." + std::to_string(r) + "." + std::to_string(s);
 
 			Client		c(r, s, clusterNumber, ip.c_str());
@@ -489,9 +519,4 @@ std::ostream &	operator<<(std::ostream & o, NetworkManager const & r)
 	o << "tostring of the class" << std::endl;
 	(void)r;
 	return (o);
-}
-
-std::ostream &	operator<<(std::ostream & o, NetworkManager::Client const & r)
-{
-	return o << "e" << r.cluster << "r" << r.row << "p" << r.seat;
 }

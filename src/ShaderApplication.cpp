@@ -7,6 +7,9 @@ ShaderApplication::ShaderApplication(bool server)
 {
 	(void)server;
 
+	loadingShaders = false;
+	_programToFocus = -1;
+
 	glfwSetErrorCallback(
 		[](int code, const char *description)
 		{
@@ -83,8 +86,20 @@ bool	ShaderApplication::LoadShader(const std::string & shaderFile)
 
 void	ShaderApplication::FocusShader(const int programIndex)
 {
+	if (loadingShaders)
+	{
+		_programToFocus = programIndex;
+		return ;
+	}
+
 	std::cout << "shader switched to display " << programIndex << std::endl;
 	shaderRender->SetCurrentRenderedShader(programIndex);
+}
+
+void	ShaderApplication::OnLoadingShaderFinished()
+{
+	if (_programToFocus != -1)
+		FocusShader(_programToFocus);
 }
 
 void	ShaderApplication::RenderLoop(void)
