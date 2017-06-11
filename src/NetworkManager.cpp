@@ -6,11 +6,12 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/06/02 17:40:05 by alelievr          #+#    #+#             */
-/*   Updated: 2017/06/11 02:33:55 by alelievr         ###   ########.fr       */
+/*   Updated: 2017/06/11 04:31:08 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "NetworkManager.hpp"
+#include "Timer.hpp"
 #include <unistd.h>
 #include <sys/socket.h>
 #include <ifaddrs.h>
@@ -273,6 +274,7 @@ NetworkManager::Packet	NetworkManager::_CreatePokeStatusResponsePacket(const Cli
 	p.row = _me->row;
 	p.cluster = _me->cluster;
 	p.ip = oldPacket.ip;
+	gettimeofday(&p.clientTime, NULL);
 
 	return p;
 }
@@ -348,6 +350,7 @@ void				NetworkManager::_ClientSocketEvent(const struct sockaddr_in & connection
 		case PacketType::UniformUpdate:
 			break ;
 		case PacketType::ShaderFocus:
+			DEBUG("received focus program %i, timeout: %s\n", packet.programIndex, Timer::ReadableTime(packet.timing));
 			if (_shaderFocusCallback != NULL)
 				_shaderFocusCallback(&packet.timing, packet.programIndex);
 			break ;
@@ -367,6 +370,7 @@ void				NetworkManager::_ServerSocketEvent(void)
 	struct sockaddr_in      connection;
 	socklen_t               connectionLen;
 	long					r;
+	Timeval					now;
 
 	connectionLen = sizeof(connection);
 	if ((r = recvfrom(_serverSocket, &packet, sizeof(packet), 0, reinterpret_cast< struct sockaddr * >(&connection), &connectionLen)) > 0)
@@ -378,6 +382,8 @@ void				NetworkManager::_ServerSocketEvent(void)
 			{
 				case PacketType::Status:
 					std::cout << "server received status message from iMac e" << packet.cluster << "r" << packet.row << "p" << packet.seat << std::endl;
+					gettimeofday(&now, NULL);
+
 					break ;
 				case PacketType::UniformUpdate:
 					break ;

@@ -64,3 +64,16 @@ Timeval		*Timer::Now(void)
 	gettimeofday(&t, NULL);
 	return &t;
 }
+
+char		*Timer::ReadableTime(const Timeval & tv)
+{
+	time_t			nowtime;
+	struct tm *		nowtm;
+	static char		tmbuf[64], buf[64];
+
+	nowtime = tv.tv_sec;
+	nowtm = localtime(&nowtime);
+	strftime(tmbuf, sizeof tmbuf, "%Y-%m-%d %H:%M:%S", nowtm);
+	snprintf(buf, sizeof buf, "%s.%06ld", tmbuf, tv.tv_usec);
+	return buf;
+}

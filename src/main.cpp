@@ -88,9 +88,10 @@ static void NetworkThread(bool server, ShaderApplication *app)
 		nm.LoadShaderOnGroup(0, "shaders/fractal/kifs.glsl");
 		nm.LoadShaderOnGroup(0, "shaders/fractal/mandelbrot-orbit.glsl", true);
 
-		int		group = nm.CreateNewGroup();
+		int		group = 0;
+		//int		group = nm.CreateNewGroup();
 
-		nm.MoveIMacToGroup(group, 9, 4, 3);
+		//nm.MoveIMacToGroup(group, 9, 4, 3);
 
 		std::cout << "focus shader 0 send !" << std::endl;
 		nm.FocusShaderOnGroup(Timer::Now(), group, 0);

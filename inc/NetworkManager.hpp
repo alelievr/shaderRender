@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/06/02 17:39:53 by alelievr          #+#    #+#             */
-/*   Updated: 2017/06/11 02:29:38 by alelievr         ###   ########.fr       */
+/*   Updated: 2017/06/11 04:22:21 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -156,7 +156,7 @@ class		NetworkManager
 					int				seat;
 					int				row;
 					int				cluster;
-					int				:32;
+					Timeval			clientTime;
 				};
 				struct //String packet (for errors/warning/debug)
 				{

@@ -24,6 +24,7 @@ class		Timer
 		static Timeval		*TimeoutInMilliSeconds(const long nMillis);
 		static Timeval		*TimeoutInMicroSeconds(const long nMicro);
 		static Timeval		*Now(void);
+		static char			*ReadableTime(const Timeval & t);
 };
 
 std::ostream &	operator<<(std::ostream & o, Timer const & r);
