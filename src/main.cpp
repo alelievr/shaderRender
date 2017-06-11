@@ -9,16 +9,18 @@
 #include <list>
 #include <getopt.h>
 
-#define CLUSTER_SCAN_INTERVAL	5 //secs
+#define CLUSTER_SCAN_INTERVAL	15 //secs
 #define CLUSTER					E3
 
 static bool		networkMustQuit = false;
 static bool		server = false;
+static bool		connection = false;
 static bool		serverSentAllShadersToLoad;
 static std::list< const std::string >	shadersToLoad;
 
 static struct option longopts[] = {
 	{ "server",     no_argument,            NULL,           1},
+	{ "connection", no_argument,			NULL, 			'c'},
 //	{ "shader",     required_argument,      NULL,           's'},
 	{ NULL,         0,                      NULL,           0}
 };
@@ -35,11 +37,14 @@ static void options(int *ac, char ***av)
 	int bflag, ch;
 
     bflag = 0;
-    while ((ch = getopt_long(*ac, *av, "", longopts, NULL)) != -1)
+    while ((ch = getopt_long(*ac, *av, "c", longopts, NULL)) != -1)
         switch (ch) {
             case 1:
                 server = true;
                 break;
+			case 'c':
+				connection = true;
+				break ;
             default:
                 usage(*av[0]);
      	}
@@ -49,7 +54,7 @@ static void options(int *ac, char ***av)
 
 static void NetworkThread(bool server, ShaderApplication *app)
 {
-	NetworkManager		nm(server);
+	NetworkManager		nm(server, connection);
 
 	if (!server)
 	{

@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/06/02 17:40:05 by alelievr          #+#    #+#             */
-/*   Updated: 2017/06/11 20:48:51 by alelievr         ###   ########.fr       */
+/*   Updated: 2017/06/12 00:38:17 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,11 +44,12 @@
 
 int	NetworkManager::_localGroupId = 1;
 
-NetworkManager::NetworkManager(bool server)
+NetworkManager::NetworkManager(bool server, bool co)
 {
 	struct sockaddr_in		connection;
 	int						yes = 1;
 
+	this->_connection = co;
 	this->_isServer = server;
 	this->_connectedToServer = false;
 	bzero(&connection, sizeof(connection));
@@ -147,12 +148,13 @@ void	NetworkManager::_FillLocalInfos(void)
 bool				NetworkManager::_ImacExists(const int row, const int seat) const
 {
 	static const struct { int row; int seat; } inexistantPositions[] = {
-		{1, 15}, {1, 16}, {1, 17}, {1, 18}, {1, 19}, {1, 20}, {1, 23},
+		{1, 15}, {1, 16}, {1, 17}, {1, 18}, {1, 19}, {1, 20}, {1, 21}, {1, 22}, {1, 23},
 		{3, 22}, {3, 23},
+		{5, 23},
 		{6, 21}, {6, 22}, {6, 23},
 		{8, 22}, {8, 23},
 		{9, 21}, {9, 22}, {9, 23},
-		{13, 15}, {13, 16}, {13, 17}, {13, 18}, {13, 19}, {13, 20}, {13, 23},
+		{13, 15}, {13, 16}, {13, 17}, {13, 18}, {13, 19}, {13, 20}, {13, 21}, {13, 22}, {13, 23},
 	};
 
 	for (const auto & pos : inexistantPositions)
@@ -194,7 +196,7 @@ NetworkStatus		NetworkManager::_SendPacketToAllClients(const Packet & packet) co
 			if (sendto(_clientSocket, &packet, sizeof(packet), 0, reinterpret_cast< struct sockaddr * >(&connection), sizeof(connection)) < 0)
 			{
 				error = true;
-				DEBUG("[To all] sendto: %s at ip %s\n", strerror(errno), inet_ntoa(connection.sin_addr));
+				DEBUG2("[To all] sendto: %s at ip %s\n", strerror(errno), inet_ntoa(connection.sin_addr));
 			}
 		}
 	}
@@ -268,6 +270,28 @@ NetworkStatus		NetworkManager::_SendPacketToServer(const Packet & packet) const
 	return (error) ? NetworkStatus::Error : NetworkStatus::Success;
 }
 
+NetworkStatus		NetworkManager::_SendPacketToClient(const int ip, const Packet & packet) const
+{
+	bool			error = false;
+
+	if (!_connectedToServer)
+		return NetworkStatus::NotConnectedToServer;
+	if (_isServer)
+		return NetworkStatus::ClientReservedCommand;
+
+	struct sockaddr_in		connection;
+
+	bzero(&connection, sizeof(connection));
+	connection.sin_family = AF_INET;
+	connection.sin_port = htons(CLIENT_PORT);
+	connection.sin_addr.s_addr = ip;
+
+	if (sendto(_clientSocket, &packet, sizeof(packet), 0, reinterpret_cast< struct sockaddr * >(&connection), sizeof(connection)) < 0)
+
+		error = true, perror("[To server] sendto");
+	return (error) ? NetworkStatus::Error : NetworkStatus::Success;
+}
+
 void						NetworkManager::_InitPacketHeader(Packet *p, const Client & client, const PacketType type) const
 {
 	bzero(p, sizeof(Packet));
@@ -277,6 +301,8 @@ void						NetworkManager::_InitPacketHeader(Packet *p, const Client & client, co
 	p->ip = client.ip;
 }
 
+//server packet creation functions
+
 NetworkManager::Packet		NetworkManager::_CreatePokeStatusPacket(void) const
 {
 	if (!_isServer)
@@ -285,26 +311,6 @@ NetworkManager::Packet		NetworkManager::_CreatePokeStatusPacket(void) const
 	static Packet		p;
 
 	p.type = PacketType::Status;
-
-	return p;
-}
-
-NetworkManager::Packet		NetworkManager::_CreatePokeStatusResponsePacket(const Client & client, const Packet & oldPacket) const
-{
-	if (_isServer)
-		std::cout << "Attempted to create poke response packet in server mode !\n", exit(-1);
-
-	Packet p;
-
-	//TODO: integrate client status code
-
-	_InitPacketHeader(&p, client, PacketType::Status);
-	p.status = ClientStatus::WaitingForCommand;
-	p.seat = _me->seat;
-	p.row = _me->row;
-	p.cluster = _me->cluster;
-	p.ip = oldPacket.ip;
-	gettimeofday(&p.clientTime, NULL);
 
 	return p;
 }
@@ -332,10 +338,47 @@ NetworkManager::Packet		NetworkManager::_CreateShaderLoadPacket(const int groupI
 	return p;
 }
 
+NetworkManager::Packet		NetworkManager::_CreateChangeGroupPacket(const int groupId) const
+{
+	Packet	p;
+
+	p.type = PacketType::ChangeGroup;
+	p.groupId = groupId;
+	p.newGroupId = groupId;
+	return p;
+}
+
+//Client Packet creation functions
+
+NetworkManager::Packet		NetworkManager::_CreatePokeStatusResponsePacket(const Client & client) const
+{
+	if (_isServer)
+		std::cout << "Attempted to create poke response packet in server mode !\n", exit(-1);
+
+	Packet p;
+
+	//TODO: integrate client status code
+
+	_InitPacketHeader(&p, client, PacketType::Status);
+	p.status = ClientStatus::WaitingForCommand;
+	p.seat = _me->seat;
+	p.row = _me->row;
+	p.cluster = _me->cluster;
+	p.ip = _me->ip;
+	p.groupId = _me->groupId;
+	printf("packet groupId: %i\n", _me->groupId);
+	gettimeofday(&p.clientTime, NULL);
+
+	return p;
+}
+
 //public functions
 
+ #include <netdb.h>
 NetworkStatus				NetworkManager::ConnectCluster(int clusterNumber)
 {
+	static bool			first = true;
+
 	if (!_isServer)
 		return (std::cout << "not in server mode !" << std::endl, NetworkStatus::ServerReservedCommand);
 	if (clusterNumber <= 0 || clusterNumber > 3)
@@ -351,12 +394,20 @@ NetworkStatus				NetworkManager::ConnectCluster(int clusterNumber)
 
 			std::string	ip = "10.1" + std::to_string(clusterNumber) + "." + std::to_string(r) + "." + std::to_string(s);
 
+			if (_connection && first)
+			{
+				//TODO: check if ip address is responding
+			}
+
+			DEBUG2("added iMac ip %s to the client list\n", ip.c_str());
+
 			Client		c(r, s, clusterNumber, ip.c_str());
 
 			_clients[0].push_back(c);
 		}
 
 	_SendPacketToAllClients(_CreatePokeStatusPacket());
+	first = false;
 	return NetworkStatus::Success;
 }
 
@@ -375,13 +426,14 @@ void						NetworkManager::_ClientSocketEvent(const struct sockaddr_in & connecti
 {
 	Timeval		packetTiming = packet.timing;
 
+	_me->groupId = packet.groupId;
 	std::cout << "client received message !\n";
 	switch (packet.type)
 	{
 		case PacketType::Status:
 			_connectedToServer = true;
 			strcpy(_serverIp, inet_ntoa(connection.sin_addr));
-			_SendPacketToServer(_CreatePokeStatusResponsePacket(*_me, packet));
+			_SendPacketToServer(_CreatePokeStatusResponsePacket(*_me));
 			printf("responding to status\n");
 			break ;
 		case PacketType::UniformUpdate:
@@ -394,6 +446,9 @@ void						NetworkManager::_ClientSocketEvent(const struct sockaddr_in & connecti
 		case PacketType::ShaderLoad:
 			if (_shaderLoadCallback != NULL)
 				_shaderLoadCallback(std::string(packet.shaderName), packet.lastShader);
+			break ;
+		case PacketType::ChangeGroup:
+			_me->groupId = packet.newGroupId;
 			break ;
 		default:
 			break ;
@@ -509,6 +564,7 @@ NetworkStatus		NetworkManager::MoveIMacToGroup(const int groupId, const int row,
 	if (nRemoved == 1)
 	{
 		_clients[groupId].push_back(moved);
+		_SendPacketToClient(moved.ip, _CreateChangeGroupPacket(groupId));
 		std::cout << "moved imac " << moved << " to group " << groupId << std::endl;
 		return NetworkStatus::Success;
 	}

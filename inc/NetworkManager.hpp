@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/06/02 17:39:53 by alelievr          #+#    #+#             */
-/*   Updated: 2017/06/11 20:32:22 by alelievr         ###   ########.fr       */
+/*   Updated: 2017/06/12 00:38:31 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -82,6 +82,7 @@ class		NetworkManager
 			ShaderFocus,
 			ShaderLoad,
 			UniformUpdate,
+			ChangeGroup,
 		};
 
 		enum class		UniformType
@@ -189,6 +190,10 @@ class		NetworkManager
 				{
 					GLuint	programIndex;
 				};
+				struct //Move imac to new group
+				{
+					int		newGroupId;
+				};
 			};
 		};
 
@@ -197,6 +202,7 @@ class		NetworkManager
 		int						_serverSocket;
 		int						_clientSocket;
 		bool					_connectedToServer;
+		bool					_connection;
 		Client *				_me;
 		char					_serverIp[IP_LENGHT];
 		fd_set					_serverFdSet;
@@ -208,6 +214,7 @@ class		NetworkManager
 
 		NetworkStatus			_SendPacketToAllClients(const Packet & packet) const;
 		NetworkStatus			_SendPacketToGroup(const int groupId, Packet packet, const SyncOffset & sync) const;
+		NetworkStatus			_SendPacketToClient(const int ip, const Packet & packet) const;
 		NetworkStatus			_SendPacketToServer(const Packet & packet) const;
 
 		void					_ServerSocketEvent(void);
@@ -220,12 +227,13 @@ class		NetworkManager
 		//Create packet functions:
 		void					_InitPacketHeader(Packet *p, const Client & client, const PacketType type) const;
 		Packet					_CreatePokeStatusPacket(void) const;
-		Packet					_CreatePokeStatusResponsePacket(const Client & client, const Packet & oldPacket) const;
+		Packet					_CreatePokeStatusResponsePacket(const Client & client) const;
 		Packet					_CreateShaderFocusPacket(const int groupId, const Timeval *tv, const int programIndex) const;
 		Packet					_CreateShaderLoadPacket(const int groupId, const std::string & shaderName, bool last) const;
+		Packet					_CreateChangeGroupPacket(const int groupId) const;
 
 	public:
-		NetworkManager(bool server = false);
+		NetworkManager(bool server = false, bool connection = false);
 		NetworkManager(const NetworkManager&) = delete;
 		virtual ~NetworkManager(void);
 

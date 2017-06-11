@@ -3,6 +3,8 @@
 #include <sys/time.h>
 #include <condition_variable>
 
+static std::atomic< int >		loopCount;
+
 std::map< int, std::thread * >	Timer::_runningThreads;
 int								Timer::_localThreadIndex;
 bool							Timer::_threadsShouldStop = false;
@@ -27,9 +29,7 @@ void	Timer::Timeout(const Timeval *timeout, std::function< void(void) > callback
 				usleep(total);
 			if (!_threadsShouldStop)
 				callback();
-			printf("HERE !!!\n");
 			_runningThreads.erase(threadIndex);
-			printf("ool\n");
 		}
 	);
 	_localThreadIndex++;
@@ -37,25 +37,24 @@ void	Timer::Timeout(const Timeval *timeout, std::function< void(void) > callback
 
 void	Timer::Interval(std::function< void(void) > callback, const int milliSecs, const int blockingUntilLoopCount)
 {
+	loopCount = 0;
 	_runningThreads[_localThreadIndex] = new std::thread(
 		[callback, milliSecs](void) mutable
 		{
 			int			threadIndex = _localThreadIndex;
 			int			microSecs = milliSecs * 1000;
 
-			std::unique_lock<std::mutex> lck(mtx);
-
 			while (!_threadsShouldStop)
 			{
 				callback();
-				cv.notify_all();
+				loopCount++;
 				usleep(microSecs);
 			}
 			_runningThreads.erase(threadIndex);
 		}
 	);
-	//TODO: implemnt blocking count !!!
-	sleep(1);
+	while (loopCount != blockingUntilLoopCount)
+		usleep(1000);
 	_localThreadIndex++;
 }
 
