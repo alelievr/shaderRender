@@ -1,18 +1,13 @@
 #include "Timer.hpp"
-#include <thread>
 #include <unistd.h>
 #include <sys/time.h>
+#include <condition_variable>
 
-Timer::Timer(void)
-{
-	std::cout << "Default constructor of Timer called" << std::endl;
-}
+static std::atomic< int >		loopCount;
 
-Timer::Timer(Timer const & src)
-{
-	*this = src;
-	std::cout << "Copy constructor called" << std::endl;
-}
+std::map< int, std::thread * >	Timer::_runningThreads;
+int								Timer::_localThreadIndex;
+bool							Timer::_threadsShouldStop = false;
 
 Timer::~Timer(void)
 {
@@ -21,9 +16,10 @@ Timer::~Timer(void)
 
 void	Timer::Timeout(const Timeval *timeout, std::function< void(void) > callback)
 {
-	new std::thread(
-		[callback, timeout](void)
+	_runningThreads[_localThreadIndex] = new std::thread(
+		[timeout, callback](void)
 		{
+			int			threadIndex = _localThreadIndex;
 			Timeval		now;
 			gettimeofday(&now, NULL);
 			long		secDiff = (timeout->tv_sec - now.tv_sec) * 1000 * 1000;
@@ -31,24 +27,88 @@ void	Timer::Timeout(const Timeval *timeout, std::function< void(void) > callback
 			long		total = secDiff + microSecDiff;
 			if (total > 0)
 				usleep(total);
-			callback();
+			if (!_threadsShouldStop)
+				callback();
+			_runningThreads.erase(threadIndex);
 		}
 	);
+	_localThreadIndex++;
 }
 
-
-Timer &	Timer::operator=(Timer const & src)
+void	Timer::Interval(std::function< void(void) > callback, const int milliSecs, const int blockingUntilLoopCount)
 {
-	std::cout << "Assignment operator called" << std::endl;
+	loopCount = 0;
+	_runningThreads[_localThreadIndex] = new std::thread(
+		[callback, milliSecs](void) mutable
+		{
+			int			threadIndex = _localThreadIndex;
+			int			microSecs = milliSecs * 1000;
 
-	if (this != &src) {
-	}
-	return (*this);
+			while (!_threadsShouldStop)
+			{
+				callback();
+				loopCount++;
+				usleep(microSecs);
+			}
+			_runningThreads.erase(threadIndex);
+		}
+	);
+	while (loopCount != blockingUntilLoopCount)
+		usleep(1000);
+	_localThreadIndex++;
 }
 
-std::ostream &	operator<<(std::ostream & o, Timer const & r)
+void	Timer::ExitAllThreads(void)
 {
-	o << "tostring of the class" << std::endl;
-	(void)r;
-	return (o);
+	_threadsShouldStop = true;
+	for (const auto & threadKP : _runningThreads)
+		threadKP.second->join();
+}
+
+Timeval		*Timer::TimeoutInSeconds(const int nSecs)
+{
+	static Timeval	t;
+
+	gettimeofday(&t, NULL);
+	t.tv_sec += nSecs;
+	return &t;
+}
+
+Timeval		*Timer::TimeoutInMilliSeconds(const long nMillis)
+{
+	static Timeval	t;
+
+	gettimeofday(&t, NULL);
+	t.tv_usec += nMillis * 1000;
+	return &t;
+}
+
+Timeval		*Timer::TimeoutInMicroSeconds(const long nMicro)
+{
+	static Timeval	t;
+
+	gettimeofday(&t, NULL);
+	t.tv_usec += nMicro;
+	return &t;
+}
+
+Timeval		*Timer::Now(void)
+{
+	static Timeval	t;
+
+	gettimeofday(&t, NULL);
+	return &t;
+}
+
+char		*Timer::ReadableTime(const Timeval & tv)
+{
+	time_t			nowtime;
+	struct tm *		nowtm;
+	static char		tmbuf[64], buf[64];
+
+	nowtime = tv.tv_sec;
+	nowtm = localtime(&nowtime);
+	strftime(tmbuf, sizeof tmbuf, "%Y-%m-%d %H:%M:%S", nowtm);
+	snprintf(buf, sizeof buf, "%s.%06d", tmbuf, tv.tv_usec);
+	return buf;
 }

@@ -6,7 +6,7 @@
 /*   By: jpirsch <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/05/26 05:35:14 by jpirsch           #+#    #+#             */
-/*   Updated: 2017/06/09 04:10:39 by jpirsch          ###   ########.fr       */
+/*   Updated: 2017/06/10 01:25:46 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -84,7 +84,7 @@ int	get_prog(lua_State *L)
 {
 	ShaderProgram	*prog;
 
-	prog = getSR(NULL)->getProgram();
+	prog = getSR(NULL)->getProgram(0);
 	lua_pushinteger(L, lua_Integer(prog));
 	return (1);
 }

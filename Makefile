@@ -5,8 +5,8 @@
 #                                                     +:+ +:+         +:+      #
 #    By: alelievr <marvin@42.fr>                    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
-#    Created: 2014/07/15 15:13:38 by alelievr          #+#    #+#              #
-#    Updated: 2017/06/08 09:36:58 by jpirsch          ###   ########.fr        #
+#    Created  2014/07/15 15:13:38 by alelievr          #+#    #+#              #
+#    Updated  2017/06/09 04:55:16 by alelievr         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -28,6 +28,9 @@ SRC			=	ShaderRender.cpp		\
 				utils.cpp				\
 				main.cpp				\
 				NetworkManager.cpp		\
+				Timer.cpp				\
+				SyncOffset.cpp			\
+				Timeval.cpp				\
 
 #	Objects
 OBJDIR		=	obj
@@ -47,9 +50,10 @@ INCDIRS		=	inc SOIL2/incs glfw/include fmod/inc lua/5.1/src/
 
 #	Libraries
 LIBDIRS		=	lua/5.1/src glfw/src/
-LDLIBS		=	-lglfw3 -llua fmod/lib/libfmod.so -rpath ./fmod/lib
+LDLIBS		=	-lglfw3 -llua -rpath $(shell pwd)/fmod/lib
 GLFWLIB		=	glfw/src/libglfw3.a
 SOILLIB		=	SOIL2/libSOIL2.so
+LUALIB		=	lua/5.1/src/liblua.a
 
 #	Output
 NAME		=	visualishader
@@ -61,7 +65,7 @@ CPROTECTION	=	-z execstack -fno-stack-protector
 
 DEBUGFLAGS1	=	-ggdb
 DEBUGFLAGS2	=	-fsanitize=address -fno-omit-frame-pointer -fno-optimize-sibling-calls -fsanitize-memory-track-origins=2
-OPTFLAGS1	=	-funroll-loops -O0 #FIXME !!! project does not work with optimization flags !
+OPTFLAGS1	=	-funroll-loops -O2
 OPTFLAGS2	=	-pipe -funroll-loops -Ofast
 
 #	Framework
@@ -101,12 +105,16 @@ ifeq "$(OS)" "Windows_NT"
 endif
 ifeq "$(OS)" "Linux"
 	LDLIBS		+= -lm -lGL -lX11 -lXrandr -lXrender -lXi -lXxf86vm -lpthread -ldl -lXinerama -lXcursor -lrt -lbsd
+	LDLIBS		+= fmod/lib/libfmod-linux.so.8.8
 	CFLAGS		+= -fPIC
 	DEBUGFLAGS	+= -fsanitize=memory -fsanitize-memory-use-after-dtor -fsanitize=thread
+	LUAMAKEOS	= linux
 endif
 ifeq "$(OS)" "Darwin"
 	FRAMEWORK	= OpenGL AppKit IOKit CoreVideo
-	OSX_SHARED_LIBRARY_PATH_CORRECTION = install_name_tool -change @rpath/libfmod.dylib ./fmod/lib/libfmod.so $(NAME)
+	OSX_SHARED_LIBRARY_PATH_CORRECTION = install_name_tool -change @rpath/libfmod.dylib $(shell pwd)/fmod/lib/libfmod.so $(NAME)
+	LDLIBS		+= fmod/lib/libfmod.so
+	LUAMAKEOS	= macosx
 endif
 
 #################
@@ -186,14 +194,21 @@ endif
 #################
 
 #	First target
-all: $(GLFWLIB) $(SOILLIB) $(NAME)
+all: $(GLFWLIB) $(SOILLIB) $(LUALIB) $(NAME)
+
+$(LUALIB):
+	@git submodule init
+	@git submodule update
+	cd lua/5.1/src && make $(LUAMAKEOS)
 
 $(SOILLIB):
+	@git submodule init
+	@git submodule update
 	cd SOIL2 && make dynamic
 
 $(GLFWLIB):
-	git submodule init
-	git submodule update
+	@git submodule init
+	@git submodule update
 	cd glfw && cmake . && make
 
 #	Linking

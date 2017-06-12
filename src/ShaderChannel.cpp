@@ -114,7 +114,6 @@ bool		ShaderChannel::loadSound(const std::string & file)
 
 bool		ShaderChannel::updateChannel(const std::string & file, int mode)
 {
-	printf("this = %p\n", this);
 	_channelFile = const_cast< std::string & >(file);
 	_mode = mode;
 

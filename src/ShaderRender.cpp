@@ -13,6 +13,7 @@
 #include "ShaderRender.hpp"
 #include "LuaGL.hpp"
 #include <functional>
+#include <algorithm>
 
 //#define DEBUG
 
@@ -215,7 +216,7 @@ void		ShaderRender::render(GLFWwindow *win)
 		}
 	);
 
-	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	glViewport(0, 0, framebuffer_size.x, framebuffer_size.y);
 
@@ -226,35 +227,22 @@ void		ShaderRender::render(GLFWwindow *win)
 	glEnable(GL_TEXTURE_2D);
 
 //	load_run_script(getL(NULL), "lua/draw.lua");
-	_program.use();
 
-	updateUniforms(&_program);
+	for (const std::size_t pIndex : _currentRenderedPrograms)
+		if (pIndex < _programs.size())
+		{
+			_programs[pIndex]->use();
 
-	_program.draw();
+			updateUniforms(_programs[pIndex]);
+
+			_programs[pIndex]->draw();
+		}
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 
 	if (glfwGetInputMode(win, GLFW_CURSOR) == GLFW_CURSOR_DISABLED)
 		glfwSetCursorPos(win, window.x / 2, window.y / 2);
 }
-
-/*void		ShaderRender::checkFileChanged(t_program *progs)
-{
-	struct stat		st;
-
-	for (int i = 0; progs[i].id; i++)
-	{
-		stat(progs[i].program_path, &st);
-		if (progs[i].last_modified != st.st_mtime)
-		{
-			progs[i].last_modified = st.st_mtime;
-			close(progs[i].fd);
-			progs[i].fd = open(progs[i].program_path, O_RDONLY);
-			if (createProgram(progs + i, progs[i].program_path, false, true))
-				updateUniformLocation(progs + i);
-		}
-	}
-}*/
 
 void		ShaderRender::displayWindowFps(void)
 {
@@ -274,12 +262,42 @@ void		ShaderRender::displayWindowFps(void)
 
 bool		ShaderRender::attachShader(const std::string file)
 {
-	_program.deleteProgram();
-	_program.loadFragmentFile(file);
-	if (!_program.compileAndLink())
+	ShaderProgram	*newProgram = new ShaderProgram();
+
+	std::cout << "loading shader file: " << file << std::endl;
+
+	newProgram->loadFragmentFile(file);
+
+	if (!newProgram->compileAndLink())
 		return std::cout << "shader " << file << " failed to compile !\n", false;
 	else
-		return programLoaded = true, true;
+		programLoaded = true;
+
+	_programs.push_back(newProgram);
+
+	return true;
+}
+
+void		ShaderRender::SetCurrentRenderedShader(const size_t programIndex)
+{
+	_currentRenderedPrograms.clear();
+	_currentRenderedPrograms.push_back(programIndex);
+}
+
+void		ShaderRender::AddCurrentRenderedShader(const size_t programIndex)
+{
+	_currentRenderedPrograms.push_back(programIndex);
+}
+
+void		ShaderRender::DeleteCurrentRenderedShader(const size_t programIndex)
+{
+	_currentRenderedPrograms.erase(std::remove(_currentRenderedPrograms.begin(), _currentRenderedPrograms.end(), programIndex), _currentRenderedPrograms.end());
+
+}
+
+void		ShaderRender::ClearCurrentRenderedShader()
+{
+	_currentRenderedPrograms.clear();
 }
 
 void		ShaderRender::windowSizeCallback(int winX, int winY)
@@ -327,18 +345,21 @@ void		ShaderRender::clickCallback(int button, int action, int mods)
 
 void		ShaderRender::foreachShaderChannels(std::function< void(ShaderProgram *, ShaderChannel *)> callback, ShaderProgram *currentShaderProgram)
 {
-	if (currentShaderProgram == NULL)
-		currentShaderProgram = &_program;
+	for (const std::size_t pIndex : _currentRenderedPrograms)
+		if (pIndex < _programs.size())
+		{
+			currentShaderProgram = _programs[pIndex];
 
-	for (int i = 0; i < MAX_CHANNEL_COUNT; i++)
-	{
-		auto chan = currentShaderProgram->getChannel(i);
-		if (chan == NULL)
-			continue ;
-		callback(currentShaderProgram, chan);
-		if (chan->getType() == ShaderChannelType::CHANNEL_PROGRAM)
-			foreachShaderChannels(callback, chan->getProgram());
-	}
+			for (int i = 0; i < MAX_CHANNEL_COUNT; i++)
+			{
+				auto chan = currentShaderProgram->getChannel(i);
+				if (chan == NULL)
+					continue ;
+				callback(currentShaderProgram, chan);
+				if (chan->getType() == ShaderChannelType::CHANNEL_PROGRAM)
+					foreachShaderChannels(callback, chan->getProgram());
+			}
+		}
 }
 
 void		ShaderRender::framebufferSizeCallback(int width, int height)
@@ -423,22 +444,24 @@ void		ShaderRender::keyCallback(GLFWwindow *window, int key, int scancode, int a
 	glfwSetInputMode(window, GLFW_CURSOR, (cursor_mode) ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_DISABLED);
 }
 
-ShaderChannel	*ShaderRender::getChannel(int chan)
+ShaderChannel	*ShaderRender::getChannel(const int programIndex, const int chan) const
 {
 	//TODO: chan max number
 	if (chan < MAX_CHANNEL_COUNT && programLoaded)
 	{
-		return _program.getChannel(chan);
+		return _programs[programIndex]->getChannel(chan);
 	}
 	return NULL;
 }
 
-ShaderProgram	*ShaderRender::getProgram(void)
+ShaderProgram	*ShaderRender::getProgram(const int programIndex) const
 {
-	return (&_program);
+	return (_programs[programIndex]);
 }
 
 ShaderRender::~ShaderRender()
 {
+	for (auto program : _programs)
+		delete program;
 //	lua_close(getL(NULL));		// Cya, Lua
 }

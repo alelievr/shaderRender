@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/06/02 17:39:53 by alelievr          #+#    #+#             */
-/*   Updated: 2017/06/09 04:24:46 by alelievr         ###   ########.fr       */
+/*   Updated: 2017/06/12 00:38:31 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,7 +22,10 @@
 # include <sys/socket.h>
 # include <stdio.h>
 # include <arpa/inet.h>
+# include <functional>
 # include "shaderpixel.h"
+# include "SyncOffset.hpp"
+# include "Timeval.hpp"
 
 # define CLIENT_PORT			5446
 # define SERVER_PORT			5447
@@ -43,8 +46,10 @@
 
 # define IP_LENGHT				sizeof("127.127.127.127")
 
-typedef std::function< void (const Timeval *timing, const std::string & shaderName) >	ShaderSwitchCallback;
-typedef std::function< void (const Timeval *timing, const std::string & shaderName) > ShaderUniformCallback;
+typedef std::function< void (const Timeval *timing, const int programIndex) >			ShaderFocusCallback;
+typedef std::function< void (const Timeval *timing, const std::string & shaderName) >	ShaderUniformCallback;
+typedef std::function< void (const std::string & shaderName, const bool last) >			ShaderLoadCallback;
+typedef std::function< Timeval & (const int seat, const int row, const int index) >		CustomSyncOffsetCallback;
 
 enum class	NetworkStatus
 {
@@ -55,6 +60,7 @@ enum class	NetworkStatus
 	AnotherCommandIsRunning,		// obvious
 	NotConnectedToServer,			// obvious
 	MissingClients,					// the command was not executed on all selected clients
+	OutOfBound,					//out of bounds, mostly for groupIds
 };
 
 class		NetworkManager
@@ -67,14 +73,16 @@ class		NetworkManager
 			Disconnected,				//the client is disconnected
 			WaitingForCommand,			//nothing is running, client wait for command
 			ShaderIsRunning,			//a shader is running
-			WaitingForShaderSwitch,		//a shader is running and the client is waiting to switch the shader at the specified time
+			WaitingForShaderFocus,		//a shader is running and the client is waiting to switch the shader at the specified time
 		};
 
 		enum class		PacketType
 		{
 			Status,
-			ShaderSwitch,
+			ShaderFocus,
+			ShaderLoad,
 			UniformUpdate,
+			ChangeGroup,
 		};
 
 		enum class		UniformType
@@ -92,7 +100,7 @@ class		NetworkManager
 			int				row;
 			int				cluster;
 			int				groupId;
-			ClientStatus	satus;
+			ClientStatus	status;
 			unsigned int	ip;
 			Timeval			averageTimeDelta;
 
@@ -104,9 +112,31 @@ class		NetworkManager
 				this->row = row;
 				this->cluster = cluster;
 				this->groupId = 0;
-				satus = ClientStatus::Unknown;
+				status = ClientStatus::Unknown;
 				inet_aton(cip, &connection.sin_addr);
 				ip = connection.sin_addr.s_addr;
+			}
+
+			Client & 	operator=(const Client & oth)
+			{
+				if (this != &oth)
+				{
+					this->seat = oth.seat;
+					this->cluster = oth.cluster;
+					this->row = oth.row;
+					this->groupId = oth.groupId;
+					this->status = oth.status;
+					this->ip = oth.ip;
+					this->averageTimeDelta = oth.averageTimeDelta;
+				}
+				return *this;
+			}
+
+			Client() {}
+
+			friend std::ostream &	operator<<(std::ostream & o, NetworkManager::Client const & r)
+			{
+				return o << "e" << r.cluster << "r" << r.row << "p" << r.seat;
 			}
 		};
 
@@ -116,12 +146,14 @@ class		NetworkManager
  		 *		Switch client program
  		 * */
 
+		typedef struct timeval		NetworkTimeval;
+
 		struct			Packet
 		{
 			PacketType		type;
 			int				groupId;
 			int				ip;
-			Timeval			timing; //time to wait to execute datas
+			NetworkTimeval	timing; //time to wait to execute datas
 			union
 			{
 				struct //query client status
@@ -130,7 +162,7 @@ class		NetworkManager
 					int				seat;
 					int				row;
 					int				cluster;
-					int				:32;
+					NetworkTimeval	clientTime;
 				};
 				struct //String packet (for errors/warning/debug)
 				{
@@ -138,7 +170,7 @@ class		NetworkManager
 				};
 				struct //update cient uniform
 				{
-					int		programIndex;
+					int		subProgramIndex;
 					char	uniformName[MAX_UNIFORM_LENGTH];
 					int		uniformType;
 					union
@@ -149,52 +181,59 @@ class		NetworkManager
 						float	uniformFloats[MAX_UNIFORM_DATAS];
 					};
 				};
-				struct //switch client 
+				struct //Load shader
 				{
 					char	shaderName[MAX_SHADER_NAME];
+					bool	lastShader;
+				};
+				struct //Shader focus
+				{
+					GLuint	programIndex;
+				};
+				struct //Move imac to new group
+				{
+					int		newGroupId;
 				};
 			};
 		};
 
-		struct			Message
-		{
-			const int		groupId;
-			const Packet	packet;
-
-			Message(int gId, const Packet p) : groupId(gId), packet(p) {}
-		};
-
 		std::map< int, std::list< Client > > _clients;
-		std::queue< Message >	_messageQueue;
 		bool					_isServer;
 		int						_serverSocket;
 		int						_clientSocket;
 		bool					_connectedToServer;
+		bool					_connection;
 		Client *				_me;
 		char					_serverIp[IP_LENGHT];
 		fd_set					_serverFdSet;
 		static int				_localGroupId;
 
-		ShaderSwitchCallback	_shaderSwitchCallback = NULL;
+		ShaderFocusCallback		_shaderFocusCallback = NULL;
 		ShaderUniformCallback	_shaderUniformCallback = NULL;
+		ShaderLoadCallback		_shaderLoadCallback = NULL;
 
 		NetworkStatus			_SendPacketToAllClients(const Packet & packet) const;
-		NetworkStatus			_SendPacketToGroup(const int groupId, const Packet & packet);
+		NetworkStatus			_SendPacketToGroup(const int groupId, Packet packet, const SyncOffset & sync) const;
+		NetworkStatus			_SendPacketToClient(const int ip, const Packet & packet) const;
 		NetworkStatus			_SendPacketToServer(const Packet & packet) const;
 
 		void					_ServerSocketEvent(void);
 		void                	_ClientSocketEvent(const struct sockaddr_in & connection, const Packet & packet);
 
 		void					_FillLocalInfos(void);
+		bool					_ImacExists(const int row, const int seat) const;
+		NetworkStatus			_FindClient(const int groupId, const size_t ip, std::function< void(Client &) > callback);
 
 		//Create packet functions:
 		void					_InitPacketHeader(Packet *p, const Client & client, const PacketType type) const;
 		Packet					_CreatePokeStatusPacket(void) const;
-		Packet					_CreatePokeStatusResponsePacket(const Client & client, const Packet & oldPacket) const;
-		Packet					_CreateShaderSwitchPacket(const int groupId, Timeval *tv, const std::string & shaderName);
+		Packet					_CreatePokeStatusResponsePacket(const Client & client) const;
+		Packet					_CreateShaderFocusPacket(const int groupId, const Timeval *tv, const int programIndex) const;
+		Packet					_CreateShaderLoadPacket(const int groupId, const std::string & shaderName, bool last) const;
+		Packet					_CreateChangeGroupPacket(const int groupId) const;
 
 	public:
-		NetworkManager(bool server = false);
+		NetworkManager(bool server = false, bool connection = false);
 		NetworkManager(const NetworkManager&) = delete;
 		virtual ~NetworkManager(void);
 
@@ -206,15 +245,15 @@ class		NetworkManager
 		NetworkStatus		Update(void);
 
 		//Client callbacks:
-		void			SetShaderSwitchCallback(ShaderSwitchCallback callback);
+		void			SetShaderFocusCallback(ShaderFocusCallback callback);
 		void			SetShaderUniformCallback(ShaderUniformCallback callback);
-		
+		void			SetShaderLoadCallback(ShaderLoadCallback callback);
 
-		NetworkStatus	RunShaderOnGroup(const int groupId, const std::string & shaderName);
-		NetworkStatus	UpdateUniformOnGroup(const int group, const std::string uniformName, ...);
-		NetworkStatus	SwitchShaderOnGroup(const int groupId, const std::string & shaderName);
+		NetworkStatus	FocusShaderOnGroup(const Timeval *timeout, const int groupId, const int programIndex, const SyncOffset & syncOffset) const;
+		NetworkStatus	UpdateUniformOnGroup(const Timeval *timeout, const int group, const std::string uniformName, ...) const;
+		NetworkStatus	LoadShaderOnGroup(const int groupId, const std::string & shaderName, bool last = false) const;
 		int				CreateNewGroup(void);
-		NetworkStatus	AddIMacToGroup(const int groupId, const int row, const int seat, const int floor = 1);
+		NetworkStatus	MoveIMacToGroup(const int groupId, const int row, const int seat, const int floor = 1);
 
 		bool	IsServer(void) const;
 };
