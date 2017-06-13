@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/06/02 17:40:05 by alelievr          #+#    #+#             */
-/*   Updated: 2017/06/12 00:38:17 by alelievr         ###   ########.fr       */
+/*   Updated: 2017/06/13 02:16:20 by jpirsch          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -439,7 +439,7 @@ void						NetworkManager::_ClientSocketEvent(const struct sockaddr_in & connecti
 		case PacketType::UniformUpdate:
 			break ;
 		case PacketType::ShaderFocus:
-			DEBUG("received focus program %i, timeout: %s\n", packet.programIndex, Timer::ReadableTime(packet.timing));
+			DEBUG("received focus program %i, timeout: %s\n", packet.programIndex, Timer::ReadableTime(packetTiming));
 			if (_shaderFocusCallback != NULL)
 				_shaderFocusCallback(&packetTiming, packet.programIndex);
 			break ;
@@ -539,13 +539,14 @@ NetworkStatus		NetworkManager::MoveIMacToGroup(const int groupId, const int row,
 	int												nRemoved = 0;
 	Client											moved;
 
+	(void)cluster;
 	if ((group = _clients.find(groupId)) != _clients.end())
 	{
 		for (auto clientKP : _clients)
 			clientKP.second.remove_if(
 				[&](const Client & c) mutable
 				{
-					if (c.row == row && c.seat == seat && c.cluster == cluster)
+					if (c.row == row && c.seat == seat)
 					{
 						moved = c;
 						nRemoved++;

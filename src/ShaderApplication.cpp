@@ -88,6 +88,7 @@ void	ShaderApplication::FocusShader(const int programIndex)
 {
 	if (loadingShaders)
 	{
+		std::cout << "stored shader to focus: " << programIndex << "\n";
 		_programToFocus = programIndex;
 		return ;
 	}

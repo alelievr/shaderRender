@@ -17,22 +17,22 @@ Timeval::Timeval(const struct timeval & rhs)
 	tv_usec = rhs.tv_usec;
 }
 
-Timeval &	Timeval::operator*(const int & mult)
+Timeval::Timeval(const time_t sec, const suseconds_t usec)
 {
-	tv_sec *= mult;
-	tv_usec *= mult;
-	tv_sec += tv_usec % 1000000;
+	tv_sec = sec;
+	tv_usec = usec;
+	tv_sec += tv_usec / 1000000;
 	tv_usec %= 1000000;
-	return *this;
 }
 
-Timeval &	Timeval::operator+(const Timeval & rhs)
+Timeval		operator*(const Timeval & t, const int & mult)
 {
-	tv_sec += rhs.tv_sec;
-	tv_usec += rhs.tv_usec;
-	tv_sec += tv_usec % 1000000;
-	tv_usec %= 1000000;
-	return *this;
+	return Timeval(t.tv_sec * mult, t.tv_usec * mult);
+}
+
+Timeval		operator+(const Timeval & rls, const Timeval & rhs)
+{
+	return Timeval(rls.tv_sec + rhs.tv_sec, rls.tv_usec + rhs.tv_usec);
 }
 
 Timeval &	Timeval::operator=(const Timeval & rhs)
@@ -47,7 +47,10 @@ Timeval &	Timeval::operator=(const Timeval & rhs)
 
 Timeval &	Timeval::operator+=(const Timeval & rhs)
 {
-	return *this + rhs;
+	Timeval	tv = *this + rhs;
+	tv_sec = tv.tv_sec;
+	tv_usec = tv.tv_usec;
+	return *this;
 }
 
 Timeval::~Timeval() {}

@@ -12,9 +12,10 @@ struct	Timeval : sTimeval
 
 	Timeval(const Timeval & rhs);
 	Timeval(const struct timeval & rhs);
+	Timeval(const time_t sec, const suseconds_t usec);
 
-	Timeval &	operator*(const int & mult);
-	Timeval &	operator+(const Timeval & rhs);
+	friend Timeval		operator*(const Timeval & rls, const int & mult);
+	friend Timeval		operator+(const Timeval & rls, const Timeval & rhs);
 	Timeval &	operator=(const Timeval & rhs);
 	Timeval &	operator+=(const Timeval & rhs);
 

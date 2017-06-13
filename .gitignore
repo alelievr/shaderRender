@@ -7,3 +7,4 @@ obj/
 visualishader
 *~
 *.sw*
+.DS_Store

@@ -11,9 +11,8 @@ SyncOffset		SyncOffset::CreateLinearSyncOffset(const int delaySecs, const int de
 
 	o.type = SyncOffsetType::Linear;
 	o.order = order;
-	gettimeofday(&o.linearDelay, NULL);
-	o.linearDelay.tv_sec += delaySecs;
-	o.linearDelay.tv_usec += delayMillis * 1000;
+	o.linearDelay.tv_sec = delaySecs;
+	o.linearDelay.tv_usec = delayMillis * 1000;
 	return o;
 }
 
@@ -23,6 +22,7 @@ SyncOffset		SyncOffset::CreateCustomSyncOffset(CustomSyncOffsetCallback callback
 
 	o.type = SyncOffsetType::Custom;
 	o.order = order;
+	bzero(&o.linearDelay, sizeof(Timeval));
 	gettimeofday(&o.linearDelay, NULL);
 	o.customDelayCallback = callback;
 	return o;

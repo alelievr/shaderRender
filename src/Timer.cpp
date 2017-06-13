@@ -4,6 +4,7 @@
 #include <condition_variable>
 
 static std::atomic< int >		loopCount;
+static std::atomic< bool >		threadInitialized;
 
 std::map< int, std::thread * >	Timer::_runningThreads;
 int								Timer::_localThreadIndex;
@@ -16,15 +17,17 @@ Timer::~Timer(void)
 
 void	Timer::Timeout(const Timeval *timeout, std::function< void(void) > callback)
 {
+	threadInitialized = false;
 	_runningThreads[_localThreadIndex] = new std::thread(
 		[timeout, callback](void)
 		{
 			int			threadIndex = _localThreadIndex;
 			Timeval		now;
 			gettimeofday(&now, NULL);
-			long		secDiff = (timeout->tv_sec - now.tv_sec) * 1000 * 1000;
+			long		secDiff = ((long)timeout->tv_sec - (long)now.tv_sec) * 1000 * 1000;
 			long		microSecDiff = timeout->tv_usec - now.tv_usec;
 			long		total = secDiff + microSecDiff;
+			threadInitialized = true;
 			if (total > 0)
 				usleep(total);
 			if (!_threadsShouldStop)
@@ -32,6 +35,8 @@ void	Timer::Timeout(const Timeval *timeout, std::function< void(void) > callback
 			_runningThreads.erase(threadIndex);
 		}
 	);
+	while (!threadInitialized)
+		usleep(1000);
 	_localThreadIndex++;
 }
 
