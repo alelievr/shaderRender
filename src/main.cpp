@@ -10,7 +10,6 @@
 #include <getopt.h>
 
 #define CLUSTER_SCAN_INTERVAL	15 //secs
-#define CLUSTER					E1
 
 static bool		networkMustQuit = false;
 static bool		server = false;
@@ -95,18 +94,18 @@ static void NetworkThread(bool server, ShaderApplication *app)
 		Timer::Interval(
 			[&]()
 			{
-				nm.ConnectCluster(CLUSTER);
+				nm.ConnectCluster(nm.GetLocalCluster());
 			},
 			CLUSTER_SCAN_INTERVAL * 1000,
 			1 //function will block until first scan is complete
 		);
 
-		nm.LoadShaderOnGroup(0, "shaders/fractal/kifs.glsl");
-		nm.LoadShaderOnGroup(0, "shaders/fractal/mandelbrot-orbit.glsl", true);
-
 		int		group = nm.CreateNewGroup();
 
-		nm.MoveIMacToGroup(group, 9, 4, 3);
+		nm.MoveIMacToGroup(group, nm.GetLocalRow(), nm.GetLocalSeat(), nm.GetLocalCluster());
+
+		nm.LoadShaderOnGroup(group, "shaders/fractal/kifs.glsl");
+		nm.LoadShaderOnGroup(group, "shaders/fractal/mandelbrot-orbit.glsl", true);
 
 		std::cout << "focus shader 0 send !" << std::endl;
 		nm.FocusShaderOnGroup(Timer::Now(), group, 0, SyncOffset::CreateLinearSyncOffset(1, 0));

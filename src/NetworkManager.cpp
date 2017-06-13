@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/06/02 17:40:05 by alelievr          #+#    #+#             */
-/*   Updated: 2017/06/13 02:16:20 by jpirsch          ###   ########.fr       */
+/*   Updated: 2017/06/13 20:15:43 by jpirsch          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,6 +56,8 @@ NetworkManager::NetworkManager(bool server, bool co)
 
 	FD_ZERO(&_serverFdSet);
 
+	_FillLocalInfos();
+
 	if (server)
 	{
 		//here _serverSocket is used to read messages from clients and _clientSocket to write messages to clients
@@ -87,8 +89,6 @@ NetworkManager::NetworkManager(bool server, bool co)
 		connection.sin_addr.s_addr = htonl(INADDR_ANY);
 		if (bind(_serverSocket, reinterpret_cast< struct sockaddr* >(&connection), sizeof(connection)) == -1)
 			perror("bind"), exit(-1);
-
-		_FillLocalInfos();
 		
 		std::cout << "client bound udp port " << CLIENT_PORT << " !" << std::endl;
 		FD_SET(_serverSocket, &_serverFdSet);
@@ -103,6 +103,21 @@ NetworkManager::~NetworkManager(void)
 }
 
 // Private functions
+
+int			NetworkManager::GetLocalRow(void)
+{
+	return _me->row;
+}
+
+int			NetworkManager::GetLocalSeat(void)
+{
+	return _me->seat;
+}
+
+int			NetworkManager::GetLocalCluster(void)
+{
+	return _me->cluster;
+}
 
 struct ipReader: std::ctype< char >
 {
