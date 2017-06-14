@@ -27,6 +27,7 @@ void	Timer::Timeout(const Timeval *timeout, std::function< void(void) > callback
 			long		secDiff = ((long)timeout->tv_sec - (long)now.tv_sec) * 1000 * 1000;
 			long		microSecDiff = timeout->tv_usec - now.tv_usec;
 			long		total = secDiff + microSecDiff;
+			std::cout << "waiting: " << total << std::endl;
 			threadInitialized = true;
 			if (total > 0)
 				usleep(total);

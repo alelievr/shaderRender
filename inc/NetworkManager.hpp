@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/06/02 17:39:53 by alelievr          #+#    #+#             */
-/*   Updated: 2017/06/12 00:38:31 by alelievr         ###   ########.fr       */
+/*   Updated: 2017/06/13 20:20:31 by jpirsch          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -254,6 +254,10 @@ class		NetworkManager
 		NetworkStatus	LoadShaderOnGroup(const int groupId, const std::string & shaderName, bool last = false) const;
 		int				CreateNewGroup(void);
 		NetworkStatus	MoveIMacToGroup(const int groupId, const int row, const int seat, const int floor = 1);
+
+		int				GetLocalRow(void);
+		int				GetLocalSeat(void);
+		int				GetLocalCluster(void);
 
 		bool	IsServer(void) const;
 };
