@@ -5,7 +5,6 @@
 #include "Timeval.hpp"
 #include <iostream>
 #include <string>
-#include <thread>
 #include <list>
 #include <getopt.h>
 
@@ -123,22 +122,33 @@ int		main(int ac, char **av)
 {
 	options(&ac, &av);
 
-	ShaderApplication	app(server);
-	std::thread			networkThread(NetworkThread, server, &app);
+	if (server)
+	{
+		std::thread			serverThread(NetworkThread, server, (ShaderApplication *)NULL);
 
-	while (!serverSentAllShadersToLoad)
-		usleep(16000);
+		//TODO: load interface
+		serverThread.join();
+	}
+	else
+	{
+		ShaderApplication		app(server);
 
-	app.loadingShaders = true;
-	for (const std::string & shaderName : shadersToLoad)
-		app.LoadShader(shaderName);
-	app.loadingShaders = false;
-	app.OnLoadingShaderFinished();
+		std::thread			clientThread(NetworkThread, server, &app);
 
-	app.RenderLoop();
+		while (!serverSentAllShadersToLoad)
+			usleep(16000);
 
-	networkMustQuit = true;
-	networkThread.join();
+		app.loadingShaders = true;
+		for (const std::string & shaderName : shadersToLoad)
+			app.LoadShader(shaderName);
+		app.loadingShaders = false;
+		app.OnLoadingShaderFinished();
+
+		app.RenderLoop();
+
+		networkMustQuit = true;
+		clientThread.join();
+	}
 
 	return 0;
 }

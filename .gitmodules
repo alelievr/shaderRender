@@ -4,3 +4,6 @@
 [submodule "SOIL2"]
 	path = SOIL2
 	url = https://github.com/alelievr/SOIL2
+[submodule "SFML"]
+	path = SFML
+	url = https://github.com/SFML/SFML

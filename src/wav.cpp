@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2016/07/30 16:57:22 by alelievr          #+#    #+#             */
-/*   Updated: 2017/06/01 22:38:35 by alelievr         ###   ########.fr       */
+/*   Updated: 2017/06/14 14:57:41 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -115,18 +115,16 @@ int			load_wav_file(const char *f)
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, imgWidth,
 			1, 0, GL_RGBA, GL_UNSIGNED_BYTE, baseData);
 
-	FMOD_SOUND *s = load_sound(f);
-
-	sounds[id] = (t_sound){id, fd, imgWidth, static_cast< int >(texId), baseData, s, WAVE, header};
+	sounds[id] = (t_sound){id, fd, imgWidth, static_cast< int >(texId), baseData, WAVE, header};
 	return id;
 }
 
 void		play_all_sounds(void)
 {
-	for (int i = 1; i < 0xF0; i++)
+	/*for (int i = 1; i < 0xF0; i++)
 	{
 		if (sounds[i].sound == NULL)
 			break ;
 		play_sound(sounds[i].sound);
-	}
+	}*/
 }

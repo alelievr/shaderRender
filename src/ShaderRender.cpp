@@ -23,8 +23,6 @@ float		pausedTime = 0;
 
 ShaderRender::ShaderRender(void)
 {
-	fmod_init();
-
 	angleAmount = vec2{0, 0};
 	cursor_mode = 0;
 	lastPausedTime = 0;

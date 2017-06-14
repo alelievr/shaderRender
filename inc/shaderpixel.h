@@ -21,13 +21,10 @@
 # define GLFW_INCLUDE_GLCOREARB
 # include "GLFW/glfw3.h"
 # include "SOIL2.h"
-# include "fmod.h"
 
 # if __APPLE__
-#  define FMOD_LIB "fmod/lib/libfmod.dylib"
 #  include <OpenGL/glext.h>
 # else
-#  define FMOD_LIB "fmod/lib/libfmod-linux.so.8.8"
 #  include <bsd/string.h>
 # endif
 
@@ -144,7 +141,6 @@ typedef struct	s_sound
 	int				tex_length;
 	GLint			gl_id;
 	char			*image_buffer;
-	FMOD_SOUND		*sound;
 	enum SOUND_FORMAT	sound_format;
 	riff_header	riff;
 }				t_sound;
@@ -183,15 +179,9 @@ bool			checkFileExtention(const char *filename, const char **exts);
 std::string		basename( std::string const & pathname );
 
 //SOUND LOAD
-void			fmod_init(void);
 int				load_wav_file(const char *f);
-FMOD_SOUND		*load_sound(const char *f);
 
 //SOUND CONTROL
-void			play_all_sounds(void);
-void			pause_all_sounds(void);
-void			play_sound(FMOD_SOUND *s);
-void			pause_sound(FMOD_SOUND *s);
 GLuint			get_sound_texture(int id);
 
 static const char* vertex_shader_text =

@@ -23,7 +23,6 @@ SRC			=	ShaderRender.cpp		\
 				Element.cpp				\
 				lua_utils.cpp			\
 				LuaGL.cpp				\
-				fmod.cpp				\
 				wav.cpp					\
 				utils.cpp				\
 				main.cpp				\
@@ -46,14 +45,15 @@ CPPVERSION	=	c++14
 #Example $> make DEBUG=2 will set debuglevel to 2
 
 #	Includes
-INCDIRS		=	inc SOIL2/incs glfw/include fmod/inc lua/5.1/src/ 
+INCDIRS		=	inc SOIL2/incs glfw/include lua/5.1/src/ SFML/include
 
 #	Libraries
-LIBDIRS		=	lua/5.1/src glfw/src/
-LDLIBS		=	-lglfw3 -llua -rpath $(shell pwd)/fmod/lib
+LIBDIRS		=	lua/5.1/src glfw/src/ SFML/lib
+LDLIBS		=	-lglfw3 -llua -lsfml-audio-s -lsfml-graphics-s -lsfml-system-s -lsfml-window-s
 GLFWLIB		=	glfw/src/libglfw3.a
 SOILLIB		=	SOIL2/libSOIL2.so
 LUALIB		=	lua/5.1/src/liblua.a
+SFMLLIB		=	SFML/lib/libsfml-system-s.a
 
 #	Output
 NAME		=	visualishader
@@ -105,15 +105,12 @@ ifeq "$(OS)" "Windows_NT"
 endif
 ifeq "$(OS)" "Linux"
 	LDLIBS		+= -lm -lGL -lX11 -lXrandr -lXrender -lXi -lXxf86vm -lpthread -ldl -lXinerama -lXcursor -lrt -lbsd
-	LDLIBS		+= fmod/lib/libfmod-linux.so.8.8
 	CFLAGS		+= -fPIC
 	DEBUGFLAGS	+= -fsanitize=memory -fsanitize-memory-use-after-dtor -fsanitize=thread
 	LUAMAKEOS	= linux
 endif
 ifeq "$(OS)" "Darwin"
 	FRAMEWORK	= OpenGL AppKit IOKit CoreVideo
-	OSX_SHARED_LIBRARY_PATH_CORRECTION = install_name_tool -change @rpath/libfmod.dylib $(shell pwd)/fmod/lib/libfmod.so $(NAME)
-	LDLIBS		+= fmod/lib/libfmod.so
 	LUAMAKEOS	= macosx
 endif
 
@@ -194,7 +191,7 @@ endif
 #################
 
 #	First target
-all: $(GLFWLIB) $(SOILLIB) $(LUALIB) $(NAME)
+all: $(GLFWLIB) $(SOILLIB) $(LUALIB) $(SFMLLIB) $(NAME)
 
 $(LUALIB):
 	@git submodule init
@@ -210,6 +207,11 @@ $(GLFWLIB):
 	@git submodule init
 	@git submodule update
 	cd glfw && cmake . && make
+
+$(SFMLLIB):
+	@git submodule init
+	@git submodule update
+	cd SFML && cmake -DBUILD_SHARED_LIBS=false . && make
 
 #	Linking
 $(NAME): $(OBJ)
