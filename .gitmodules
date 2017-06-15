@@ -7,3 +7,15 @@
 [submodule "SFML"]
 	path = SFML
 	url = https://github.com/SFML/SFML
+[submodule "freetype2"]
+	path = freetype2
+	url = git://git.sv.nongnu.org/freetype/freetype2.git
+[submodule "vorbis"]
+	path = vorbis
+	url = https://github.com/xiph/vorbis
+[submodule "ogg"]
+	path = ogg
+	url = https://github.com/xiph/ogg
+[submodule "flac"]
+	path = flac
+	url = https://github.com/xiph/flac

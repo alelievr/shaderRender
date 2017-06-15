@@ -51,11 +51,15 @@ INCDIRS		=	inc SOIL2/incs glfw/include lua/5.1/src/ SFML/include
 
 #	Libraries
 LIBDIRS		=	lua/5.1/src glfw/src/ SFML/lib SFML/extlibs/libs-osx/lib/
-LDLIBS		=	-lglfw3 -llua -lsfml-audio-s -lsfml-graphics-s -lsfml-system-s -lsfml-window-s -ljpeg
+LDLIBS		=	-lglfw3 -llua -lsfml-audio -lsfml-graphics -lsfml-system -lsfml-window -ljpeg
 GLFWLIB		=	glfw/src/libglfw3.a
 SOILLIB		=	SOIL2/libSOIL2.so
 LUALIB		=	lua/5.1/src/liblua.a
-SFMLLIB		=	SFML/lib/libsfml-system-s.a
+SFMLLIB		=	SFML/lib/libsfml-system.dylib
+FREETYPELIB	=	freetype2/objs/.libs/libfreetype.a
+FLACLIB		=	flac/src/libFLAC/.libs/libFLAC.dylib
+OGGLIB		=	ogg/src/.libs/libogg.dylib
+VORBISLIB	=	vorbis/lib/libvorbis.a
 
 #	Output
 NAME		=	visualishader
@@ -193,7 +197,7 @@ endif
 #################
 
 #	First target
-all: $(GLFWLIB) $(SOILLIB) $(LUALIB) $(SFMLLIB) $(NAME)
+all: $(GLFWLIB) $(SOILLIB) $(LUALIB) $(FREETYPELIB) $(OGGLIB) $(FLACLIB) $(VORBISLIB) $(SFMLLIB) $(NAME)
 
 $(LUALIB):
 	@git submodule init
@@ -210,10 +214,24 @@ $(GLFWLIB):
 	@git submodule update
 	cd glfw && cmake . && make -j4
 
+$(FREETYPELIB):
+	@git submodule init
+	@git submodule update
+	cd freetype2 && sh autogen.sh && ./configure --without-zlib --without-bzip2 --without-png --without-harfbuzz && make -j4
+
+$(OGGLIB):
+	cd ogg && ./autogen.sh && ./configure && make -j 4
+
+$(VORBISLIB):
+	cd vorbis && ./autogen.sh && cmake . -DOGG_INCLUDE_DIRS=../ogg/include -DOGG_LIBRARIES=../ogg/src/.libs/ && make -j 4
+
+$(FLACLIB):
+	cd flac && ./autogen.sh && ./configure && make -j 4
+
 $(SFMLLIB):
 	@git submodule init
 	@git submodule update
-	cd SFML && cmake -DBUILD_SHARED_LIBS=false . && make -j4
+	cd SFML && cmake -DBUILD_SHARED_LIBS=true CMAKE_BUILD_TYPE=Release . && make -j4
 
 #	Linking
 $(NAME): $(OBJ)
@@ -221,7 +239,6 @@ $(NAME): $(OBJ)
 		make -j 4 -C libft))
 	@$(call color_exec,$(CLINK_T),$(CLINK),"Link of $(NAME):",\
 		$(LINKER) $(WERROR) $(CFLAGS) $(LDFLAGS) $(OPTFLAGS) $(DEBUGFLAGS) $(LINKDEBUG) $(VFRAME) -o $@ $^ $(LDLIBS)  $(SOILLIB))
-	@$(OSX_SHARED_LIBRARY_PATH_CORRECTION)
 
 $(OBJDIR)/%.o: %.cpp $(INCFILES)
 	@mkdir -p $(OBJDIR)
