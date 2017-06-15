@@ -28,7 +28,7 @@ ShaderRender::ShaderRender(void)
 	lastPausedTime = 0;
 	programLoaded = false;
 
-	init_LuaGL(this);
+	//init_LuaGL(this);
 }
 
 void		ShaderRender::updateUniforms(ShaderProgram *p)

@@ -50,16 +50,12 @@ CPPVERSION	=	c++14
 INCDIRS		=	inc SOIL2/incs glfw/include lua/5.1/src/ SFML/include
 
 #	Libraries
-LIBDIRS		=	lua/5.1/src glfw/src/ SFML/lib SFML/extlibs/libs-osx/lib/
-LDLIBS		=	-lglfw3 -llua -lsfml-audio -lsfml-graphics -lsfml-system -lsfml-window -ljpeg
+LIBDIRS		=	lua/5.1/src glfw/src/ SFML/lib
+LDLIBS		=	-lglfw3 -llua -lsfml-audio -lsfml-graphics -lsfml-system -lsfml-window
 GLFWLIB		=	glfw/src/libglfw3.a
 SOILLIB		=	SOIL2/libSOIL2.so
 LUALIB		=	lua/5.1/src/liblua.a
 SFMLLIB		=	SFML/lib/libsfml-system.dylib
-FREETYPELIB	=	freetype2/objs/.libs/libfreetype.a
-FLACLIB		=	flac/src/libFLAC/.libs/libFLAC.dylib
-OGGLIB		=	ogg/src/.libs/libogg.dylib
-VORBISLIB	=	vorbis/lib/libvorbis.a
 
 #	Output
 NAME		=	visualishader
@@ -107,6 +103,9 @@ LINKDEBUG	=
 OPTFLAGS	=	
 #COMPILATION	=	
 
+SFML_FRAMEWORK_PATH = SFML/extlibs/libs-osx/Frameworks
+SFML_LIB_PATH =		SFML/lib
+
 ifeq "$(OS)" "Windows_NT"
 endif
 ifeq "$(OS)" "Linux"
@@ -116,8 +115,22 @@ ifeq "$(OS)" "Linux"
 	LUAMAKEOS	= linux
 endif
 ifeq "$(OS)" "Darwin"
-	FRAMEWORK	= OpenGL AppKit IOKit CoreVideo Cocoa Carbon AudioUnit CoreAudio
+	FRAMEWORK	= OpenGL AppKit IOKit CoreVideo Cocoa Carbon AudioUnit CoreAudio vorbis freetype vorbisfile OpenAL FLAC ogg
+	FRAMEWORKPATH =	SFML/extlibs/libs-osx/Frameworks
 	LUAMAKEOS	= macosx
+	SFML_AUTO_DYLIB = $(shell pwd)/SFML/lib/libsfml-audio.dylib
+	OSX_DYLIB_PATH_CORRECTION = install_name_tool -change @rpath/../Frameworks/vorbis.framework/Versions/A/vorbis $(SFML_FRAMEWORK_PATH)/vorbis.framework/Versions/A/vorbis $(NAME); \
+								install_name_tool -change @rpath/../Frameworks/freetype.framework/Versions/A/freetype $(SFML_FRAMEWORK_PATH)/freetype.framework/Versions/A/freetype $(NAME); \
+								install_name_tool -change @rpath/../Frameworks/OpenAL.framework/Versions/A/OpenAL $(SFML_FRAMEWORK_PATH)/OpenAL.framework/Versions/A/OpenAL $(NAME); \
+								install_name_tool -change @rpath/../Frameworks/vorbisfile.framework/Versions/A/vorbisfile $(SFML_FRAMEWORK_PATH)/vorbisfile.framework/Versions/A/vorbisfile $(NAME); \
+								install_name_tool -change @rpath/../Frameworks/FLAC.framework/Versions/A/FLAC $(SFML_FRAMEWORK_PATH)/FLAC.framework/Versions/A/FLAC $(NAME); \
+								install_name_tool -change @rpath/../Frameworks/ogg.framework/Versions/A/ogg $(SFML_FRAMEWORK_PATH)/ogg.framework/Versions/A/ogg $(NAME); \
+								install_name_tool -change @rpath/libsfml-audio.2.4.dylib $(SFML_LIB_PATH)/libsfml-audio.dylib $(NAME); \
+								install_name_tool -change @rpath/libsfml-graphics.2.4.dylib $(SFML_LIB_PATH)/libsfml-graphics.dylib $(NAME); \
+								install_name_tool -change @rpath/libsfml-system.2.4.dylib $(SFML_LIB_PATH)/libsfml-system.dylib $(NAME); \
+								install_name_tool -change @rpath/libsfml-window.2.4.dylib $(SFML_LIB_PATH)/libsfml-window.dylib $(NAME); \
+								install_name_tool -change @rpath/../Frameworks/vorbisenc.framework/Versions/A/vorbisenc $(SFML_FRAMEWORK_PATH)/vorbisenc.framework/Versions/A/vorbisenc $(SFML_AUTO_DYLIB);
+
 endif
 
 #################
@@ -135,6 +148,7 @@ VFRAME		=	$(addprefix -framework ,$(FRAMEWORK))
 INCFILES	=	$(foreach inc, $(INCDIRS), $(wildcard $(inc)/*.h))
 CPPFLAGS	=	$(addprefix -I,$(INCDIRS))
 LDFLAGS		=	$(addprefix -L,$(LIBDIRS))
+FRAMEPATH	=	$(addprefix -F,$(FRAMEWORKPATH))
 LINKER		=	cc
 
 disp_indent	=	for I in `seq 1 $(MAKELEVEL)`; do \
@@ -197,7 +211,7 @@ endif
 #################
 
 #	First target
-all: $(GLFWLIB) $(SOILLIB) $(LUALIB) $(FREETYPELIB) $(OGGLIB) $(FLACLIB) $(VORBISLIB) $(SFMLLIB) $(NAME)
+all: $(GLFWLIB) $(SOILLIB) $(LUALIB) $(SFMLLIB) $(NAME)
 
 $(LUALIB):
 	@git submodule init
@@ -214,20 +228,6 @@ $(GLFWLIB):
 	@git submodule update
 	cd glfw && cmake . && make -j4
 
-$(FREETYPELIB):
-	@git submodule init
-	@git submodule update
-	cd freetype2 && sh autogen.sh && ./configure --without-zlib --without-bzip2 --without-png --without-harfbuzz && make -j4
-
-$(OGGLIB):
-	cd ogg && ./autogen.sh && ./configure && make -j 4
-
-$(VORBISLIB):
-	cd vorbis && ./autogen.sh && cmake . -DOGG_INCLUDE_DIRS=../ogg/include -DOGG_LIBRARIES=../ogg/src/.libs/ && make -j 4
-
-$(FLACLIB):
-	cd flac && ./autogen.sh && ./configure && make -j 4
-
 $(SFMLLIB):
 	@git submodule init
 	@git submodule update
@@ -238,7 +238,8 @@ $(NAME): $(OBJ)
 	@$(if $(findstring lft,$(LDLIBS)),$(call color_exec_t,$(CCLEAR),$(CCLEAR),\
 		make -j 4 -C libft))
 	@$(call color_exec,$(CLINK_T),$(CLINK),"Link of $(NAME):",\
-		$(LINKER) $(WERROR) $(CFLAGS) $(LDFLAGS) $(OPTFLAGS) $(DEBUGFLAGS) $(LINKDEBUG) $(VFRAME) -o $@ $^ $(LDLIBS)  $(SOILLIB))
+		$(LINKER) $(WERROR) $(CFLAGS) $(LDFLAGS) $(OPTFLAGS) $(DEBUGFLAGS) $(LINKDEBUG) $(FRAMEPATH) $(VFRAME) -o $@ $^ $(LDLIBS)  $(SOILLIB))
+	@$(OSX_DYLIB_PATH_CORRECTION)
 
 $(OBJDIR)/%.o: %.cpp $(INCFILES)
 	@mkdir -p $(OBJDIR)

@@ -125,7 +125,7 @@ int		main(int ac, char **av)
 		NetworkManager		nm(server, connection);
 		std::thread			serverThread(NetworkThread, &nm, (ShaderApplication *)NULL);
 
-		NetworkGUI		gui(&nm);
+		NetworkGUI			gui(&nm);
 
 		gui.RenderLoop();
 

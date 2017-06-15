@@ -6,13 +6,13 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/05/07 20:35:27 by alelievr          #+#    #+#             */
-/*   Updated: 2017/06/10 02:30:52 by alelievr         ###   ########.fr       */
+/*   Updated: 2017/06/15 19:26:18 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ShaderProgram.hpp"
 
-//#define DEBUG
+#define DEBUG
 
 //FIXME: remove this to support multi-vao
 GLint		vao = -1;

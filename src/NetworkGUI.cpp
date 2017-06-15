@@ -6,8 +6,7 @@ NetworkGUI::NetworkGUI(NetworkManager *nm)
 	_win->setFramerateLimit(60);
 
 	sf::Texture placeTexture;
-	if (!placeTexture.loadFromFile("textures/place.png"))
-	    std::cout << "error while loading server texture !\n";
+	placeTexture.loadFromFile("textures/place.png");
 
 	_placeSprite = new sf::Sprite();
 	_placeSprite->setTexture(placeTexture);

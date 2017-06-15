@@ -7,7 +7,7 @@ ShaderApplication::ShaderApplication(bool server)
 {
 	(void)server;
 
-	loadingShaders = false;
+	loadingShaders = true;
 	_programToFocus = -1;
 
 	glfwSetErrorCallback(
