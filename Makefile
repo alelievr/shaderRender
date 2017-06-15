@@ -30,6 +30,8 @@ SRC			=	ShaderRender.cpp		\
 				Timer.cpp				\
 				SyncOffset.cpp			\
 				Timeval.cpp				\
+				NetworkGUI.cpp			\
+
 
 #	Objects
 OBJDIR		=	obj
@@ -48,8 +50,8 @@ CPPVERSION	=	c++14
 INCDIRS		=	inc SOIL2/incs glfw/include lua/5.1/src/ SFML/include
 
 #	Libraries
-LIBDIRS		=	lua/5.1/src glfw/src/ SFML/lib
-LDLIBS		=	-lglfw3 -llua -lsfml-audio-s -lsfml-graphics-s -lsfml-system-s -lsfml-window-s
+LIBDIRS		=	lua/5.1/src glfw/src/ SFML/lib SFML/extlibs/libs-osx/lib/
+LDLIBS		=	-lglfw3 -llua -lsfml-audio-s -lsfml-graphics-s -lsfml-system-s -lsfml-window-s -ljpeg
 GLFWLIB		=	glfw/src/libglfw3.a
 SOILLIB		=	SOIL2/libSOIL2.so
 LUALIB		=	lua/5.1/src/liblua.a
@@ -110,7 +112,7 @@ ifeq "$(OS)" "Linux"
 	LUAMAKEOS	= linux
 endif
 ifeq "$(OS)" "Darwin"
-	FRAMEWORK	= OpenGL AppKit IOKit CoreVideo
+	FRAMEWORK	= OpenGL AppKit IOKit CoreVideo Cocoa Carbon AudioUnit CoreAudio
 	LUAMAKEOS	= macosx
 endif
 
@@ -206,12 +208,12 @@ $(SOILLIB):
 $(GLFWLIB):
 	@git submodule init
 	@git submodule update
-	cd glfw && cmake . && make
+	cd glfw && cmake . && make -j4
 
 $(SFMLLIB):
 	@git submodule init
 	@git submodule update
-	cd SFML && cmake -DBUILD_SHARED_LIBS=false . && make
+	cd SFML && cmake -DBUILD_SHARED_LIBS=false . && make -j4
 
 #	Linking
 $(NAME): $(OBJ)

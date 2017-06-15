@@ -3,6 +3,7 @@
 #include "Timer.hpp"
 #include "SyncOffset.hpp"
 #include "Timeval.hpp"
+#include "NetworkGUI.hpp"
 #include <iostream>
 #include <string>
 #include <list>
@@ -50,13 +51,11 @@ static void options(int *ac, char ***av)
     *av += optind;
 }
 
-static void NetworkThread(bool server, ShaderApplication *app)
+static void NetworkThread(NetworkManager *nm, ShaderApplication *app)
 {
-	NetworkManager		nm(server, connection);
-
 	if (!server)
 	{
-		nm.SetShaderFocusCallback(
+		nm->SetShaderFocusCallback(
 			[app](const Timeval *timing, const int programIndex)
 			{
 				if (app == NULL)
@@ -74,7 +73,7 @@ static void NetworkThread(bool server, ShaderApplication *app)
 			}
 		);
 
-		nm.SetShaderLoadCallback(
+		nm->SetShaderLoadCallback(
 			[app](const std::string & shaderName, const bool last)
 			{
 				shadersToLoad.push_back(shaderName);
@@ -85,7 +84,7 @@ static void NetworkThread(bool server, ShaderApplication *app)
 		);
 
 		while (!networkMustQuit)
-			if (nm.Update() == NetworkStatus::Error)
+			if (nm->Update() == NetworkStatus::Error)
 				break ;
 	}
 	else
@@ -93,27 +92,27 @@ static void NetworkThread(bool server, ShaderApplication *app)
 		Timer::Interval(
 			[&]()
 			{
-				nm.ConnectCluster(nm.GetLocalCluster());
+				nm->ConnectCluster(nm->GetLocalCluster());
 			},
 			CLUSTER_SCAN_INTERVAL * 1000,
 			1 //function will block until first scan is complete
 		);
 
-		int		group = nm.CreateNewGroup();
+		int		group = nm->CreateNewGroup();
 
-		nm.MoveIMacToGroup(group, nm.GetLocalRow(), nm.GetLocalSeat(), nm.GetLocalCluster());
+		nm->MoveIMacToGroup(group, nm->GetLocalRow(), nm->GetLocalSeat(), nm->GetLocalCluster());
 
-		nm.LoadShaderOnGroup(group, "shaders/fractal/kifs.glsl");
-		nm.LoadShaderOnGroup(group, "shaders/fractal/mandelbrot-orbit.glsl", true);
+		nm->LoadShaderOnGroup(group, "shaders/fractal/kifs.glsl");
+		nm->LoadShaderOnGroup(group, "shaders/fractal/mandelbrot-orbit.glsl", true);
 
 		std::cout << "focus shader 0 send !" << std::endl;
-		nm.FocusShaderOnGroup(Timer::Now(), group, 0, SyncOffset::CreateLinearSyncOffset(1, 0));
-		nm.FocusShaderOnGroup(Timer::TimeoutInSeconds(10), group, 1, SyncOffset::CreateNoneSyncOffset());
+		nm->FocusShaderOnGroup(Timer::Now(), group, 0, SyncOffset::CreateLinearSyncOffset(1, 0));
+		nm->FocusShaderOnGroup(Timer::TimeoutInSeconds(10), group, 1, SyncOffset::CreateNoneSyncOffset());
 
 		while (!networkMustQuit)
-			if (nm.Update() == NetworkStatus::Error)
+			if (nm->Update() == NetworkStatus::Error)
 				break ;
-		nm.CloseAllConnections();
+		nm->CloseAllConnections();
 	}
 }
 
@@ -123,16 +122,21 @@ int		main(int ac, char **av)
 
 	if (server)
 	{
-		std::thread			serverThread(NetworkThread, server, (ShaderApplication *)NULL);
+		NetworkManager		nm(server, connection);
+		std::thread			serverThread(NetworkThread, &nm, (ShaderApplication *)NULL);
 
-		//TODO: load interface
+		NetworkGUI		gui(&nm);
+
+		gui.RenderLoop();
+
 		serverThread.join();
 	}
 	else
 	{
 		ShaderApplication		app(server);
 
-		std::thread			clientThread(NetworkThread, server, &app);
+		NetworkManager		nm(server, connection);
+		std::thread			clientThread(NetworkThread, &nm, &app);
 
 		while (!serverSentAllShadersToLoad)
 			usleep(16000);
