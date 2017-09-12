@@ -159,7 +159,7 @@ extern vec3			forward;
 #if DOUBLE_PRECISION
 extern dvec4		fractalWindow;
 #else
-extern vec4		fractalWindow;
+extern vec4			fractalWindow;
 #endif
 extern int			keys;
 extern int			input_pause;

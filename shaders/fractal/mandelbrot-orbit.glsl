@@ -15,10 +15,13 @@ void mainImage( in vec2 fragCoord )
 	float d = 1e20;
 	float d2 = 1e20;
 	float d3 = 1e20;
-	for(int i = 0; i < 100; i++)
+	for(int i = 0; i < 80; i++)
 	{	
 		zp = zc;
 		zc = p + vec2(zc.x * zc.x - zc.y * zc.y, 2. * zc.x * zc.y);
+
+		if (zc.x > 2 || zc.y > 2)
+			break ;
 		
 		vec2 z = zp + (zc - zp) * sin((iGlobalTime - 30.) * 0.1) * 5.;
 		
