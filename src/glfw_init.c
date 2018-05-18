@@ -44,6 +44,10 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
 		BIT_SET(keys, PLUS, action == GLFW_PRESS || action == GLFW_REPEAT);
 	if (key == GLFW_KEY_KP_SUBTRACT || key == GLFW_KEY_MINUS)
 		BIT_SET(keys, MOIN, action == GLFW_PRESS || action == GLFW_REPEAT);
+	if (key == GLFW_KEY_X)
+		BIT_SET(keys, TIME_ADD, action == GLFW_PRESS || action == GLFW_REPEAT);
+	if (key == GLFW_KEY_Z)
+		BIT_SET(keys, TIME_SUB, action == GLFW_PRESS || action == GLFW_REPEAT);
 	if (key == GLFW_KEY_SPACE && action != GLFW_REPEAT && action == GLFW_PRESS)
 	{
 		input_pause ^= action;

@@ -128,6 +128,8 @@ enum			KEY_BITS
 	BACK,
 	PLUS,
 	MOIN,
+	TIME_ADD,
+	TIME_SUB,
 };
 
 enum			SOUND_FORMAT
@@ -165,6 +167,7 @@ extern int			keys;
 extern int			input_pause;
 extern long			lastModifiedFile;
 extern float		pausedTime;
+extern int			added_time;
 
 //WINDOW:
 GLFWwindow		*init(char *fname);

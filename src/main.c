@@ -35,6 +35,7 @@ vec4		fractalWindow = {-1, -1, 1, 1}; //xmin, ymin, xmax, ymax
 #endif
 int        	keys = 0;
 int         input_pause = 0;
+int			added_time = 0;
 float		pausedTime = 0;
 
 float points[] = {
@@ -214,6 +215,11 @@ void		update_keys(void)
 		fractalWindow.x += .5 * winSize.x / -25;
 		fractalWindow.y += .5 * winSize.y / -25;
 	}
+	if (BIT_GET(keys, TIME_ADD))
+		added_time += 1;
+	if (BIT_GET(keys, TIME_SUB))
+		added_time -= 1;
+		
 }
 
 struct dtx_font *font;

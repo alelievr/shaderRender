@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/09 12:36:31 by alelievr          #+#    #+#             */
-/*   Updated: 2017/02/09 13:07:31 by alelievr         ###   ########.fr       */
+/*   Updated: 2017/09/17 00:18:18 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,5 +40,5 @@ float		getCurrentTime(void)
 		lTime = time(NULL);
 	gettimeofday(&t, NULL);
 
-	return (float)(time(NULL) - lTime) + (float)t.tv_usec / 1000000.0 - pausedTime;
+	return (float)(time(NULL) - lTime) + (float)t.tv_usec / 1000000.0 - pausedTime + added_time;
 }
